@@ -8,14 +8,18 @@ interface VideoCardProps {
   video: Video;
 }
 
+const MAX_TAGS = 4;
+
 export default function VideoCard({ video }: VideoCardProps) {
   const videoId = extractYouTubeId(video.youtube_url);
   const thumbnail = videoId ? getYouTubeThumbnail(videoId) : null;
+  const visibleParticipants = video.participants.slice(0, MAX_TAGS);
+  const hiddenCount = video.participants.length - MAX_TAGS;
 
   return (
-    <Link href={`/video/${video.id}`} className="block group">
+    <Link href={`/video/${video.id}`} className="block group h-full">
       <div
-        className="rounded-lg overflow-hidden border transition-transform duration-150 group-hover:-translate-y-0.5"
+        className="rounded-lg overflow-hidden border transition-transform duration-150 group-hover:-translate-y-0.5 h-full flex flex-col"
         style={{
           borderColor: '#e0e0e0',
           backgroundColor: '#ffffff',
@@ -47,7 +51,7 @@ export default function VideoCard({ video }: VideoCardProps) {
         </div>
 
         {/* 카드 정보 */}
-        <div className="p-2.5">
+        <div className="p-2.5 flex flex-col flex-grow">
           <p className="text-xs mb-1" style={{ color: '#B9B9B9' }}>
             {formatDate(video.date)}
           </p>
@@ -59,7 +63,7 @@ export default function VideoCard({ video }: VideoCardProps) {
           </p>
           {video.participants.length > 0 && (
             <div className="flex flex-wrap gap-1">
-              {video.participants.map((p) => (
+              {visibleParticipants.map((p) => (
                 <span
                   key={p}
                   className="text-xs px-1.5 py-0.5 rounded-full"
@@ -68,6 +72,14 @@ export default function VideoCard({ video }: VideoCardProps) {
                   #{p}
                 </span>
               ))}
+              {hiddenCount > 0 && (
+                <span
+                  className="text-xs px-1.5 py-0.5 rounded-full"
+                  style={{ backgroundColor: 'rgba(0,0,0,0.06)', color: '#B9B9B9' }}
+                >
+                  +{hiddenCount}
+                </span>
+              )}
             </div>
           )}
         </div>

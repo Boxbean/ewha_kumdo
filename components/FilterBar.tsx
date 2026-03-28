@@ -1,12 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-
-interface FilterChip {
-  label: string;
-  value: string;
-  type: 'angle' | 'participant' | 'reset';
-}
+import { useEffect, useRef, useState } from 'react';
 
 interface FilterBarProps {
   participants: string[];
@@ -14,9 +9,22 @@ interface FilterBarProps {
   currentParticipant?: string;
 }
 
+const ROW_H = 36; // h-7(28px) + gap-2(8px)
+
 export default function FilterBar({ participants, currentAngle, currentParticipant }: FilterBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [visibleRows, setVisibleRows] = useState(1);
+  const [totalRows, setTotalRows] = useState(1);
+
+  useEffect(() => {
+    if (!innerRef.current) return;
+    const h = innerRef.current.scrollHeight;
+    const rows = Math.max(1, Math.ceil(h / ROW_H));
+    setTotalRows(rows);
+    setVisibleRows(1);
+  }, [participants]);
 
   function buildUrl(params: Record<string, string | undefined>) {
     const p = new URLSearchParams(searchParams.toString());
@@ -27,84 +35,84 @@ export default function FilterBar({ participants, currentAngle, currentParticipa
     return `/?${p.toString()}`;
   }
 
-  const angles: FilterChip[] = ['전면', '후면', '기타'].map((a) => ({
-    label: a,
-    value: a,
-    type: 'angle',
-  }));
-
-  const participantChips: FilterChip[] = participants.map((p) => ({
-    label: `#${p}`,
-    value: p,
-    type: 'participant',
-  }));
-
   const isDefault = !currentAngle && !currentParticipant;
+  const showMore = visibleRows < totalRows;
+  const showLess = visibleRows > 1;
+
+  const chipStyle = (isActive: boolean) => ({
+    backgroundColor: isActive ? '#00462A' : 'transparent',
+    color: isActive ? '#ffffff' : '#374151',
+    borderColor: isActive ? '#00462A' : '#e0e0e0',
+  });
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
-      {/* 전체 */}
-      <button
-        onClick={() => router.push('/')}
-        className="flex-shrink-0 h-7 px-3 text-sm rounded-full border transition-colors"
-        style={{
-          backgroundColor: isDefault ? '#00462A' : 'transparent',
-          color: isDefault ? '#ffffff' : '#374151',
-          borderColor: isDefault ? '#00462A' : '#e0e0e0',
-        }}
-      >
-        전체
-      </button>
-
-      {/* 앵글 필터 */}
-      {angles.map((chip) => {
-        const isActive = currentAngle === chip.value;
-        return (
+    <div className="mb-4">
+      <div style={{ maxHeight: visibleRows * ROW_H, overflow: 'hidden', transition: 'max-height 0.2s ease' }}>
+        <div ref={innerRef} className="flex flex-wrap gap-2">
+          {/* 전체 */}
           <button
-            key={chip.value}
-            onClick={() =>
-              router.push(
-                isActive
-                  ? buildUrl({ angle: undefined })
-                  : buildUrl({ angle: chip.value })
-              )
-            }
+            onClick={() => router.push('/')}
             className="flex-shrink-0 h-7 px-3 text-sm rounded-full border transition-colors"
-            style={{
-              backgroundColor: isActive ? '#00462A' : 'transparent',
-              color: isActive ? '#ffffff' : '#374151',
-              borderColor: isActive ? '#00462A' : '#e0e0e0',
-            }}
+            style={chipStyle(isDefault)}
           >
-            {chip.label}
+            전체
           </button>
-        );
-      })}
 
-      {/* 참가자 필터 */}
-      {participantChips.map((chip) => {
-        const isActive = currentParticipant === chip.value;
-        return (
-          <button
-            key={chip.value}
-            onClick={() =>
-              router.push(
-                isActive
-                  ? buildUrl({ participant: undefined })
-                  : buildUrl({ participant: chip.value })
-              )
-            }
-            className="flex-shrink-0 h-7 px-3 text-sm rounded-full border transition-colors"
-            style={{
-              backgroundColor: isActive ? '#00462A' : 'transparent',
-              color: isActive ? '#ffffff' : '#374151',
-              borderColor: isActive ? '#00462A' : '#e0e0e0',
-            }}
-          >
-            {chip.label}
-          </button>
-        );
-      })}
+          {/* 앵글 필터 (전면/후면/기타 고정) */}
+          {(['전면', '후면', '기타'] as const).map((a) => {
+            const isActive = currentAngle === a;
+            return (
+              <button
+                key={a}
+                onClick={() => router.push(isActive ? buildUrl({ angle: undefined }) : buildUrl({ angle: a }))}
+                className="flex-shrink-0 h-7 px-3 text-sm rounded-full border transition-colors"
+                style={chipStyle(isActive)}
+              >
+                {a}
+              </button>
+            );
+          })}
+
+          {/* 참가자 필터 (최근 업로드순) */}
+          {participants.map((p) => {
+            const isActive = currentParticipant === p;
+            return (
+              <button
+                key={p}
+                onClick={() => router.push(isActive ? buildUrl({ participant: undefined }) : buildUrl({ participant: p }))}
+                className="flex-shrink-0 h-7 px-3 text-sm rounded-full border transition-colors"
+                style={chipStyle(isActive)}
+              >
+                #{p}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 더보기 / 접기 */}
+      {(showMore || showLess) && (
+        <div className="flex gap-3 mt-2">
+          {showMore && (
+            <button
+              onClick={() => setVisibleRows((v) => v + 1)}
+              className="text-xs"
+              style={{ color: '#00462A' }}
+            >
+              더보기 ▾
+            </button>
+          )}
+          {showLess && (
+            <button
+              onClick={() => setVisibleRows(1)}
+              className="text-xs"
+              style={{ color: '#B9B9B9' }}
+            >
+              접기 ▴
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

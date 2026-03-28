@@ -50,15 +50,24 @@ export default function HomeContent() {
     fetchVideos(0, false);
   }, [fetchVideos]);
 
-  // 참가자 목록 (전체) — 필터 칩용
+  // 참가자 목록 (전체) — 최근 업로드된 영상 기준 정렬
   useEffect(() => {
     fetch('/api/videos?limit=200')
       .then((r) => r.json())
       .then((json) => {
         const rows: Video[] = json.data || [];
-        const set = new Set<string>();
-        rows.forEach((v) => v.participants.forEach((p) => set.add(p)));
-        setAllParticipants(Array.from(set).sort());
+        const latestDate: Record<string, string> = {};
+        rows.forEach((v) => {
+          v.participants.forEach((p) => {
+            if (!latestDate[p] || v.date > latestDate[p]) {
+              latestDate[p] = v.date;
+            }
+          });
+        });
+        const sorted = Object.keys(latestDate).sort(
+          (a, b) => latestDate[b].localeCompare(latestDate[a])
+        );
+        setAllParticipants(sorted);
       });
   }, []);
 
