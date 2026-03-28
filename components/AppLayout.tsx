@@ -15,7 +15,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <>
       <Header onToggleSidebar={() => setSidebarOpen((v) => !v)} />
-      <Sidebar isOpen={sidebarOpen} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       {/* 모바일: margin 없음 / 데스크톱: 사이드바 너비만큼 margin */}
       <main
         className="pt-[52px] pb-16 md:pb-0 transition-all duration-200"
