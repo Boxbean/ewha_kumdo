@@ -1,0 +1,118 @@
+<h2>확정 레이아웃 — 최종 확인</h2>
+<p class="subtitle">사이드바+리스트 기본 + 상단 필터 + 햄버거 버튼 조합</p>
+
+<div class="mockup">
+  <div class="mockup-header">메인 페이지 (사이드바 열린 상태)</div>
+  <div class="mockup-body" style="padding:0;overflow:hidden;">
+
+    <!-- 상단 네비게이션 -->
+    <div style="background:#1a1a2e;color:white;padding:8px 12px;display:flex;align-items:center;gap:10px;font-size:11px;">
+      <span style="cursor:pointer;font-size:14px;">☰</span>
+      <span style="font-weight:700;">🥋 검도 영상 아카이브</span>
+      <div style="flex:1;background:rgba(255,255,255,0.15);border-radius:12px;padding:3px 10px;font-size:10px;color:rgba(255,255,255,0.6);">🔍 날짜, 이름, 태그 검색...</div>
+      <span style="font-size:10px;color:rgba(255,255,255,0.7);">📅 캘린더</span>
+    </div>
+
+    <!-- 상단 필터 바 (A형에서 가져옴) -->
+    <div style="background:#f8fafc;border-bottom:1px solid #e5e7eb;padding:6px 12px;display:flex;gap:6px;align-items:center;font-size:10px;flex-wrap:wrap;">
+      <span style="color:#6b7280;font-size:9px;font-weight:600;">필터:</span>
+      <span style="background:#e0e7ff;color:#4338ca;border-radius:12px;padding:2px 8px;">#홍길동 ✕</span>
+      <span style="background:#f3f4f6;border-radius:12px;padding:2px 8px;color:#374151;">2025년 3월</span>
+      <span style="background:#f3f4f6;border-radius:12px;padding:2px 8px;color:#374151;">정면</span>
+      <span style="background:#f3f4f6;border-radius:12px;padding:2px 8px;color:#374151;">+ 필터 추가</span>
+    </div>
+
+    <!-- 본문: 사이드바 + 리스트 -->
+    <div style="display:flex;min-height:190px;">
+
+      <!-- 사이드바 (열린 상태) -->
+      <div style="width:130px;background:#f9fafb;border-right:1px solid #e5e7eb;padding:8px;font-size:9px;flex-shrink:0;">
+        <div style="font-weight:700;margin-bottom:6px;font-size:10px;">📅 날짜</div>
+        <div style="background:#e0e7ff;color:#4338ca;border-radius:4px;padding:3px 6px;margin-bottom:2px;">2025-03-15 (2)</div>
+        <div style="padding:3px 6px;margin-bottom:2px;color:#6b7280;">2025-03-14 (1)</div>
+        <div style="padding:3px 6px;margin-bottom:2px;color:#6b7280;">2025-03-12 (2)</div>
+        <div style="padding:3px 6px;margin-bottom:2px;color:#6b7280;">2025-03-10 (2)</div>
+
+        <div style="font-weight:700;margin:8px 0 6px;font-size:10px;">🏷 참가자</div>
+        <div style="padding:2px 6px;color:#6b7280;">#홍길동</div>
+        <div style="padding:2px 6px;color:#6b7280;">#이순신</div>
+        <div style="padding:2px 6px;color:#6b7280;">#강감찬</div>
+      </div>
+
+      <!-- 영상 리스트 -->
+      <div style="flex:1;padding:10px;">
+        <div style="font-weight:700;font-size:11px;margin-bottom:8px;color:#1a1a2e;border-bottom:1px solid #e5e7eb;padding-bottom:5px;">
+          2025년 3월 15일 · 영상 2개
+        </div>
+
+        <!-- 페어 영상 묶음 -->
+        <div style="border:1px solid #e0e7ff;border-radius:6px;padding:7px;margin-bottom:8px;background:#fafafe;">
+          <div style="font-size:9px;color:#6366f1;font-weight:600;margin-bottom:5px;">📎 페어 영상 (같은 날)</div>
+          <div style="display:flex;gap:6px;margin-bottom:5px;">
+            <div style="background:#1a1a2e;width:64px;height:36px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;flex-shrink:0;">▶</div>
+            <div style="font-size:9px;">
+              <div style="font-weight:600;">정면 앵글</div>
+              <div style="color:#6b7280;">#홍길동 #이순신</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <div style="background:#374151;width:64px;height:36px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;flex-shrink:0;">▶</div>
+            <div style="font-size:9px;">
+              <div style="font-weight:600;">측면 앵글</div>
+              <div style="color:#6b7280;">#홍길동 #이순신</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-weight:700;font-size:11px;margin-bottom:8px;color:#1a1a2e;border-bottom:1px solid #e5e7eb;padding-bottom:5px;">
+          2025년 3월 14일 · 영상 1개
+        </div>
+        <div style="display:flex;gap:6px;">
+          <div style="background:#1a1a2e;width:64px;height:36px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;flex-shrink:0;">▶</div>
+          <div style="font-size:9px;">
+            <div style="font-weight:600;">정면 앵글</div>
+            <div style="color:#6b7280;">#홍길동</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:16px;"></div>
+
+<div class="mockup">
+  <div class="mockup-header">사이드바 접힌 상태 (☰ 클릭 후)</div>
+  <div class="mockup-body" style="padding:0;overflow:hidden;">
+    <div style="background:#1a1a2e;color:white;padding:8px 12px;display:flex;align-items:center;gap:10px;font-size:11px;">
+      <span style="cursor:pointer;font-size:14px;">☰</span>
+      <span style="font-weight:700;">🥋 검도 영상 아카이브</span>
+      <div style="flex:1;background:rgba(255,255,255,0.15);border-radius:12px;padding:3px 10px;font-size:10px;color:rgba(255,255,255,0.6);">🔍 날짜, 이름, 태그 검색...</div>
+      <span style="font-size:10px;color:rgba(255,255,255,0.7);">📅 캘린더</span>
+    </div>
+    <div style="background:#f8fafc;border-bottom:1px solid #e5e7eb;padding:6px 12px;display:flex;gap:6px;align-items:center;font-size:10px;">
+      <span style="color:#6b7280;font-size:9px;font-weight:600;">필터:</span>
+      <span style="background:#e0e7ff;color:#4338ca;border-radius:12px;padding:2px 8px;">#홍길동 ✕</span>
+      <span style="background:#f3f4f6;border-radius:12px;padding:2px 8px;color:#374151;">2025년 3월</span>
+      <span style="background:#f3f4f6;border-radius:12px;padding:2px 8px;color:#374151;">+ 필터 추가</span>
+    </div>
+    <div style="padding:10px;">
+      <div style="font-weight:700;font-size:11px;margin-bottom:8px;color:#1a1a2e;border-bottom:1px solid #e5e7eb;padding-bottom:5px;">2025년 3월 15일 · 영상 2개</div>
+      <div style="border:1px solid #e0e7ff;border-radius:6px;padding:7px;background:#fafafe;">
+        <div style="font-size:9px;color:#6366f1;font-weight:600;margin-bottom:5px;">📎 페어 영상 (같은 날)</div>
+        <div style="display:flex;gap:10px;">
+          <div style="text-align:center;">
+            <div style="background:#1a1a2e;width:80px;height:45px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;margin-bottom:3px;">▶</div>
+            <div style="font-size:9px;color:#374151;">정면</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="background:#374151;width:80px;height:45px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;margin-bottom:3px;">▶</div>
+            <div style="font-size:9px;color:#374151;">측면</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:12px;font-size:12px;color:#6b7280;">이 레이아웃으로 확정할까요? 터미널에서 답변해주세요.</p>
