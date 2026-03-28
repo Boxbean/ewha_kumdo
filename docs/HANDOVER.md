@@ -1,23 +1,45 @@
 # EWHA Kumdo — 세션 인수인계
 
-**작성일:** 2026-03-28
-**상태:** 구현 시작 전 (설계 100% 완료)
+**최초 작성:** 2026-03-28
+**최종 업데이트:** 2026-03-29
+**상태:** 구현 완료 + 배포 완료 + UI 개선 진행 중
 
 ---
 
 ## 새 세션에서 할 일
 
-**구현 계획 전체 실행.** 계획 파일을 읽고 Step 1부터 순서대로 진행:
+추가 UI 수정 요청이 들어오면 아래 파일을 수정하면 됩니다.
+코드 수정 후 반드시 `npm run build`로 빌드 확인 후 push.
 
+```bash
+cd C:/Users/User/kendo-video-app
+npm run build
+git add .
+git commit -m "수정 내용"
+git push
 ```
-docs/superpowers/plans/2026-03-28-ewha-kumdo.md
-```
+
+> Vercel은 GitHub push 시 자동 재배포됩니다.
+
+---
+
+## 현재 상태 요약
+
+| 항목 | 상태 |
+|------|------|
+| Next.js 앱 구현 | ✅ 완료 |
+| Supabase 테이블 + RLS | ✅ 완료 |
+| Vercel 배포 | ✅ 완료 (GitHub 연동, 자동 배포) |
+| 로컬 개발 환경 | ✅ `.env.local` 설정 완료 |
+| 홈 UI 개선 | ✅ 완료 (6종) |
+| 캘린더 UI 개선 | ✅ 완료 (5종) |
+| 캘린더 뱃지 버그 수정 | ✅ 완료 |
 
 ---
 
 ## 프로젝트 한 줄 요약
 
-이화여대 검도부 훈련 영상(비공개 YouTube 링크)을 중앙에서 관리하는 웹앱.
+이화여대 검도부 훈련 영상(YouTube 링크)을 중앙에서 관리하는 웹앱.
 날짜·앵글·참가자 기준 검색/분류. 관리자만 등록/수정/삭제 가능.
 
 ---
@@ -28,7 +50,16 @@ docs/superpowers/plans/2026-03-28-ewha-kumdo.md
 C:/Users/User/kendo-video-app/
 ```
 
-> ⚠️ `create-next-app`이 아직 실행되지 않았음. 현재 폴더에는 `docs/`만 존재.
+---
+
+## 인프라 정보
+
+| 항목 | 정보 |
+|------|------|
+| GitHub | `https://github.com/Boxbean/ewha_kumdo` (Private) |
+| Vercel | Boxbean 계정, ewha_kumdo 프로젝트 |
+| Supabase | ewha_kumdo 프로젝트 |
+| 환경변수 위치 | 로컬: `.env.local` / 배포: Vercel 환경변수 설정 |
 
 ---
 
@@ -59,17 +90,7 @@ Dark Grey:         #374151  (후면 앵글 배지)
 
 ---
 
-## 승인된 목업 파일
-
-| 파일 | 설명 |
-|------|------|
-| `.superpowers/brainstorm/6742-1774596063/content/layout-v4.html` | 데스크톱 홈 레이아웃 |
-| `.superpowers/brainstorm/6742-1774596063/content/mobile.html` | 모바일 레이아웃 |
-| `.superpowers/brainstorm/6742-1774596063/content/calendar.html` | 캘린더 페이지 |
-
----
-
-## DB 스키마 (Supabase에서 실행할 SQL)
+## DB 스키마
 
 ```sql
 create table videos (
@@ -85,26 +106,12 @@ create table videos (
 );
 create index on videos (date);
 create index on videos using gin (participants);
+
+-- RLS
+alter table videos enable row level security;
+create policy "public read" on videos for select using (true);
+create policy "public write" on videos for all using (true) with check (true);
 ```
-
----
-
-## 앵글 배지 색상 (캘린더 + 썸네일)
-
-| 앵글 | 색상 |
-|------|------|
-| 전면 | `#00462A` (Ewha Green) |
-| 후면 | `#374151` (진회색) |
-| 기타 | `#B9B9B9` (Ewha Grey) |
-
-같은 날 같은 앵글 영상이 N개면 배지 N개 반복 (×N 표기 아님).
-
----
-
-## 날짜 표시 형식
-
-DB에 `date` (YYYY-MM-DD) 저장 → 프론트엔드에서 `2025. 03. 20 (목)` 형식으로 출력.
-요일은 `new Date(dateStr).getDay()`로 계산.
 
 ---
 
@@ -121,12 +128,108 @@ DB에 `date` (YYYY-MM-DD) 저장 → 프론트엔드에서 `2025. 03. 20 (목)` 
 
 ---
 
+## 핵심 파일 구조
+
+```
+app/
+  page.tsx               홈 (서버 컴포넌트 shell)
+  HomeContent.tsx        홈 (클라이언트, 필터/페이지네이션)
+  calendar/page.tsx      캘린더
+  topic/page.tsx         주제별
+  participant/page.tsx   참가자별
+  video/[id]/page.tsx    영상 상세
+  admin/page.tsx         관리자
+  api/videos/route.ts    영상 목록/등록 API
+  api/videos/[id]/route.ts  영상 수정/삭제 API
+  api/videos/bulk/route.ts  CSV 대량 업로드 API
+  api/auth/route.ts      관리자 인증 API
+components/
+  Header.tsx             헤더 (햄버거/검색/로고)
+  Sidebar.tsx            데스크톱 사이드바
+  BottomNav.tsx          모바일 하단 탭
+  AppLayout.tsx          전체 레이아웃 래퍼
+  VideoCard.tsx          영상 카드
+  VideoGrid.tsx          카드 그리드
+  FilterBar.tsx          필터 칩 바
+  CalendarView.tsx       달력 UI
+  AngleBadge.tsx         앵글 배지
+  VideoForm.tsx          영상 등록 폼
+  AdminVideoList.tsx     관리자 영상 목록
+  CsvUpload.tsx          CSV 업로드
+  Pagination.tsx         더 불러오기 버튼
+lib/
+  supabase.ts            Supabase 클라이언트
+  types.ts               TypeScript 타입
+  utils.ts               날짜 포맷, YouTube ID 추출
+```
+
+---
+
+## 중요 구현 패턴 (버그 방지용)
+
+### 1. 서버 컴포넌트는 반드시 getSupabase() 사용
+모듈 레벨 싱글톤 `supabase`는 빌드 시점에 placeholder URL로 초기화될 수 있음.
+서버 컴포넌트(page.tsx)에서는 반드시 `getSupabase()`로 매 요청마다 fresh 클라이언트 생성.
+
+```ts
+// ❌ 서버 컴포넌트에서 잘못된 사용
+import { supabase } from '@/lib/supabase';
+
+// ✅ 서버 컴포넌트에서 올바른 사용
+import { getSupabase } from '@/lib/supabase';
+const supabase = getSupabase();
+```
+
+API 라우트(`app/api/`)는 `supabase` 싱글톤 그대로 사용해도 됨.
+
+### 2. 서버 컴포넌트에 force-dynamic 필수
+Supabase 호출이 있는 서버 컴포넌트 최상단에 반드시 추가:
+
+```ts
+export const dynamic = 'force-dynamic';
+```
+
+### 3. 날짜 비교 시 slice(0, 10) 정규화
+
+```ts
+const key = v.date.slice(0, 10); // "2026-03-28T00:00:00" 방어
+```
+
+### 4. 캐시 삭제 방법 (Windows)
+빌드 오류 시 `.next` 캐시 삭제:
+
+```powershell
+Remove-Item -Recurse -Force .next
+npm run dev
+```
+
+---
+
+## 이번 세션에서 완료한 UI 개선
+
+### 홈 화면 (6종)
+1. 참가자 태그 최대 4개 + `+N` 배지 — `VideoCard.tsx`
+2. 카드 높이 균일 고정 (`h-full flex flex-col`) — `VideoCard.tsx`
+3. 검색 아이콘 → 흰색 SVG 돋보기 — `Header.tsx`
+4. 햄버거 메뉴 → 동일 두께 3줄 — `Header.tsx`
+5. 참가자 태그 최근 업로드 날짜순 정렬 — `HomeContent.tsx`
+6. 태그 줄넘침 시 `더보기 ▾` / `접기 ▴` — `FilterBar.tsx`
+
+### 캘린더 화면 (5종)
+1. 제목 `캘린더 보기` → `CALENDAR` — `calendar/page.tsx`
+2. 년/월 클릭 시 월 선택 팝업 — `CalendarView.tsx`
+3. 년/월 배경 이화그린 + 베이지 텍스트 pill — `CalendarView.tsx`
+4. 전면/후면/기타 인덱스 삭제 — `CalendarView.tsx`
+5. 셀 크기 90px 고정, 잉여 행 제거 — `CalendarView.tsx`
+
+---
+
 ## 관리자 페이지 기능
 
 1. 비밀번호 게이트 (POST `/api/auth` → `ADMIN_PASSWORD` 환경변수와 비교)
 2. 단건 등록 폼 (URL, 날짜, 앵글, 참가자 태그, 제목, 주제)
 3. CSV 대량 업로드 (컬럼: `youtube_url, date, angle, participants, title, topic`)
-4. 영상 목록 + 수정/삭제 버튼
+4. 영상 목록 50개씩 페이지네이션 + 수정/삭제
 
 ---
 
@@ -134,4 +237,5 @@ DB에 `date` (YYYY-MM-DD) 저장 → 프론트엔드에서 `2025. 03. 20 (목)` 
 
 ```
 docs/superpowers/specs/2026-03-27-ewha-kumdo-design.md
+docs/superpowers/plans/2026-03-28-ewha-kumdo.md
 ```

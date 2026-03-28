@@ -1,7 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-// 빌드 타임에 환경변수가 없을 경우 플레이스홀더 사용 (실제 요청 시 env가 주입됨)
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
-);
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
+
+// 서버 컴포넌트/API 라우트에서 매 요청마다 신선한 클라이언트 반환
+export function getSupabase() {
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+// 하위 호환 — 클라이언트 컴포넌트용 싱글톤 (브라우저에서만 사용)
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

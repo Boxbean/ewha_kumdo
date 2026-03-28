@@ -2,10 +2,11 @@ export const dynamic = 'force-dynamic';
 
 import AppLayout from '@/components/AppLayout';
 import VideoGrid from '@/components/VideoGrid';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 import { Video } from '@/lib/types';
 
 export default async function ParticipantPage() {
+  const supabase = getSupabase();
   const { data } = await supabase
     .from('videos')
     .select('*')

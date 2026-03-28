@@ -5,7 +5,7 @@ import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
 import AngleBadge from '@/components/AngleBadge';
 import VideoCard from '@/components/VideoCard';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 import { Video } from '@/lib/types';
 import { extractYouTubeId, formatDate } from '@/lib/utils';
 
@@ -14,6 +14,7 @@ interface Props {
 }
 
 export default async function VideoDetailPage({ params }: Props) {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from('videos')
     .select('*')
