@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Video, Angle } from '@/lib/types';
 import { extractYouTubeId } from '@/lib/utils';
 
@@ -13,6 +14,7 @@ interface VideoFormProps {
 const ANGLES: Angle[] = ['전면', '후면', '기타'];
 
 export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormProps) {
+  const router = useRouter();
   const isEdit = !!initial?.id;
 
   const [youtubeUrl, setYoutubeUrl] = useState(initial?.youtube_url || '');
@@ -25,12 +27,30 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
   const [uploader, setUploader] = useState(initial?.uploader || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [resultStatus, setResultStatus] = useState<null | 'success' | 'error'>(null);
+  const [apiError, setApiError] = useState('');
+
+  function resetForm() {
+    setYoutubeUrl('');
+    setTitle('');
+    setDate('');
+    setAngle('전면');
+    setParticipantInput('');
+    setParticipants([]);
+    setTopic('');
+    setUploader('');
+    setError('');
+    setApiError('');
+    setResultStatus(null);
+  }
 
   function addParticipant() {
-    const p = participantInput.trim();
-    if (p && !participants.includes(p)) {
-      setParticipants((prev) => [...prev, p]);
-    }
+    const parts = participantInput.split(',').map((s) => s.trim()).filter(Boolean);
+    setParticipants((prev) => {
+      const next = [...prev];
+      parts.forEach((p) => { if (!next.includes(p)) next.push(p); });
+      return next;
+    });
     setParticipantInput('');
   }
 
@@ -41,7 +61,6 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    // YouTube URL 유효성 검사
     if (!extractYouTubeId(youtubeUrl)) {
       setError('YouTube URL 형식이 올바르지 않습니다. (예: https://youtu.be/xxx 또는 https://www.youtube.com/watch?v=xxx)');
       return;
@@ -59,11 +78,72 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || '오류 발생');
       onSuccess();
+      setResultStatus('success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '오류 발생');
+      setApiError(err instanceof Error ? err.message : '오류 발생');
+      setResultStatus('error');
     } finally {
       setLoading(false);
     }
+  }
+
+  // 성공 결과 화면
+  if (resultStatus === 'success') {
+    return (
+      <div className="flex flex-col items-center py-10 gap-5 text-center">
+        <div>
+          <div className="text-3xl mb-2" style={{ color: '#00462A' }}>✓</div>
+          <h3 className="text-lg font-bold" style={{ color: '#00462A' }}>등록 완료!</h3>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={resetForm}
+            className="h-9 px-5 text-sm font-semibold rounded text-white"
+            style={{ backgroundColor: '#00462A' }}
+          >
+            다른 영상 등록하기
+          </button>
+          <button
+            onClick={() => router.push('/')}
+            className="h-9 px-4 text-sm rounded border"
+            style={{ borderColor: '#e0e0e0', color: '#374151' }}
+          >
+            전체 영상 보기
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 실패 결과 화면
+  if (resultStatus === 'error') {
+    return (
+      <div className="flex flex-col items-center py-10 gap-5 text-center">
+        <div>
+          <div className="text-3xl mb-2 text-red-400">✗</div>
+          <h3 className="text-lg font-bold text-red-500">문제가 발생했습니다</h3>
+          {apiError && (
+            <p className="text-xs mt-2" style={{ color: '#B9B9B9' }}>{apiError}</p>
+          )}
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setResultStatus(null)}
+            className="h-9 px-5 text-sm font-semibold rounded text-white"
+            style={{ backgroundColor: '#00462A' }}
+          >
+            다시 시도하기
+          </button>
+          <button
+            onClick={() => onCancel ? onCancel() : router.push('/')}
+            className="h-9 px-4 text-sm rounded border"
+            style={{ borderColor: '#e0e0e0', color: '#374151' }}
+          >
+            나가기
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -181,7 +261,7 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          placeholder="예: 기본기, 품새..."
+          placeholder="기본기, 연습대련, 본, 시합..."
           className="w-full h-9 px-3 text-sm rounded border focus:outline-none"
           style={{ borderColor: '#e0e0e0' }}
         />

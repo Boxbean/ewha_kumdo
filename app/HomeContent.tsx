@@ -18,7 +18,7 @@ export default function HomeContent() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [allParticipants, setAllParticipants] = useState<string[]>([]);
 
   const fetchVideos = useCallback(
@@ -52,10 +52,10 @@ export default function HomeContent() {
 
   // 참가자 목록 (전체) — 최근 업로드된 영상 기준 정렬
   useEffect(() => {
-    fetch('/api/videos?limit=200')
+    fetch('/api/participants')
       .then((r) => r.json())
       .then((json) => {
-        const rows: Video[] = json.data || [];
+        const rows: Pick<Video, 'participants' | 'date'>[] = json.data || [];
         const latestDate: Record<string, string> = {};
         rows.forEach((v) => {
           v.participants.forEach((p) => {
@@ -91,7 +91,13 @@ export default function HomeContent() {
           &ldquo;<strong>{search}</strong>&rdquo; 검색 결과 — {total}개
         </p>
       )}
-      <VideoGrid videos={videos} />
+      {loading && videos.length === 0 ? (
+        <p className="py-12 text-center text-sm tracking-widest select-none" style={{ color: '#00462A', fontFamily: "'Pretendard', sans-serif" }}>
+          Loading... : ▮▮▮▮▮▮▯▯▯
+        </p>
+      ) : (
+        <VideoGrid videos={videos} />
+      )}
       <Pagination hasMore={hasMore} onLoadMore={handleLoadMore} loading={loading} />
     </div>
   );

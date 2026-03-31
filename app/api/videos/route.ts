@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from('videos')
-    .select('*', { count: 'exact' })
+    .select('*', { count: 'estimated' })
     .order('date', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -38,7 +38,9 @@ export async function GET(req: NextRequest) {
 
   const { data, error, count } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data, count });
+  return NextResponse.json({ data, count }, {
+    headers: { 'Cache-Control': 'private, max-age=30' },
+  });
 }
 
 export async function POST(req: NextRequest) {

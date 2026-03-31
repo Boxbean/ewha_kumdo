@@ -6,6 +6,8 @@ import AdminLogin from '@/components/AdminLogin';
 import VideoForm from '@/components/VideoForm';
 import CsvUpload from '@/components/CsvUpload';
 import AdminVideoList from '@/components/AdminVideoList';
+import { supabase } from '@/lib/supabase';
+import { Video } from '@/lib/types';
 
 type Tab = 'register' | 'csv' | 'list';
 
@@ -14,11 +16,20 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>('register');
   const [refreshKey, setRefreshKey] = useState(0);
   const [successMsg, setSuccessMsg] = useState('');
+  const [editVideo, setEditVideo] = useState<Video | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (sessionStorage.getItem('admin_auth') === '1') {
       setIsAuthenticated(true);
+      const editId = sessionStorage.getItem('admin_edit_id');
+      if (editId) {
+        sessionStorage.removeItem('admin_edit_id');
+        supabase.from('videos').select('*').eq('id', editId).single()
+          .then(({ data }) => {
+            if (data) { setEditVideo(data as Video); setTab('register'); }
+          });
+      }
     }
   }, []);
 
@@ -96,13 +107,16 @@ export default function AdminPage() {
             style={{ backgroundColor: '#ffffff', border: '1px solid #e0e0e0' }}
           >
             <h2 className="text-base font-bold mb-4" style={{ color: '#374151' }}>
-              영상 등록
+              영상 {editVideo ? '수정' : '등록'}
             </h2>
             <VideoForm
+              initial={editVideo || undefined}
               onSuccess={() => {
                 setRefreshKey((k) => k + 1);
-                showSuccess('영상이 등록되었습니다.');
+                setEditVideo(null);
+                showSuccess(editVideo ? '영상이 수정되었습니다.' : '영상이 등록되었습니다.');
               }}
+              onCancel={editVideo ? () => setEditVideo(null) : undefined}
             />
           </div>
         )}

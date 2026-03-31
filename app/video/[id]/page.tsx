@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
 import AngleBadge from '@/components/AngleBadge';
+import EditButton from '@/components/EditButton';
 import VideoCard from '@/components/VideoCard';
 import { getSupabase } from '@/lib/supabase';
 import { Video } from '@/lib/types';
@@ -67,11 +68,14 @@ export default async function VideoDetailPage({ params }: Props) {
           className="rounded-lg p-4 mb-4"
           style={{ backgroundColor: '#ffffff', border: '1px solid #e0e0e0' }}
         >
-          <div className="flex items-start gap-2 mb-2">
-            <AngleBadge angle={video.angle} />
-            <h1 className="text-lg font-bold leading-snug" style={{ color: '#111111' }}>
-              {video.title}
-            </h1>
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex items-start gap-2 flex-1">
+              <AngleBadge angle={video.angle} />
+              <h1 className="text-lg font-bold leading-snug" style={{ color: '#111111' }}>
+                {video.title}
+              </h1>
+            </div>
+            <EditButton videoId={video.id} />
           </div>
 
           <p className="text-sm mb-2" style={{ color: '#B9B9B9' }}>

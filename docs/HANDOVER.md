@@ -1,25 +1,108 @@
 # EWHA Kumdo — 세션 인수인계
 
 **최초 작성:** 2026-03-28
-**최종 업데이트:** 2026-03-29
-**상태:** 구현 완료 + 배포 완료 + UI 개선 진행 중
+**최종 업데이트:** 2026-03-31
+**상태:** 구현 완료 + 배포 완료 + 성능 최적화 예정
 
 ---
 
 ## 새 세션에서 할 일
 
-추가 UI 수정 요청이 들어오면 아래 파일을 수정하면 됩니다.
-코드 수정 후 반드시 `npm run build`로 빌드 확인 후 push.
+### ⚡ 다음 작업: 성능 최적화 (4개 항목)
+
+아래 순서대로 진행. 각 항목 완료 후 `npm run build` 확인.
+
+---
+
+#### ① 참가자 전용 경량 API 추가 — `app/api/participants/route.ts` (신규) + `HomeContent.tsx`
+
+**문제:** `HomeContent.tsx`가 마운트 시 `/api/videos?limit=200`을 호출해 200개 전체 레코드를 가져오지만, 실제로는 `participants`와 `date` 두 컬럼만 사용함.
+
+**해결:** 전용 엔드포인트 `/api/participants`를 만들어 `select('id, participants, date')`만 조회.
+
+```ts
+// app/api/participants/route.ts
+import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
+
+export async function GET() {
+  const { data, error } = await supabase
+    .from('videos')
+    .select('participants, date')
+    .order('date', { ascending: false });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ data }, {
+    headers: { 'Cache-Control': 'private, max-age=30' },
+  });
+}
+```
+
+`HomeContent.tsx`의 두 번째 fetch를 `/api/participants`로 교체.
+
+---
+
+#### ② API 응답 캐싱 — `app/api/videos/route.ts`
+
+**문제:** 응답에 `Cache-Control` 헤더 없음 → 재방문 시에도 매번 DB 쿼리 발생.
+
+**해결:** GET 핸들러 응답에 헤더 추가. `s-maxage`(CDN 캐시)는 등록 즉시 반영이 안 될 수 있으므로 `private`(브라우저 캐시)만 적용.
+
+```ts
+return NextResponse.json({ data, count }, {
+  headers: { 'Cache-Control': 'private, max-age=30' },
+});
+```
+
+---
+
+#### ③ `count: 'estimated'` 전환 — `app/api/videos/route.ts`
+
+**문제:** `count: 'exact'`는 Supabase에서 full COUNT(*) 실행 → 느림.
+
+**해결:** 한 단어 변경.
+
+```ts
+// 변경 전
+.select('*', { count: 'exact' })
+
+// 변경 후
+.select('*', { count: 'estimated' })
+```
+
+> 오차 1~5개 가능하지만 현재 영상 수 규모에서 실질적 문제 없음.
+
+---
+
+#### ④ 썸네일 `sizes` prop 추가 — `components/VideoCard.tsx`
+
+**문제:** `unoptimized={true}`로 WebP 변환·리사이즈 비활성화 상태.
+
+**결정:** Vercel Hobby 플랜 이미지 최적화 한도(월 1,000회) 고려해 `unoptimized` 유지.
+대신 `sizes` prop만 추가해 브라우저가 뷰포트에 맞는 크기를 올바르게 선택하도록 힌트 제공.
+
+```tsx
+<Image
+  src={thumbnail}
+  alt={video.title}
+  fill
+  sizes="(max-width: 640px) 50vw, 25vw"
+  className="object-cover"
+  unoptimized
+/>
+```
+
+---
+
+### 작업 완료 후
 
 ```bash
 cd C:/Users/User/kendo-video-app
 npm run build
-git add .
-git commit -m "수정 내용"
-git push
+# 빌드 확인 후 직접 push
 ```
 
-> Vercel은 GitHub push 시 자동 재배포됩니다.
+> git push 및 Vercel 배포는 사용자가 터미널에서 직접 처리.
 
 ---
 
@@ -34,6 +117,11 @@ git push
 | 홈 UI 개선 | ✅ 완료 (6종) |
 | 캘린더 UI 개선 | ✅ 완료 (5종) |
 | 캘린더 뱃지 버그 수정 | ✅ 완료 |
+| 햄버거 메뉴 (모바일 오버레이) | ✅ 완료 |
+| 영상 등록 결과 화면 | ✅ 완료 (등록완료 / 문제발생 분기) |
+| 영상 상세 → 수정하기 버튼 | ✅ 완료 (관리자 인증 후 편집 진입) |
+| 홈 로딩 텍스트 | ✅ 완료 (`ʟᴏᴀᴅɪɴɢ` 정적 텍스트) |
+| 성능 최적화 | ⏳ 예정 (다음 세션) |
 
 ---
 
