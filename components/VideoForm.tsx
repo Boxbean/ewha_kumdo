@@ -29,6 +29,7 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
   const [error, setError] = useState('');
   const [resultStatus, setResultStatus] = useState<null | 'success' | 'error'>(null);
   const [apiError, setApiError] = useState('');
+  const [fetchingInfo, setFetchingInfo] = useState(false);
 
   function resetForm() {
     setYoutubeUrl('');
@@ -44,13 +45,41 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
     setResultStatus(null);
   }
 
+  async function fetchVideoInfo() {
+    const videoId = extractYouTubeId(youtubeUrl);
+    if (!videoId) return;
+    setFetchingInfo(true);
+    try {
+      const res = await fetch(`/api/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      const rawTitle: string = json.title || '';
+      setTitle(rawTitle);
+      const dashIdx = rawTitle.indexOf(' - ');
+      if (dashIdx !== -1) {
+        const names = rawTitle.slice(dashIdx + 3).trim().split(' ').map((s: string) => s.trim()).filter(Boolean);
+        if (names.length > 0) {
+          setParticipants((prev) => {
+            const next = [...prev];
+            names.forEach((n: string) => { if (!next.includes(n)) next.push(n); });
+            return next;
+          });
+        }
+      }
+    } catch {
+      // 실패 시 무시 — 사용자가 직접 입력
+    } finally {
+      setFetchingInfo(false);
+    }
+  }
+
   function fillAutoComplete() {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yy = String(yesterday.getFullYear()).slice(2);
     const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
     const dd = String(yesterday.getDate()).padStart(2, '0');
-    setTitle(`${yy}${mm}${dd}코오롱스포렉스 저녁반`);
+    setTitle(`${yy}${mm}${dd} 저녁운동`);
     setDate(`${yesterday.getFullYear()}-${mm}-${dd}`);
     setAngle('후면');
   }
@@ -175,15 +204,23 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
         <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
           YouTube URL *
         </label>
-        <input
-          type="text"
-          value={youtubeUrl}
-          onChange={(e) => setYoutubeUrl(e.target.value)}
-          required
-          placeholder="https://youtu.be/..."
-          className="w-full h-9 px-3 text-sm rounded border focus:outline-none"
-          style={{ borderColor: '#e0e0e0' }}
-        />
+        <div className="relative">
+          <input
+            type="text"
+            value={youtubeUrl}
+            onChange={(e) => setYoutubeUrl(e.target.value)}
+            onBlur={fetchVideoInfo}
+            required
+            placeholder="https://youtu.be/..."
+            className="w-full h-9 px-3 text-sm rounded border focus:outline-none"
+            style={{ borderColor: '#e0e0e0' }}
+          />
+          {fetchingInfo && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#B9B9B9' }}>
+              불러오는 중…
+            </span>
+          )}
+        </div>
       </div>
 
       <div>
