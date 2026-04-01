@@ -44,6 +44,17 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
     setResultStatus(null);
   }
 
+  function fillAutoComplete() {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yy = String(yesterday.getFullYear()).slice(2);
+    const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
+    const dd = String(yesterday.getDate()).padStart(2, '0');
+    setTitle(`${yy}${mm}${dd}코오롱스포렉스 저녁반`);
+    setDate(`${yesterday.getFullYear()}-${mm}-${dd}`);
+    setAngle('후면');
+  }
+
   function addParticipant() {
     const parts = participantInput.split(',').map((s) => s.trim()).filter(Boolean);
     setParticipants((prev) => {
@@ -148,6 +159,18 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
+      {!isEdit && (
+        <div>
+          <button
+            type="button"
+            onClick={fillAutoComplete}
+            className="h-8 px-3 text-xs rounded border"
+            style={{ borderColor: '#00462A', color: '#00462A' }}
+          >
+            자동완성
+          </button>
+        </div>
+      )}
       <div>
         <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
           YouTube URL *
@@ -177,34 +200,40 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
         />
       </div>
 
-      <div className="flex gap-3">
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-            날짜 *
-          </label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            className="w-full h-9 px-3 text-sm rounded border focus:outline-none"
-            style={{ borderColor: '#e0e0e0' }}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-            앵글 *
-          </label>
-          <select
-            value={angle}
-            onChange={(e) => setAngle(e.target.value as Angle)}
-            className="h-9 px-3 text-sm rounded border focus:outline-none"
-            style={{ borderColor: '#e0e0e0' }}
-          >
-            {ANGLES.map((a) => (
-              <option key={a} value={a}>{a}</option>
-            ))}
-          </select>
+      <div>
+        <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
+          날짜 *
+        </label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          required
+          className="w-full h-9 px-3 text-sm rounded border focus:outline-none"
+          style={{ borderColor: '#e0e0e0' }}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
+          앵글 *
+        </label>
+        <div className="flex gap-2">
+          {ANGLES.map((a) => (
+            <button
+              key={a}
+              type="button"
+              onClick={() => setAngle(a)}
+              className="flex-1 h-9 text-sm rounded border font-medium"
+              style={
+                angle === a
+                  ? { backgroundColor: '#00462A', borderColor: '#00462A', color: '#fff' }
+                  : { borderColor: '#e0e0e0', color: '#374151', backgroundColor: '#fff' }
+              }
+            >
+              {a}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -225,7 +254,7 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
           <button
             type="button"
             onClick={addParticipant}
-            className="h-9 px-3 text-sm rounded border"
+            className="h-9 px-3 text-sm rounded border shrink-0 whitespace-nowrap"
             style={{ borderColor: '#00462A', color: '#00462A' }}
           >
             추가

@@ -1,108 +1,14 @@
 # EWHA Kumdo — 세션 인수인계
 
 **최초 작성:** 2026-03-28
-**최종 업데이트:** 2026-03-31
-**상태:** 구현 완료 + 배포 완료 + 성능 최적화 예정
+**최종 업데이트:** 2026-04-01
+**상태:** 구현 완료 + 배포 완료 + 성능 최적화 완료 + UI 아이콘 교체 완료
 
 ---
 
 ## 새 세션에서 할 일
 
-### ⚡ 다음 작업: 성능 최적화 (4개 항목)
-
-아래 순서대로 진행. 각 항목 완료 후 `npm run build` 확인.
-
----
-
-#### ① 참가자 전용 경량 API 추가 — `app/api/participants/route.ts` (신규) + `HomeContent.tsx`
-
-**문제:** `HomeContent.tsx`가 마운트 시 `/api/videos?limit=200`을 호출해 200개 전체 레코드를 가져오지만, 실제로는 `participants`와 `date` 두 컬럼만 사용함.
-
-**해결:** 전용 엔드포인트 `/api/participants`를 만들어 `select('id, participants, date')`만 조회.
-
-```ts
-// app/api/participants/route.ts
-import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-
-export async function GET() {
-  const { data, error } = await supabase
-    .from('videos')
-    .select('participants, date')
-    .order('date', { ascending: false });
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data }, {
-    headers: { 'Cache-Control': 'private, max-age=30' },
-  });
-}
-```
-
-`HomeContent.tsx`의 두 번째 fetch를 `/api/participants`로 교체.
-
----
-
-#### ② API 응답 캐싱 — `app/api/videos/route.ts`
-
-**문제:** 응답에 `Cache-Control` 헤더 없음 → 재방문 시에도 매번 DB 쿼리 발생.
-
-**해결:** GET 핸들러 응답에 헤더 추가. `s-maxage`(CDN 캐시)는 등록 즉시 반영이 안 될 수 있으므로 `private`(브라우저 캐시)만 적용.
-
-```ts
-return NextResponse.json({ data, count }, {
-  headers: { 'Cache-Control': 'private, max-age=30' },
-});
-```
-
----
-
-#### ③ `count: 'estimated'` 전환 — `app/api/videos/route.ts`
-
-**문제:** `count: 'exact'`는 Supabase에서 full COUNT(*) 실행 → 느림.
-
-**해결:** 한 단어 변경.
-
-```ts
-// 변경 전
-.select('*', { count: 'exact' })
-
-// 변경 후
-.select('*', { count: 'estimated' })
-```
-
-> 오차 1~5개 가능하지만 현재 영상 수 규모에서 실질적 문제 없음.
-
----
-
-#### ④ 썸네일 `sizes` prop 추가 — `components/VideoCard.tsx`
-
-**문제:** `unoptimized={true}`로 WebP 변환·리사이즈 비활성화 상태.
-
-**결정:** Vercel Hobby 플랜 이미지 최적화 한도(월 1,000회) 고려해 `unoptimized` 유지.
-대신 `sizes` prop만 추가해 브라우저가 뷰포트에 맞는 크기를 올바르게 선택하도록 힌트 제공.
-
-```tsx
-<Image
-  src={thumbnail}
-  alt={video.title}
-  fill
-  sizes="(max-width: 640px) 50vw, 25vw"
-  className="object-cover"
-  unoptimized
-/>
-```
-
----
-
-### 작업 완료 후
-
-```bash
-cd C:/Users/User/kendo-video-app
-npm run build
-# 빌드 확인 후 직접 push
-```
-
-> git push 및 Vercel 배포는 사용자가 터미널에서 직접 처리.
+현재 예정된 작업 없음. 기능 요청 또는 버그 발생 시 추가.
 
 ---
 
@@ -121,7 +27,41 @@ npm run build
 | 영상 등록 결과 화면 | ✅ 완료 (등록완료 / 문제발생 분기) |
 | 영상 상세 → 수정하기 버튼 | ✅ 완료 (관리자 인증 후 편집 진입) |
 | 홈 로딩 텍스트 | ✅ 완료 (`ʟᴏᴀᴅɪɴɢ` 정적 텍스트) |
-| 성능 최적화 | ⏳ 예정 (다음 세션) |
+| 성능 최적화 (4개 항목) | ✅ 완료 (2026-04-01) |
+| 네비게이션 아이콘 교체 | ✅ 완료 (2026-04-01) |
+
+---
+
+## 최근 세션 완료 작업 (2026-04-01)
+
+### 성능 최적화 4개 항목
+
+#### ① 참가자 전용 경량 API — `app/api/participants/route.ts` (신규)
+- **배경:** `HomeContent.tsx`가 참가자 목록 구성을 위해 `/api/videos?limit=200`으로 200개 전체 레코드를 가져오던 것을 분리
+- **변경:** `app/api/participants/route.ts` 신규 생성, `select('participants, date')`만 조회
+- **연관 변경:** `HomeContent.tsx`의 fetch URL을 `/api/participants`로 교체
+- Cache-Control: `private, max-age=30`
+
+#### ② API 응답 캐싱 — `app/api/videos/route.ts`
+- GET 핸들러 응답에 `Cache-Control: private, max-age=30` 헤더 추가
+- 재방문 시 브라우저 캐시 활용, DB 쿼리 감소
+
+#### ③ `count: 'estimated'` 전환 — `app/api/videos/route.ts`
+- `.select('*', { count: 'exact' })` → `.select('*', { count: 'estimated' })`
+- full COUNT(*) 제거. 오차 1~5개 허용 (현재 영상 수 규모에서 실질적 문제 없음)
+
+#### ④ 썸네일 `sizes` prop 추가 — `components/VideoCard.tsx`
+- `unoptimized` 유지 (Vercel Hobby 이미지 최적화 한도 고려)
+- `sizes="(max-width: 640px) 50vw, 25vw"` 추가로 브라우저 뷰포트 힌트 제공
+
+### 네비게이션 아이콘 교체
+
+- **배경:** `🏠 📅 📚 👤` 이모지가 OS/기기마다 다르게 렌더링되고 사이트 무드와 불일치
+- **결정:** 인라인 SVG stroke 방식 (strokeWidth 1.8, currentColor) — 기존 `Header.tsx` 검색 아이콘과 동일한 방식
+- **변경 파일:**
+  - `components/Sidebar.tsx` — size 16px, 4종 SVG 컴포넌트 (IconHome / IconCalendar / IconBook / IconUsers)
+  - `components/BottomNav.tsx` — size 20px, 동일 4종
+- **장점:** `stroke="currentColor"` 덕분에 active(`#00462A`) / inactive(`#B9B9B9`, `#374151`) 색상 전환이 기존 로직 그대로 동작
 
 ---
 
@@ -162,6 +102,8 @@ C:/Users/User/kendo-video-app/
 | YouTube | URL 수동 입력 (API 없음), 썸네일은 `img.youtube.com` 직접 로드 |
 | 배포 | Vercel Hobby 무료 |
 | 뷰어 접근 | 링크만 알면 누구나 (로그인 없음) |
+| 이미지 최적화 | `unoptimized` 유지 (Hobby 플랜 월 1,000회 한도) |
+| 네비게이션 아이콘 | 인라인 SVG stroke (strokeWidth 1.8, currentColor) — 패키지 없음 |
 
 ---
 
@@ -227,16 +169,17 @@ app/
   participant/page.tsx   참가자별
   video/[id]/page.tsx    영상 상세
   admin/page.tsx         관리자
-  api/videos/route.ts    영상 목록/등록 API
+  api/videos/route.ts    영상 목록/등록 API (캐싱 + estimated count 적용)
   api/videos/[id]/route.ts  영상 수정/삭제 API
   api/videos/bulk/route.ts  CSV 대량 업로드 API
+  api/participants/route.ts 참가자 목록 경량 API (신규)
   api/auth/route.ts      관리자 인증 API
 components/
   Header.tsx             헤더 (햄버거/검색/로고)
-  Sidebar.tsx            데스크톱 사이드바
-  BottomNav.tsx          모바일 하단 탭
+  Sidebar.tsx            데스크톱 사이드바 (인라인 SVG 아이콘)
+  BottomNav.tsx          모바일 하단 탭 (인라인 SVG 아이콘)
   AppLayout.tsx          전체 레이아웃 래퍼
-  VideoCard.tsx          영상 카드
+  VideoCard.tsx          영상 카드 (sizes prop 적용)
   VideoGrid.tsx          카드 그리드
   FilterBar.tsx          필터 칩 바
   CalendarView.tsx       달력 UI
@@ -283,7 +226,22 @@ export const dynamic = 'force-dynamic';
 const key = v.date.slice(0, 10); // "2026-03-28T00:00:00" 방어
 ```
 
-### 4. 캐시 삭제 방법 (Windows)
+### 4. SVG 아이콘 추가 시 패턴
+새 아이콘이 필요하면 `Sidebar.tsx` / `BottomNav.tsx`의 기존 함수 형태를 그대로 복사해서 추가.
+`stroke="currentColor"`를 반드시 유지해야 active/inactive 색상 자동 전환이 동작함.
+
+```tsx
+function IconExample() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {/* path here */}
+    </svg>
+  );
+}
+```
+
+### 5. 캐시 삭제 방법 (Windows)
 빌드 오류 시 `.next` 캐시 삭제:
 
 ```powershell
@@ -293,7 +251,7 @@ npm run dev
 
 ---
 
-## 이번 세션에서 완료한 UI 개선
+## 누적 UI 개선 이력
 
 ### 홈 화면 (6종)
 1. 참가자 태그 최대 4개 + `+N` 배지 — `VideoCard.tsx`
