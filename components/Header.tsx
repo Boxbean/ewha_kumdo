@@ -90,6 +90,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
               setTimeout(() => window.dispatchEvent(new Event('restart-tutorial')), 350);
             }
           }}
+          id="tour-help-btn"
           className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded border text-sm font-bold hover:bg-white/20"
           style={{ borderColor: 'rgba(255,255,255,0.5)', color: '#ffffff' }}
           aria-label="튜토리얼"

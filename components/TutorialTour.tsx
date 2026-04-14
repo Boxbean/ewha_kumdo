@@ -13,8 +13,8 @@ interface TourStep {
 const STEPS: TourStep[] = [
   {
     targetId: 'tour-home',
-    title: '👋 환영합니다! 검도 영상 아카이브 공간입니다.',
-    body: '최근 운동 영상을 볼 수 있어요. 날짜·앵글·참가자 정보를 한눈에 확인하세요.',
+    title: '👋 환영합니다! \n 홈페이지 사용법을 알려드릴게요.',
+    body: '메인 화면에서는 최근 운동 영상을 볼 수 있어요. 날짜·앵글·참가자 정보를 한눈에 확인하세요.',
   },
   {
     targetId: 'tour-search',
@@ -24,7 +24,7 @@ const STEPS: TourStep[] = [
   },
   {
     targetId: 'tour-filterbar',
-    title: '태그 필터',
+    title: '해시태그',
     body: '앵글(전면·후면·기타)과 참가자 이름 태그를 눌러 원하는 영상만 필터링하세요.',
   },
   {
@@ -36,6 +36,11 @@ const STEPS: TourStep[] = [
     targetId: 'tour-admin',
     title: '영상 등록',
     body: '영상을 자유롭게 등록·수정·삭제할 수 있습니다. 영상 등록을 원하시면 관리자에게 문의해주세요.\n\n📞박수빈 010-5318-3479',
+  },
+  {
+    targetId: 'tour-help-btn',
+    title: '튜토리얼 다시보기',
+    body: '이 안내가 다시 필요하시면 상단의 ? 버튼을 눌러주세요.\n언제든지 처음부터 다시 볼 수 있습니다.',
   },
 ];
 
@@ -97,10 +102,13 @@ export default function TutorialTour() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const spaceBelow = vh - rect.bottom - GAP;
-    const top =
-      spaceBelow >= TOOLTIP_H_APPROX
-        ? rect.bottom + GAP
-        : Math.max(PAD, rect.top - GAP - TOOLTIP_H_APPROX);
+    const spaceAbove = rect.top - GAP;
+    const preferBelow = spaceBelow >= spaceAbove;
+    let top = preferBelow
+      ? rect.bottom + GAP
+      : rect.top - GAP - TOOLTIP_H_APPROX;
+    // 뷰포트 범위 안으로 강제 클램프
+    top = Math.max(PAD, Math.min(top, vh - TOOLTIP_H_APPROX - PAD));
     const left = Math.max(PAD, Math.min(rect.left, vw - TOOLTIP_W - PAD));
     return { top, left };
   }
