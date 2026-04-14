@@ -204,7 +204,7 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       {!isEdit && (
-        <div>
+        <div className="mb-1">
           <button
             type="button"
             onClick={fillAutoComplete}
@@ -213,6 +213,21 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
           >
             자동완성
           </button>
+          <div
+            className="mt-3 rounded-lg p-3 text-xs"
+            style={{ backgroundColor: '#F8FBF9', border: '1px solid #d1e8dc' }}
+          >
+            <p className="font-semibold mb-1.5" style={{ color: '#00462A' }}>
+              자동완성 기능 사용 가이드
+            </p>
+            <ol className="space-y-0.5" style={{ color: '#374151' }}>
+              <li>1. 유튜브 영상 링크를 붙여넣어주세요.</li>
+              <li>2. 자동완성 버튼을 눌러주세요.</li>
+              <li>3. 링크 내 제목, 날짜, 앵글, 참가자 정보가 자동 입력됩니다.</li>
+              <li>4. 잘못된 정보가 있다면 수정 후</li>
+              <li>5. &lsquo;등록&rsquo;을 누르면 완료됩니다!</li>
+            </ol>
+          </div>
         </div>
       )}
       <div>
