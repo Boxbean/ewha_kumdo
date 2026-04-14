@@ -181,7 +181,7 @@ export default function TutorialTour() {
             건너뛰기
           </button>
         </div>
-        <p className="font-bold text-sm mb-10" style={{ color: '#1a1a1a' }}>
+        <p className="font-bold text-sm mb-3" style={{ color: '#1a1a1a' }}>
           {current.title}
         </p>
         <p

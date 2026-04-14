@@ -204,7 +204,7 @@ export default function CalendarView({ videos, initialYear, initialMonth }: Cale
                               </span>
                             </div>
                             <div className="flex flex-col gap-0.5">
-                              {dayVideos.map((v) => (
+                              {(dayVideos.length >= 3 ? dayVideos.slice(0, 2) : dayVideos).map((v) => (
                                 <Link key={v.id} href={`/video/${v.id}`} className="block">
                                   <AngleBadge
                                     angle={v.angle}
@@ -212,6 +212,14 @@ export default function CalendarView({ videos, initialYear, initialMonth }: Cale
                                   />
                                 </Link>
                               ))}
+                              {dayVideos.length >= 3 && (
+                                <span
+                                  className="block w-full text-center text-xs font-medium"
+                                  style={{ color: '#B9B9B9' }}
+                                >
+                                  +{dayVideos.length - 2}…
+                                </span>
+                              )}
                             </div>
                           </>
                         )}
