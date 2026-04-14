@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
     participants: string;
     title: string;
     topic?: string;
+    uploader?: string;
   }>(csv, { header: true, skipEmptyLines: true });
 
   if (parsed.errors.length > 0) {
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
       : [],
     title: row.title,
     topic: row.topic || null,
+    uploader: row.uploader || null,
   }));
 
   const { data, error } = await supabase.from('videos').insert(rows).select();
