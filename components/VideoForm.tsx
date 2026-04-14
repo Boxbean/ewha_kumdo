@@ -13,6 +13,24 @@ interface VideoFormProps {
 
 const ANGLES: Angle[] = ['전면', '후면', '기타'];
 
+const SEP = /[\s,\-\/|·]+/;
+
+function parseParticipantsFromTitle(title: string): string[] {
+  let str: string;
+  const dashIdx = title.indexOf(' - ');
+  if (dashIdx !== -1) {
+    // 규칙 1: ' - ' 기준 우측
+    str = title.slice(dashIdx + 3);
+  } else {
+    // 규칙 2·3: 앞쪽 날짜(숫자) + '저녁운동'(있으면) + 구분자 제거 후 나머지
+    str = title
+      .replace(/^\d+/, '')
+      .replace(/^\s*저녁운동/, '')
+      .replace(new RegExp(`^${SEP.source}`), '');
+  }
+  return str.trim().split(SEP).map((s) => s.trim()).filter(Boolean);
+}
+
 export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormProps) {
   const router = useRouter();
   const isEdit = !!initial?.id;
@@ -55,16 +73,13 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
       const json = await res.json();
       const rawTitle: string = json.title || '';
       setTitle(rawTitle);
-      const dashIdx = rawTitle.indexOf(' - ');
-      if (dashIdx !== -1) {
-        const names = rawTitle.slice(dashIdx + 3).trim().split(' ').map((s: string) => s.trim()).filter(Boolean);
-        if (names.length > 0) {
-          setParticipants((prev) => {
-            const next = [...prev];
-            names.forEach((n: string) => { if (!next.includes(n)) next.push(n); });
-            return next;
-          });
-        }
+      const names = parseParticipantsFromTitle(rawTitle);
+      if (names.length > 0) {
+        setParticipants((prev) => {
+          const next = [...prev];
+          names.forEach((n) => { if (!next.includes(n)) next.push(n); });
+          return next;
+        });
       }
     } catch {
       // 실패 시 무시 — 사용자가 직접 입력

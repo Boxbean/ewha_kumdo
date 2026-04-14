@@ -2,15 +2,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Video } from '@/lib/types';
 import { extractYouTubeId, getYouTubeThumbnail, formatDate } from '@/lib/utils';
-import AngleBadge from './AngleBadge';
 
 interface VideoCardProps {
   video: Video;
 }
 
 const MAX_TAGS = 4;
+const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
 export default function VideoCard({ video }: VideoCardProps) {
+  const isNew = Date.now() - new Date(video.created_at).getTime() < THREE_DAYS_MS;
   const videoId = extractYouTubeId(video.youtube_url);
   const thumbnail = videoId ? getYouTubeThumbnail(videoId) : null;
   const visibleParticipants = video.participants.slice(0, MAX_TAGS);
@@ -45,10 +46,17 @@ export default function VideoCard({ video }: VideoCardProps) {
               No Image
             </div>
           )}
-          {/* 앵글 배지 — 우상단 */}
-          <div className="absolute top-1.5 right-1.5">
-            <AngleBadge angle={video.angle} />
-          </div>
+          {/* New 배지 — 우상단 (3일 이내 등록) */}
+          {isNew && (
+            <div className="absolute top-1.5 right-1.5">
+              <span
+                className="inline-block text-xs font-bold px-1.5 py-0.5 rounded"
+                style={{ backgroundColor: '#00462A', color: '#ffffff' }}
+              >
+                New
+              </span>
+            </div>
+          )}
         </div>
 
         {/* 카드 정보 */}
