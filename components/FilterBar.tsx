@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 interface FilterBarProps {
   participants: string[];
@@ -18,7 +18,7 @@ export default function FilterBar({ participants, currentAngle, currentParticipa
   const [visibleRows, setVisibleRows] = useState(1);
   const [totalRows, setTotalRows] = useState(1);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!innerRef.current) return;
     const h = innerRef.current.scrollHeight;
     const rows = Math.max(1, Math.ceil(h / ROW_H));

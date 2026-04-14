@@ -40,7 +40,7 @@ const STEPS: TourStep[] = [
   {
     targetId: 'tour-help-btn',
     title: '튜토리얼 다시보기',
-    body: '이 안내가 다시 필요하시면 상단의 ? 버튼을 눌러주세요.\n언제든지 처음부터 다시 볼 수 있습니다.',
+    body: '이 안내가 다시 필요하시면 상단의 [?] 버튼을 눌러주세요.\n언제든지 처음부터 다시 볼 수 있습니다.',
   },
 ];
 
@@ -54,9 +54,14 @@ export default function TutorialTour() {
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
 
-  // 첫 방문 자동 실행
+  // 첫 방문 자동 실행 + sessionStorage 재시작 감지
   useEffect(() => {
     if (pathname !== '/') return;
+    if (sessionStorage.getItem('pendingTutorial')) {
+      sessionStorage.removeItem('pendingTutorial');
+      const t = setTimeout(() => setStep(0), 100);
+      return () => clearTimeout(t);
+    }
     if (localStorage.getItem(STORAGE_KEY)) return;
     const t = setTimeout(() => setStep(0), 500);
     return () => clearTimeout(t);
@@ -89,7 +94,12 @@ export default function TutorialTour() {
     if (!el || el.getBoundingClientRect().width === 0) {
       if (current.fallbackId) el = document.getElementById(current.fallbackId);
     }
-    if (!el) return;
+    // 엘리먼트 없거나 숨겨진 경우 다음 스텝으로 건너뜀
+    if (!el || el.getBoundingClientRect().width === 0) {
+      if (step < STEPS.length - 1) setStep(step + 1);
+      else finish();
+      return;
+    }
 
     const rect = el.getBoundingClientRect();
     setHighlightRect(rect);
@@ -171,7 +181,7 @@ export default function TutorialTour() {
             건너뛰기
           </button>
         </div>
-        <p className="font-bold text-sm mb-1" style={{ color: '#1a1a1a' }}>
+        <p className="font-bold text-sm mb-10" style={{ color: '#1a1a1a' }}>
           {current.title}
         </p>
         <p

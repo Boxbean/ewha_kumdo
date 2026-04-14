@@ -28,11 +28,12 @@ function IconCalendar() {
   );
 }
 
-function IconBook() {
+function IconBulb() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+      <path d="M9 21h6"/>
+      <path d="M10 17h4"/>
+      <path d="M12 3a6 6 0 0 1 6 6c0 2.2-1.1 3.8-2.5 4.8V16a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-2.2C7.1 12.8 6 11.2 6 9a6 6 0 0 1 6-6z"/>
     </svg>
   );
 }
@@ -52,9 +53,9 @@ function IconList() {
 
 const menus = [
   { href: '/', label: '홈', Icon: IconHome },
+  { href: '/list', label: '목록', Icon: IconList },
   { href: '/calendar', label: '캘린더 보기', Icon: IconCalendar },
-  { href: '/topic', label: '주제별 보기', Icon: IconBook },
-  { href: '/list', label: '리스트 보기', Icon: IconList },
+  { href: '/topic', label: '주제별 보기', Icon: IconBulb },
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {

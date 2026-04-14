@@ -22,7 +22,7 @@ export default function HomeContent() {
   const [allParticipants, setAllParticipants] = useState<string[]>([]);
 
   const fetchVideos = useCallback(
-    async (currentOffset: number, append = false) => {
+    async (currentOffset: number, append = false, signal?: AbortSignal) => {
       setLoading(true);
       try {
         const params = new URLSearchParams({
@@ -33,10 +33,12 @@ export default function HomeContent() {
         if (angle) params.set('angle', angle);
         if (participant) params.set('participant', participant);
 
-        const res = await fetch(`/api/videos?${params.toString()}`);
+        const res = await fetch(`/api/videos?${params.toString()}`, { signal });
         const json = await res.json();
         setVideos((prev) => (append ? [...prev, ...(json.data || [])] : json.data || []));
         setTotal(json.count || 0);
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') throw err;
       } finally {
         setLoading(false);
       }
@@ -44,30 +46,28 @@ export default function HomeContent() {
     [search, angle, participant]
   );
 
-  // 필터 변경 시 초기화
+  // 필터 변경 시 초기화 — 이전 요청 취소
   useEffect(() => {
+    const controller = new AbortController();
     setOffset(0);
-    fetchVideos(0, false);
+    fetchVideos(0, false, controller.signal);
+    return () => controller.abort();
   }, [fetchVideos]);
 
-  // 참가자 목록 (전체) — 최근 업로드된 영상 기준 정렬
+  // 참가자 목록 (전체) — 방문마다 랜덤 순서
   useEffect(() => {
     fetch('/api/participants')
       .then((r) => r.json())
       .then((json) => {
-        const rows: Pick<Video, 'participants' | 'date'>[] = json.data || [];
-        const latestDate: Record<string, string> = {};
-        rows.forEach((v) => {
-          v.participants.forEach((p) => {
-            if (!latestDate[p] || v.date > latestDate[p]) {
-              latestDate[p] = v.date;
-            }
-          });
-        });
-        const sorted = Object.keys(latestDate).sort(
-          (a, b) => latestDate[b].localeCompare(latestDate[a])
-        );
-        setAllParticipants(sorted);
+        const rows: Pick<Video, 'participants'>[] = json.data || [];
+        const set = new Set<string>();
+        rows.forEach((v) => v.participants.forEach((p) => set.add(p)));
+        const all = Array.from(set);
+        for (let i = all.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [all[i], all[j]] = [all[j], all[i]];
+        }
+        setAllParticipants(all);
       });
   }, []);
 
