@@ -32,6 +32,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
       >
         {/* 사이드바 토글 */}
         <button
+          id="tour-hamburger"
           onClick={onToggleSidebar}
           className="text-white w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded hover:bg-white/10 flex-shrink-0"
           aria-label="메뉴"
@@ -47,7 +48,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
         </Link>
 
         {/* 검색창 — 데스크톱 */}
-        <form onSubmit={handleSearch} className="flex-1 hidden md:flex">
+        <form id="tour-search" onSubmit={handleSearch} className="flex-1 hidden md:flex">
           <input
             type="text"
             value={search}
@@ -66,6 +67,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
         {/* 모바일: spacer + 검색 아이콘 */}
         <div className="flex-1 md:hidden" />
         <button
+          id="tour-search-mobile"
           onClick={() => setMobileSearchOpen((v) => !v)}
           className="flex md:hidden text-white w-9 h-9 items-center justify-center rounded hover:bg-white/10 flex-shrink-0"
           aria-label="검색"
@@ -78,6 +80,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
         {/* 영상 등록 버튼 */}
         <Link
+          id="tour-admin"
           href="/admin"
           className="flex-shrink-0 h-8 px-3 text-sm bg-white text-[#00462A] font-semibold rounded hover:bg-white/90"
           style={{ lineHeight: '2rem' }}

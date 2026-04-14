@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
+import TutorialTour from './TutorialTour';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -29,6 +30,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <div className="p-4 md:p-6">{children}</div>
       </main>
       <BottomNav />
+      <TutorialTour />
     </>
   );
 }

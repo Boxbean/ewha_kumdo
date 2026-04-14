@@ -48,9 +48,9 @@ function IconList() {
 
 const menus = [
   { href: '/', label: '홈', Icon: IconHome },
+  { href: '/list', label: '목록', Icon: IconList },
   { href: '/calendar', label: '캘린더', Icon: IconCalendar },
   { href: '/topic', label: '주제별', Icon: IconBook },
-  { href: '/list', label: '목록', Icon: IconList },
 ];
 
 export default function BottomNav() {

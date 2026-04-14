@@ -46,7 +46,7 @@ export default function FilterBar({ participants, currentAngle, currentParticipa
   });
 
   return (
-    <div className="mb-4">
+    <div id="tour-filterbar" className="mb-4">
       <div style={{ maxHeight: visibleRows * ROW_H, overflow: 'hidden', transition: 'max-height 0.2s ease' }}>
         <div ref={innerRef} className="flex flex-wrap gap-2">
           {/* 전체 */}

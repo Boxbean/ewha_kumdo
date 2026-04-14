@@ -1,0 +1,177 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+
+interface TourStep {
+  targetId: string;
+  fallbackId?: string;
+  title: string;
+  body: string;
+}
+
+const STEPS: TourStep[] = [
+  {
+    targetId: 'tour-home',
+    title: '👋 환영합니다! 검도 영상 아카이브 공간입니다.',
+    body: '최근 운동 영상을 볼 수 있어요.\n날짜·앵글·참가자 정보를 한눈에 확인하세요.',
+  },
+  {
+    targetId: 'tour-search',
+    fallbackId: 'tour-search-mobile',
+    title: '검색창',
+    body: '이름, 날짜, 주제로 영상을 검색할 수 있습니다.',
+  },
+  {
+    targetId: 'tour-filterbar',
+    title: '태그 필터',
+    body: '앵글(전면·후면·기타)과 참가자 이름 태그를 눌러\n원하는 영상만 필터링하세요.',
+  },
+  {
+    targetId: 'tour-hamburger',
+    title: '메뉴',
+    body: '리스트·캘린더·주제별 등 다양한 방식으로\n영상을 탐색할 수 있습니다.',
+  },
+  {
+    targetId: 'tour-admin',
+    title: '영상 등록',
+    body: '영상을 자유롭게 등록·수정·삭제할 수 있습니다.\n영상 등록을 원하시면 관리자에게 문의해주세요.\n📞박수빈 010-5318-3479',
+  },
+];
+
+const STORAGE_KEY = 'ewha_tutorial_done';
+const TOOLTIP_W = 272;
+const TOOLTIP_H_APPROX = 200;
+
+export default function TutorialTour() {
+  const pathname = usePathname();
+  const [step, setStep] = useState<number | null>(null);
+  const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
+  const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
+
+  useEffect(() => {
+    if (pathname !== '/') return;
+    if (localStorage.getItem(STORAGE_KEY)) return;
+    const t = setTimeout(() => setStep(0), 500);
+    return () => clearTimeout(t);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (step === null) return;
+    const current = STEPS[step];
+
+    // Step 0: centered welcome card, no highlight
+    if (current.targetId === 'tour-home') {
+      setHighlightRect(null);
+      setTooltipPos({
+        top: 90,
+        left: Math.max(12, (window.innerWidth - TOOLTIP_W) / 2),
+      });
+      return;
+    }
+
+    let el = document.getElementById(current.targetId);
+    if (!el || el.getBoundingClientRect().width === 0) {
+      if (current.fallbackId) el = document.getElementById(current.fallbackId);
+    }
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    setHighlightRect(rect);
+    setTooltipPos(calcPos(rect));
+  }, [step]);
+
+  function calcPos(rect: DOMRect) {
+    const GAP = 10;
+    const PAD = 12;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const spaceBelow = vh - rect.bottom - GAP;
+    const top =
+      spaceBelow >= TOOLTIP_H_APPROX
+        ? rect.bottom + GAP
+        : Math.max(PAD, rect.top - GAP - TOOLTIP_H_APPROX);
+    const left = Math.max(PAD, Math.min(rect.left, vw - TOOLTIP_W - PAD));
+    return { top, left };
+  }
+
+  function next() {
+    if (step === null) return;
+    if (step < STEPS.length - 1) setStep(step + 1);
+    else finish();
+  }
+
+  function finish() {
+    localStorage.setItem(STORAGE_KEY, '1');
+    setStep(null);
+  }
+
+  if (step === null) return null;
+
+  const current = STEPS[step];
+
+  return (
+    <>
+      {/* Dim overlay */}
+      <div
+        className="fixed inset-0 z-[9000]"
+        style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+        onClick={finish}
+      />
+
+      {/* Highlight ring */}
+      {highlightRect && (
+        <div
+          className="fixed z-[9001] pointer-events-none rounded-lg"
+          style={{
+            top: highlightRect.top - 4,
+            left: highlightRect.left - 4,
+            width: highlightRect.width + 8,
+            height: highlightRect.height + 8,
+            border: '2px solid #ffffff',
+            boxShadow: '0 0 0 3px rgba(255,255,255,0.25)',
+          }}
+        />
+      )}
+
+      {/* Tooltip */}
+      <div
+        className="fixed z-[9002] rounded-2xl shadow-2xl p-4"
+        style={{
+          top: tooltipPos.top,
+          left: tooltipPos.left,
+          width: TOOLTIP_W,
+          backgroundColor: '#FFFDF1',
+          border: '1px solid #e0e0e0',
+        }}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold" style={{ color: '#00462A' }}>
+            {step + 1} / {STEPS.length}
+          </span>
+          <button onClick={finish} className="text-xs" style={{ color: '#B9B9B9' }}>
+            건너뛰기
+          </button>
+        </div>
+        <p className="font-bold text-sm mb-1" style={{ color: '#1a1a1a' }}>
+          {current.title}
+        </p>
+        <p
+          className="text-sm whitespace-pre-line mb-4"
+          style={{ color: '#374151', lineHeight: '1.6' }}
+        >
+          {current.body}
+        </p>
+        <div className="flex justify-end">
+          <button
+            onClick={next}
+            className="h-8 px-4 text-sm font-semibold rounded-lg"
+            style={{ backgroundColor: '#00462A', color: '#fff' }}
+          >
+            {step < STEPS.length - 1 ? '다음 →' : '시작하기 ✓'}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
