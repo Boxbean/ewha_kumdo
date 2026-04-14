@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     date: row.date,
     angle: row.angle,
     participants: row.participants
-      ? row.participants.split(',').map((p) => p.trim()).filter(Boolean)
+      ? row.participants.split(/[\s,\-\/|·]+/).map((p) => p.trim()).filter(Boolean)
       : [],
     title: row.title,
     topic: row.topic || null,
