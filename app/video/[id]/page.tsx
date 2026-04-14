@@ -85,14 +85,13 @@ export default async function VideoDetailPage({ params }: Props) {
           {video.participants.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-2">
               {video.participants.map((p) => (
-                <Link
+                <span
                   key={p}
-                  href={`/participant`}
-                  className="text-sm px-2 py-0.5 rounded-full transition-colors"
+                  className="text-sm px-2 py-0.5 rounded-full"
                   style={{ backgroundColor: 'rgba(0,70,42,0.08)', color: '#00462A' }}
                 >
                   #{p}
-                </Link>
+                </span>
               ))}
             </div>
           )}

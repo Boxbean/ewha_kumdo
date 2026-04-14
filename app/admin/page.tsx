@@ -17,6 +17,7 @@ export default function AdminPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [successMsg, setSuccessMsg] = useState('');
   const [editVideo, setEditVideo] = useState<Video | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -25,10 +26,15 @@ export default function AdminPage() {
       const editId = sessionStorage.getItem('admin_edit_id');
       if (editId) {
         sessionStorage.removeItem('admin_edit_id');
-        supabase.from('videos').select('*').eq('id', editId).single()
-          .then(({ data }) => {
+        setEditLoading(true);
+        void (async () => {
+          try {
+            const { data } = await supabase.from('videos').select('*').eq('id', editId).single();
             if (data) { setEditVideo(data as Video); setTab('register'); }
-          });
+          } finally {
+            setEditLoading(false);
+          }
+        })();
       }
     }
   }, []);
@@ -109,7 +115,13 @@ export default function AdminPage() {
             <h2 className="text-base font-bold mb-4" style={{ color: '#374151' }}>
               영상 {editVideo ? '수정' : '등록'}
             </h2>
+            {editLoading ? (
+              <p className="text-sm py-6 text-center" style={{ color: '#B9B9B9' }}>
+                영상 정보를 불러오는 중...
+              </p>
+            ) : (
             <VideoForm
+              key={editVideo?.id || 'new'}
               initial={editVideo || undefined}
               onSuccess={() => {
                 setRefreshKey((k) => k + 1);
@@ -118,6 +130,7 @@ export default function AdminPage() {
               }}
               onCancel={editVideo ? () => setEditVideo(null) : undefined}
             />
+            )}
           </div>
         )}
 

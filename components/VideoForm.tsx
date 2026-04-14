@@ -9,6 +9,7 @@ interface VideoFormProps {
   initial?: Partial<Video>;
   onSuccess: () => void;
   onCancel?: () => void;
+  onDelete?: () => void;
 }
 
 const ANGLES: Angle[] = ['전면', '후면', '기타'];
@@ -31,7 +32,7 @@ function parseParticipantsFromTitle(title: string): string[] {
   return str.trim().split(SEP).map((s) => s.trim()).filter(Boolean);
 }
 
-export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormProps) {
+export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: VideoFormProps) {
   const router = useRouter();
   const isEdit = !!initial?.id;
 
@@ -48,6 +49,9 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
   const [resultStatus, setResultStatus] = useState<null | 'success' | 'error'>(null);
   const [apiError, setApiError] = useState('');
   const [fetchingInfo, setFetchingInfo] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   function resetForm() {
     setYoutubeUrl('');
@@ -142,6 +146,25 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
     }
   }
 
+  async function handleDelete() {
+    if (!initial?.id) return;
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      const res = await fetch(`/api/videos/${initial.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error || '삭제 실패');
+      }
+      setResultStatus('deleted' as typeof resultStatus);
+      onDelete?.();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : '오류 발생');
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
   // 성공 결과 화면
   if (resultStatus === 'success') {
     return (
@@ -166,6 +189,25 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
             전체 영상 보기
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // 삭제 완료 화면
+  if ((resultStatus as string) === 'deleted') {
+    return (
+      <div className="flex flex-col items-center py-10 gap-5 text-center">
+        <div>
+          <div className="text-3xl mb-2 text-red-400">✓</div>
+          <h3 className="text-lg font-bold text-red-500">삭제가 완료되었습니다</h3>
+        </div>
+        <button
+          onClick={() => router.push('/')}
+          className="h-9 px-5 text-sm font-semibold rounded text-white"
+          style={{ backgroundColor: '#374151' }}
+        >
+          전체 영상 보기
+        </button>
       </div>
     );
   }
@@ -202,7 +244,59 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
   }
 
   return (
+    <>
+    {/* 삭제 확인 모달 */}
+    {deleteConfirm && (
+      <div
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-6 sm:pb-0"
+        onClick={() => setDeleteConfirm(false)}
+      >
+        <div
+          className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 className="text-base font-bold mb-2 text-red-500">영상 삭제</h3>
+          <p className="text-sm mb-5" style={{ color: '#374151' }}>
+            정말 삭제하시겠습니까?<br />
+            <span className="font-semibold text-red-400">삭제 후 복구가 불가능합니다!</span>
+          </p>
+          {deleteError && <p className="text-xs text-red-500 mb-3">{deleteError}</p>}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleteLoading}
+              className="flex-1 h-10 text-sm font-semibold rounded text-white"
+              style={{ backgroundColor: '#DC2626', opacity: deleteLoading ? 0.7 : 1 }}
+            >
+              {deleteLoading ? '삭제 중...' : '삭제하기'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeleteConfirm(false)}
+              className="flex-1 h-10 text-sm rounded border font-medium"
+              style={{ borderColor: '#e0e0e0', color: '#374151' }}
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
     <form onSubmit={handleSubmit} className="space-y-3">
+      {isEdit && (
+        <div className="flex justify-end mb-1">
+          <button
+            type="button"
+            onClick={() => setDeleteConfirm(true)}
+            className="h-8 px-3 text-xs rounded border"
+            style={{ borderColor: '#DC2626', color: '#DC2626' }}
+          >
+            영상 삭제하기
+          </button>
+        </div>
+      )}
       {!isEdit && (
         <div className="mb-1">
           <button
@@ -399,5 +493,6 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
         )}
       </div>
     </form>
+    </>
   );
 }
