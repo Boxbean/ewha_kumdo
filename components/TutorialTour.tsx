@@ -14,7 +14,7 @@ const STEPS: TourStep[] = [
   {
     targetId: 'tour-home',
     title: '👋 환영합니다! 검도 영상 아카이브 공간입니다.',
-    body: '최근 운동 영상을 볼 수 있어요.\n날짜·앵글·참가자 정보를 한눈에 확인하세요.',
+    body: '최근 운동 영상을 볼 수 있어요. 날짜·앵글·참가자 정보를 한눈에 확인하세요.',
   },
   {
     targetId: 'tour-search',
@@ -25,17 +25,17 @@ const STEPS: TourStep[] = [
   {
     targetId: 'tour-filterbar',
     title: '태그 필터',
-    body: '앵글(전면·후면·기타)과 참가자 이름 태그를 눌러\n원하는 영상만 필터링하세요.',
+    body: '앵글(전면·후면·기타)과 참가자 이름 태그를 눌러 원하는 영상만 필터링하세요.',
   },
   {
     targetId: 'tour-hamburger',
     title: '메뉴',
-    body: '리스트·캘린더·주제별 등 다양한 방식으로\n영상을 탐색할 수 있습니다.',
+    body: '리스트·캘린더·주제별 등 다양한 방식으로 영상을 탐색할 수 있습니다.',
   },
   {
     targetId: 'tour-admin',
     title: '영상 등록',
-    body: '영상을 자유롭게 등록·수정·삭제할 수 있습니다.\n영상 등록을 원하시면 관리자에게 문의해주세요.\n📞박수빈 010-5318-3479',
+    body: '영상을 자유롭게 등록·수정·삭제할 수 있습니다. 영상 등록을 원하시면 관리자에게 문의해주세요.\n\n📞박수빈 010-5318-3479',
   },
 ];
 
@@ -49,12 +49,22 @@ export default function TutorialTour() {
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
 
+  // 첫 방문 자동 실행
   useEffect(() => {
     if (pathname !== '/') return;
     if (localStorage.getItem(STORAGE_KEY)) return;
     const t = setTimeout(() => setStep(0), 500);
     return () => clearTimeout(t);
   }, [pathname]);
+
+  // 버튼으로 재시작
+  useEffect(() => {
+    function handleRestart() {
+      setStep(0);
+    }
+    window.addEventListener('restart-tutorial', handleRestart);
+    return () => window.removeEventListener('restart-tutorial', handleRestart);
+  }, []);
 
   useEffect(() => {
     if (step === null) return;
@@ -168,7 +178,7 @@ export default function TutorialTour() {
             className="h-8 px-4 text-sm font-semibold rounded-lg"
             style={{ backgroundColor: '#00462A', color: '#fff' }}
           >
-            {step < STEPS.length - 1 ? '다음 →' : '시작하기 ✓'}
+            {step < STEPS.length - 1 ? '다음 →' : '완료 ✓'}
           </button>
         </div>
       </div>

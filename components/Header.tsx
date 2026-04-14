@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 
@@ -10,6 +10,7 @@ interface HeaderProps {
 
 export default function Header({ onToggleSidebar }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [search, setSearch] = useState('');
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
@@ -79,6 +80,24 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
         </button>
 
         {/* 영상 등록 버튼 */}
+        {/* 튜토리얼 버튼 */}
+        <button
+          onClick={() => {
+            if (pathname === '/') {
+              window.dispatchEvent(new Event('restart-tutorial'));
+            } else {
+              router.push('/');
+              setTimeout(() => window.dispatchEvent(new Event('restart-tutorial')), 350);
+            }
+          }}
+          className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded border text-sm font-bold hover:bg-white/20"
+          style={{ borderColor: 'rgba(255,255,255,0.5)', color: '#ffffff' }}
+          aria-label="튜토리얼"
+          title="튜토리얼 보기"
+        >
+          ?
+        </button>
+
         <Link
           id="tour-admin"
           href="/admin"
