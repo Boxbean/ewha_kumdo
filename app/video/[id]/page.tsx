@@ -68,19 +68,19 @@ export default async function VideoDetailPage({ params }: Props) {
           className="rounded-lg p-4 mb-4"
           style={{ backgroundColor: '#ffffff', border: '1px solid #e0e0e0' }}
         >
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <div className="flex items-start gap-2 flex-1">
-              <AngleBadge angle={video.angle} />
-              <h1 className="text-lg font-bold leading-snug" style={{ color: '#111111' }}>
-                {video.title}
-              </h1>
-            </div>
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h1 className="text-lg font-bold leading-snug" style={{ color: '#111111' }}>
+              {video.title}
+            </h1>
             <EditButton videoId={video.id} />
           </div>
 
-          <p className="text-sm mb-2" style={{ color: '#B9B9B9' }}>
-            {formatDate(video.date)}
-          </p>
+          <div className="flex items-center gap-2 mb-2">
+            <AngleBadge angle={video.angle} />
+            <p className="text-sm" style={{ color: '#B9B9B9' }}>
+              {formatDate(video.date)}
+            </p>
+          </div>
 
           {video.participants.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-2">

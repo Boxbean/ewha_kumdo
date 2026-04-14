@@ -276,8 +276,8 @@ export default function VideoForm({ initial, onSuccess, onCancel }: VideoFormPro
           value={date}
           onChange={(e) => setDate(e.target.value)}
           required
-          className="w-full h-9 px-3 text-sm rounded border focus:outline-none"
-          style={{ borderColor: '#e0e0e0' }}
+          className="w-full h-9 px-3 text-sm rounded border focus:outline-none box-border"
+          style={{ borderColor: '#e0e0e0', maxWidth: '100%' }}
         />
       </div>
 

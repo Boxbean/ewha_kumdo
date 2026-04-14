@@ -71,11 +71,14 @@ export default function VideoCard({ video }: VideoCardProps) {
             {video.title}
           </p>
           {video.participants.length > 0 && (
-            <div className="flex flex-wrap gap-1">
+            <div
+              className="flex flex-wrap gap-1 overflow-hidden"
+              style={{ maxHeight: '52px' }}
+            >
               {visibleParticipants.map((p) => (
                 <span
                   key={p}
-                  className="text-xs px-1.5 py-0.5 rounded-full"
+                  className="text-xs px-1.5 py-0.5 rounded-full shrink-0"
                   style={{ backgroundColor: 'rgba(0,70,42,0.08)', color: '#00462A' }}
                 >
                   #{p}
@@ -83,7 +86,7 @@ export default function VideoCard({ video }: VideoCardProps) {
               ))}
               {hiddenCount > 0 && (
                 <span
-                  className="text-xs px-1.5 py-0.5 rounded-full"
+                  className="text-xs px-1.5 py-0.5 rounded-full shrink-0"
                   style={{ backgroundColor: 'rgba(0,0,0,0.06)', color: '#B9B9B9' }}
                 >
                   +{hiddenCount}
