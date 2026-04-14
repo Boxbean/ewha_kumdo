@@ -133,7 +133,7 @@ export default function CsvUpload({ onSuccess }: CsvUploadProps) {
         {/* 템플릿 다운로드 버튼 */}
         <a
           href="/videos_template.csv"
-          download="videos_template.csv"
+          download="대량업로드_템플릿.csv"
           className="inline-flex items-center gap-1.5 h-9 px-4 text-sm font-medium rounded border"
           style={{ borderColor: '#00462A', color: '#00462A', backgroundColor: '#fff' }}
         >
@@ -191,6 +191,11 @@ export default function CsvUpload({ onSuccess }: CsvUploadProps) {
                     style={{ borderColor: '#e0e0e0', color: '#374151' }}
                   >
                     {col}
+                    {col === '참가자' && (
+                      <div className="text-xs font-normal mt-0.5" style={{ color: '#6B7280' }}>
+                        띄어쓰기, 쉼표 등의 구분자로 구분해주세요
+                      </div>
+                    )}
                   </th>
                 ))}
               </tr>
