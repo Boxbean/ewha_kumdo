@@ -15,7 +15,7 @@ export default function AngleBadge({ angle, className = '' }: AngleBadgeProps) {
   const style = ANGLE_STYLES[angle] ?? ANGLE_STYLES['기타'];
   return (
     <span
-      className={`inline-block text-xs font-semibold px-1.5 py-0.5 rounded ${className}`}
+      className={`inline-block text-xs font-semibold px-1.5 py-0.5 rounded whitespace-nowrap ${className}`}
       style={{ backgroundColor: style.bg, color: style.text }}
     >
       {angle}

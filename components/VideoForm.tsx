@@ -17,19 +17,13 @@ const ANGLES: Angle[] = ['전면', '후면', '기타'];
 const SEP = /[\s,\-\/|·]+/;
 
 function parseParticipantsFromTitle(title: string): string[] {
-  let str: string;
-  const dashIdx = title.indexOf(' - ');
-  if (dashIdx !== -1) {
-    // 규칙 1: ' - ' 기준 우측
-    str = title.slice(dashIdx + 3);
-  } else {
-    // 규칙 2·3: 앞쪽 날짜(숫자) + '저녁운동'(있으면) + 구분자 제거 후 나머지
-    str = title
-      .replace(/^\d+/, '')
-      .replace(/^\s*저녁운동/, '')
-      .replace(new RegExp(`^${SEP.source}`), '');
-  }
-  return str.trim().split(SEP).map((s) => s.trim()).filter(Boolean);
+  const parenIdx = title.indexOf('(');
+  if (parenIdx === -1) return [];
+  const str = title.slice(parenIdx + 1);
+  return str
+    .split(SEP)
+    .map((s) => s.replace(/[)\s,\-\/|·]+$/, '').trim())
+    .filter(Boolean);
 }
 
 export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: VideoFormProps) {
@@ -365,14 +359,16 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
         <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
           날짜 *
         </label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          className="w-full h-9 px-3 text-sm rounded border focus:outline-none box-border"
-          style={{ borderColor: '#e0e0e0', maxWidth: '100%' }}
-        />
+        <div className="w-full overflow-hidden">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+            className="w-full h-9 px-3 text-sm rounded border focus:outline-none"
+            style={{ borderColor: '#e0e0e0', boxSizing: 'border-box' }}
+          />
+        </div>
       </div>
 
       <div>
@@ -451,7 +447,7 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          placeholder="기본기, 연습대련, 본, 시합..."
+          placeholder="정규운동, 기본기, 시합, 모의시합..."
           className="w-full h-9 px-3 text-sm rounded border focus:outline-none"
           style={{ borderColor: '#e0e0e0' }}
         />
