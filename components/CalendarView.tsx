@@ -182,8 +182,8 @@ export default function CalendarView({ videos, initialYear, initialMonth }: Cale
                       className="border p-0"
                       style={{ borderColor: '#e0e0e0', width: `${100 / 7}%` }}
                     >
-                      {/* 고정 높이 + 배지 넘침 숨김 */}
-                      <div style={{ height: CELL_H, overflow: 'hidden', padding: '4px' }}>
+                      {/* 최소 높이 — 내용 많으면 자동 확장 */}
+                      <div style={{ minHeight: CELL_H, padding: '4px' }}>
                         {day !== null && (
                           <>
                             <div className="flex justify-center mb-1">

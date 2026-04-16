@@ -18,6 +18,7 @@ export default function AdminPage() {
   const [successMsg, setSuccessMsg] = useState('');
   const [editVideo, setEditVideo] = useState<Video | null>(null);
   const [editLoading, setEditLoading] = useState(false);
+  const [formKey, setFormKey] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -69,7 +70,6 @@ export default function AdminPage() {
           <button
             onClick={() => {
               sessionStorage.removeItem('admin_auth');
-              sessionStorage.removeItem('admin_pwd');
               setIsAuthenticated(false);
             }}
             className="text-sm"
@@ -121,14 +121,14 @@ export default function AdminPage() {
               </p>
             ) : (
             <VideoForm
-              key={editVideo?.id || 'new'}
+              key={editVideo?.id || `new-${formKey}`}
               initial={editVideo || undefined}
               onSuccess={() => {
                 setRefreshKey((k) => k + 1);
                 setEditVideo(null);
                 showSuccess(editVideo ? '영상이 수정되었습니다.' : '영상이 등록되었습니다.');
               }}
-              onCancel={editVideo ? () => setEditVideo(null) : undefined}
+              onCancel={editVideo ? () => setEditVideo(null) : () => setFormKey((k) => k + 1)}
             />
             )}
           </div>

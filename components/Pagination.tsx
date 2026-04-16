@@ -4,9 +4,10 @@ interface PaginationProps {
   hasMore: boolean;
   onLoadMore: () => void;
   loading?: boolean;
+  pageSize?: number;
 }
 
-export default function Pagination({ hasMore, onLoadMore, loading }: PaginationProps) {
+export default function Pagination({ hasMore, onLoadMore, loading, pageSize = 10 }: PaginationProps) {
   if (!hasMore) return null;
 
   return (
@@ -22,7 +23,7 @@ export default function Pagination({ hasMore, onLoadMore, loading }: PaginationP
           opacity: loading ? 0.6 : 1,
         }}
       >
-        {loading ? '불러오는 중...' : '10개 더 불러오기'}
+        {loading ? '불러오는 중...' : `${pageSize}개 더 불러오기`}
       </button>
     </div>
   );

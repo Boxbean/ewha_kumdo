@@ -14,33 +14,33 @@ const STEPS: TourStep[] = [
   {
     targetId: 'tour-home',
     title: '👋 환영합니다! \n 사용법을 알려드릴게요.',
-    body: '홈 화면에서는 최근 운동 영상을 볼 수 있어요.\n\n화면을 클릭하거나 아래 버튼을 눌러 다음으로 넘어가세요.',
+    body: '홈 화면에서는 최근 운동 영상을 볼 수 있어요. 화면을 클릭하거나 아래 버튼을 눌러 다음으로 넘어가세요.',
   },
   {
     targetId: 'tour-search',
     fallbackId: 'tour-search-mobile',
-    title: '검색창',
+    title: '😎 검색창',
     body: '이름, 날짜, 주제로 영상을 검색할 수 있습니다. 보고싶은 영상을 검색해보세요!',
   },
   {
     targetId: 'tour-filterbar',
-    title: '해시태그',
+    title: '🫧 해시태그',
     body: '앵글(전면·후면·기타)과 참가자 이름 태그를 눌러 원하는 영상만 확인하세요. (이름 태그 노출 순서는 랜덤입니다.)',
   },
   {
     targetId: 'tour-hamburger',
-    title: '메뉴',
+    title: '⭐ 메뉴',
     body: '리스트, 캘린더, 주제별 보기 등으로 영상을 확인하세요. 목록 탭을 열어 확인해보세요.',
   },
   {
     targetId: 'tour-admin',
-    title: '영상 등록',
+    title: '🎈 영상 등록',
     body: '영상을 자유롭게 등록하고 수정할 수 있습니다. 원하는 영상을 등록해보세요! (비밀번호 필요)',
   },
   {
     targetId: 'tour-help-btn',
-    title: '튜토리얼 다시보기',
-    body: '안내를 다시 보려면 상단의 [ ? ] 버튼을 눌러주세요.\n언제든지 확인 가능합니다.',
+    title: '👍 튜토리얼 다시보기',
+    body: '안내를 다시 보려면 상단의 [ ? ] 버튼을 눌러주세요.언제든지 확인 가능합니다.',
   },
 ];
 

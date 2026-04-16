@@ -36,7 +36,6 @@ export default function VideoCard({ video }: VideoCardProps) {
               fill
               sizes="(max-width: 640px) 50vw, 25vw"
               className="object-cover"
-              unoptimized
             />
           ) : (
             <div

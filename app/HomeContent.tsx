@@ -9,6 +9,9 @@ import Pagination from '@/components/Pagination';
 
 const PAGE_SIZE = 10;
 
+// 모듈 레벨 캐시 — 페이지 이동 후 재방문 시 API 재호출 방지
+let _participantsCache: string[] | null = null;
+
 export default function HomeContent() {
   const searchParams = useSearchParams();
   const search = searchParams.get('search') || '';
@@ -54,20 +57,30 @@ export default function HomeContent() {
     return () => controller.abort();
   }, [fetchVideos]);
 
-  // 참가자 목록 (전체) — 방문마다 랜덤 순서
+  // 참가자 목록 — 캐시 있으면 재사용, 없으면 API 호출 후 캐시 저장
   useEffect(() => {
+    function applyRandom(source: string[]) {
+      const all = [...source];
+      for (let i = all.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [all[i], all[j]] = [all[j], all[i]];
+      }
+      setAllParticipants(all);
+    }
+
+    if (_participantsCache) {
+      applyRandom(_participantsCache);
+      return;
+    }
+
     fetch('/api/participants')
       .then((r) => r.json())
       .then((json) => {
         const rows: Pick<Video, 'participants'>[] = json.data || [];
         const set = new Set<string>();
         rows.forEach((v) => v.participants.forEach((p) => set.add(p)));
-        const all = Array.from(set);
-        for (let i = all.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [all[i], all[j]] = [all[j], all[i]];
-        }
-        setAllParticipants(all);
+        _participantsCache = Array.from(set);
+        applyRandom(_participantsCache);
       });
   }, []);
 

@@ -31,9 +31,13 @@ export default function AdminVideoList() {
 
   async function handleDelete(id: string) {
     if (!confirm('이 영상을 삭제하시겠습니까?')) return;
-    await fetch(`/api/videos/${id}`, { method: 'DELETE' });
-    setVideos((prev) => prev.filter((v) => v.id !== id));
-    setTotal((t) => t - 1);
+    const res = await fetch(`/api/videos/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      alert('삭제에 실패했습니다.');
+      return;
+    }
+    setOffset(0);
+    fetchVideos(0, false);
   }
 
   function handleLoadMore() {
@@ -80,7 +84,7 @@ export default function AdminVideoList() {
                 <div className="flex gap-3 items-start">
                   {thumbnail && (
                     <div className="relative flex-shrink-0 rounded overflow-hidden" style={{ width: 80, height: 60 }}>
-                      <Image src={thumbnail} alt={video.title} fill className="object-cover" unoptimized />
+                      <Image src={thumbnail} alt={video.title} fill className="object-cover" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
@@ -119,7 +123,7 @@ export default function AdminVideoList() {
           );
         })}
       </div>
-      <Pagination hasMore={hasMore} onLoadMore={handleLoadMore} loading={loadingMore} />
+      <Pagination hasMore={hasMore} onLoadMore={handleLoadMore} loading={loadingMore} pageSize={PAGE_SIZE} />
     </div>
   );
 }

@@ -24,7 +24,6 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
       const json = await res.json();
       if (json.ok) {
         sessionStorage.setItem('admin_auth', '1');
-        sessionStorage.setItem('admin_pwd', password);
         onSuccess();
       } else {
         setError('비밀번호가 틀렸습니다.');
