@@ -1,0 +1,64 @@
+export type Angle = '전면' | '후면' | '기타';
+
+export interface Video {
+  id: string;
+  youtube_url: string;
+  title: string;
+  date: string;        // YYYY-MM-DD
+  angle: Angle;
+  participants: string[];
+  topic?: string;
+  uploader?: string;
+  competition_id?: string | null;  // 대회 연결 (null = 일반 훈련 영상)
+  created_at: string;
+}
+
+export interface Venue {
+  id: string;
+  name: string;
+  address?: string;
+  parking_info?: string;
+  court_count?: number;
+  floor_type?: string;
+  size_memo?: string;
+  access_memo?: string;
+  created_at: string;
+}
+
+export interface Competition {
+  id: string;
+  name: string;        // "사회인대회"
+  year: number;
+  date_start?: string; // YYYY-MM-DD
+  date_end?: string;
+  venue_id?: string | null;
+  result_summary?: string;
+  entry_fee?: number;
+  notes?: string;
+  created_at: string;
+  // 조인 데이터 (조회 시 포함)
+  venue?: Venue;
+  participants?: CompetitionParticipant[];
+  files?: CompetitionFile[];
+  videos?: Video[];
+}
+
+export interface CompetitionParticipant {
+  id: string;
+  competition_id: string;
+  name: string;
+  gender?: '여' | '남' | '혼성';
+  division?: string;   // 자유 입력: "여자부", "30대 혼성부" 등
+  dan_kyu?: string;    // 당시 기준 단/급
+  result?: string;     // "8강", "우승", "예선탈락"
+  notes?: string;
+}
+
+export interface CompetitionFile {
+  id: string;
+  competition_id: string;
+  file_type?: string;  // "팸플릿", "대진표", "결과지", "사진"
+  file_url: string;
+  file_name?: string;
+  created_at: string;
+}

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EWHA Kumdo — 모바일 미리보기</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: #e8e8e8;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 32px;
+    padding: 32px 24px;
+    min-height: 100vh;
+    flex-wrap: wrap;
+  }
+
+  :root {
+    --green: #00462A;
+    --pear: #FFFDF1;
+    --grey: #B9B9B9;
+    --grey-mid: #e0e0e0;
+  }
+
+  /* ── 폰 프레임 ── */
+  .phone-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .phone-label {
+    font-family: 'Pretendard', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    letter-spacing: 0.3px;
+  }
+  .phone {
+    width: 320px;
+    height: 640px;
+    background: #111;
+    border-radius: 36px;
+    padding: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    position: relative;
+    overflow: hidden;
+  }
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: var(--pear);
+    border-radius: 28px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── 헤더 ── */
+  .m-header {
+    background: var(--green);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .m-header .hamburger { color: white; font-size: 16px; flex-shrink: 0; cursor: pointer; }
+  .m-header .logo { color: white; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+  .m-header .logo span { color: #a8e6c8; }
+  .m-header .search {
+    flex: 1;
+    background: rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Pretendard', sans-serif;
+  }
+
+  /* ── 필터 칩 (가로 스크롤) ── */
+  .m-filter {
+    display: flex;
+    gap: 6px;
+    padding: 8px 10px;
+    overflow-x: auto;
+    flex-shrink: 0;
+    background: var(--pear);
+    border-bottom: 1px solid var(--grey-mid);
+    scrollbar-width: none;
+  }
+  .m-filter::-webkit-scrollbar { display: none; }
+  .m-chip {
+    flex-shrink: 0;
+    padding: 4px 11px;
+    border-radius: 14px;
+    font-size: 11px; font-weight: 600;
+    border: 1.5px solid var(--grey-mid);
+    background: white; color: #444;
+    font-family: 'Pretendard', sans-serif;
+    white-space: nowrap;
+  }
+  .m-chip.active { background: var(--green); color: white; border-color: var(--green); }
+
+  /* ── 영상 그리드 (2열) ── */
+  .m-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    scrollbar-width: none;
+  }
+  .m-content::-webkit-scrollbar { display: none; }
+  .m-section-title {
+    font-size: 13px; font-weight: 700;
+    margin-bottom: 8px; color: #222;
+  }
+  .m-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .m-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .m-thumb {
+    width: 100%;
+    aspect-ratio: 4/3;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .m-thumb .play { color: rgba(255,255,255,0.8); font-size: 18px; }
+  .m-thumb .badge {
+    position: absolute; top: 4px; right: 4px;
+    background: rgba(0,70,42,0.85);
+    color: white; font-size: 8px; font-weight: 700;
+    padding: 1px 5px; border-radius: 5px;
+    font-family: 'Pretendard', sans-serif;
+  }
+  .m-thumb.c1 { background: linear-gradient(135deg, #1a1a2e, #003320); }
+  .m-thumb.c2 { background: linear-gradient(135deg, #002b1a, #005535); }
+  .m-thumb.c3 { background: linear-gradient(135deg, #111827, #1f2937); }
+  .m-thumb.c4 { background: linear-gradient(135deg, #00462a, #002b1a); }
+  .m-thumb.c5 { background: linear-gradient(135deg, #1e3a2f, #0d2b20); }
+  .m-thumb.c6 { background: linear-gradient(135deg, #0d2b20, #1a1a2e); }
+
+  .m-card-info { padding: 5px 7px 7px; }
+  .m-card-date { font-size: 9px; color: var(--green); font-weight: 700; margin-bottom: 2px; }
+  .m-card-title { font-size: 10px; font-weight: 600; margin-bottom: 3px; line-height: 1.3; }
+  .m-tag {
+    display: inline-block;
+    background: rgba(0,70,42,0.08);
+    color: var(--green);
+    font-size: 9px; font-weight: 600;
+    padding: 1px 5px; border-radius: 6px;
+    margin-right: 2px;
+    font-family: 'Pretendard', sans-serif;
+  }
+
+  /* ── 사이드바 오버레이 ── */
+  .m-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 10;
+    border-radius: 28px;
+  }
+  .m-sidebar {
+    position: absolute; top: 0; left: 0; bottom: 0;
+    width: 200px;
+    background: var(--pear);
+    z-index: 11;
+    border-radius: 28px 0 0 28px;
+    padding: 12px 0;
+    border-right: 1px solid var(--grey-mid);
+  }
+  .m-sidebar-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px 12px;
+    border-bottom: 1px solid var(--grey-mid);
+    margin-bottom: 6px;
+  }
+  .m-sidebar-header .close { font-size: 16px; cursor: pointer; color: #555; }
+  .m-sidebar-header .logo { font-weight: 800; font-size: 13px; color: var(--green); }
+  .m-sidebar-header .logo span { color: #007a4a; }
+
+  .m-sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    font-size: 12px; font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px; margin: 1px 6px;
+  }
+  .m-sidebar-item.active {
+    background: rgba(0,70,42,0.1);
+    color: var(--green); font-weight: 700;
+  }
+  .m-sidebar-item .icon { font-size: 16px; }
+
+  /* ── 하단 네비 (모바일 전용) ── */
+  .m-bottom-nav {
+    display: flex;
+    background: white;
+    border-top: 1px solid var(--grey-mid);
+    flex-shrink: 0;
+  }
+  .m-nav-item {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 6px 4px;
+    font-size: 9px; color: #888;
+    cursor: pointer;
+  }
+  .m-nav-item.active { color: var(--green); font-weight: 700; }
+  .m-nav-item .nav-icon { font-size: 16px; margin-bottom: 1px; }
+</style>
+</head>
+<body>
+
+<!-- ① 기본 상태 -->
+<div class="phone-wrap">
+  <div class="phone-label">기본 화면</div>
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="m-header">
+        <div class="hamburger">☰</div>
+        <div class="logo">EWHA <span>Kumdo</span></div>
+        <div class="search">🔍 검색...</div>
+      </div>
+      <div class="m-filter">
+        <div class="m-chip active">전체</div>
+        <div class="m-chip">#홍길동</div>
+        <div class="m-chip">#이순신</div>
+        <div class="m-chip">#강감찬</div>
+        <div class="m-chip">전면 앵글</div>
+        <div class="m-chip">후면 앵글</div>
+        <div class="m-chip">2025년 3월</div>
+      </div>
+      <div class="m-content">
+        <div class="m-section-title">최신 영상</div>
+        <div class="m-grid">
+          <div class="m-card">
+            <div class="m-thumb c1"><span class="play">▶</span><span class="badge">전면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 20</div>
+              <div class="m-card-title">검도 훈련</div>
+              <span class="m-tag">#홍길동</span><span class="m-tag">#이순신</span>
+            </div>
+          </div>
+          <div class="m-card">
+            <div class="m-thumb c2"><span class="play">▶</span><span class="badge">후면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 20</div>
+              <div class="m-card-title">검도 훈련</div>
+              <span class="m-tag">#홍길동</span><span class="m-tag">#이순신</span>
+            </div>
+          </div>
+          <div class="m-card">
+            <div class="m-thumb c3"><span class="play">▶</span><span class="badge">전면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 18</div>
+              <div class="m-card-title">기본기 훈련</div>
+              <span class="m-tag">#강감찬</span>
+            </div>
+          </div>
+          <div class="m-card">
+            <div class="m-thumb c4"><span class="play">▶</span><span class="badge">전면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 15</div>
+              <div class="m-card-title">검도 훈련</div>
+              <span class="m-tag">#이순신</span>
+            </div>
+          </div>
+          <div class="m-card">
+            <div class="m-thumb c5"><span class="play">▶</span><span class="badge">후면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 15</div>
+              <div class="m-card-title">검도 훈련</div>
+              <span class="m-tag">#이순신</span>
+            </div>
+          </div>
+          <div class="m-card">
+            <div class="m-thumb c6"><span class="play">▶</span><span class="badge">전면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 12</div>
+              <div class="m-card-title">대련 연습</div>
+              <span class="m-tag">#홍길동</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 하단 네비 -->
+      <div class="m-bottom-nav">
+        <div class="m-nav-item active"><span class="nav-icon">🏠</span>홈</div>
+        <div class="m-nav-item"><span class="nav-icon">📅</span>캘린더</div>
+        <div class="m-nav-item"><span class="nav-icon">🎯</span>주제별</div>
+        <div class="m-nav-item"><span class="nav-icon">👤</span>참가자</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ② 사이드바 열린 상태 -->
+<div class="phone-wrap">
+  <div class="phone-label">☰ 메뉴 열었을 때</div>
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="m-header">
+        <div class="hamburger">☰</div>
+        <div class="logo">EWHA <span>Kumdo</span></div>
+        <div class="search">🔍 검색...</div>
+      </div>
+      <div class="m-filter">
+        <div class="m-chip active">전체</div>
+        <div class="m-chip">#홍길동</div>
+        <div class="m-chip">#이순신</div>
+      </div>
+      <div class="m-content">
+        <div class="m-section-title">최신 영상</div>
+        <div class="m-grid">
+          <div class="m-card">
+            <div class="m-thumb c1"><span class="play">▶</span><span class="badge">전면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 20</div>
+              <div class="m-card-title">검도 훈련</div>
+              <span class="m-tag">#홍길동</span>
+            </div>
+          </div>
+          <div class="m-card">
+            <div class="m-thumb c2"><span class="play">▶</span><span class="badge">후면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 20</div>
+              <div class="m-card-title">검도 훈련</div>
+              <span class="m-tag">#이순신</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="m-bottom-nav">
+        <div class="m-nav-item active"><span class="nav-icon">🏠</span>홈</div>
+        <div class="m-nav-item"><span class="nav-icon">📅</span>캘린더</div>
+        <div class="m-nav-item"><span class="nav-icon">🎯</span>주제별</div>
+        <div class="m-nav-item"><span class="nav-icon">👤</span>참가자</div>
+      </div>
+
+      <!-- 오버레이 + 사이드바 -->
+      <div class="m-overlay"></div>
+      <div class="m-sidebar">
+        <div class="m-sidebar-header">
+          <span class="close">✕</span>
+          <span class="logo">EWHA <span>Kumdo</span></span>
+        </div>
+        <div class="m-sidebar-item active">
+          <span class="icon">🏠</span> 홈
+        </div>
+        <div class="m-sidebar-item">
+          <span class="icon">📅</span> 캘린더 보기
+        </div>
+        <div class="m-sidebar-item">
+          <span class="icon">🎯</span> 주제별 보기
+        </div>
+        <div class="m-sidebar-item">
+          <span class="icon">👤</span> 참가자별 보기
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ③ 검색 / 필터 칩 선택 상태 -->
+<div class="phone-wrap">
+  <div class="phone-label">태그 필터 선택 시</div>
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="m-header">
+        <div class="hamburger">☰</div>
+        <div class="logo">EWHA <span>Kumdo</span></div>
+        <div class="search" style="background:rgba(255,255,255,0.9);color:#333;">홍길동</div>
+      </div>
+      <div class="m-filter">
+        <div class="m-chip">전체</div>
+        <div class="m-chip active">#홍길동</div>
+        <div class="m-chip">#이순신</div>
+        <div class="m-chip">#강감찬</div>
+        <div class="m-chip">전면 앵글</div>
+      </div>
+      <div class="m-content">
+        <div class="m-section-title" style="color:var(--green);">#홍길동 영상 4개</div>
+        <div class="m-grid">
+          <div class="m-card">
+            <div class="m-thumb c1"><span class="play">▶</span><span class="badge">전면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 20</div>
+              <div class="m-card-title">검도 훈련</div>
+              <span class="m-tag">#홍길동</span><span class="m-tag">#이순신</span>
+            </div>
+          </div>
+          <div class="m-card">
+            <div class="m-thumb c2"><span class="play">▶</span><span class="badge">후면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 20</div>
+              <div class="m-card-title">검도 훈련</div>
+              <span class="m-tag">#홍길동</span><span class="m-tag">#이순신</span>
+            </div>
+          </div>
+          <div class="m-card">
+            <div class="m-thumb c4"><span class="play">▶</span><span class="badge">전면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 12</div>
+              <div class="m-card-title">대련 연습</div>
+              <span class="m-tag">#홍길동</span><span class="m-tag">#강감찬</span>
+            </div>
+          </div>
+          <div class="m-card">
+            <div class="m-thumb c6"><span class="play">▶</span><span class="badge">후면</span></div>
+            <div class="m-card-info">
+              <div class="m-card-date">2025. 03. 10</div>
+              <div class="m-card-title">검도 훈련</div>
+              <span class="m-tag">#홍길동</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="m-bottom-nav">
+        <div class="m-nav-item active"><span class="nav-icon">🏠</span>홈</div>
+        <div class="m-nav-item"><span class="nav-icon">📅</span>캘린더</div>
+        <div class="m-nav-item"><span class="nav-icon">🎯</span>주제별</div>
+        <div class="m-nav-item"><span class="nav-icon">👤</span>참가자</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>아이콘 옵션 미리보기 — EWHA Kumdo</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Pretendard', sans-serif;
+    background: #f5f5f5;
+    padding: 32px 24px;
+    color: #111;
+  }
+  h1 { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #00462A; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 40px; }
+
+  .section { margin-bottom: 56px; }
+  .section-title {
+    font-size: 15px; font-weight: 700; color: #111;
+    margin-bottom: 4px;
+  }
+  .section-desc { font-size: 12px; color: #888; margin-bottom: 20px; }
+
+  .preview-row {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  /* ──────────────── 사이드바 ──────────────── */
+  .sidebar-mock {
+    width: 200px;
+    background: #FFFDF1;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .sidebar-header {
+    background: #00462A;
+    color: #FFFDF1;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 16px;
+    letter-spacing: 0.04em;
+  }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 16px;
+    gap: 12px;
+    font-size: 13px;
+    color: #374151;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .sidebar-item.active {
+    background: rgba(0,70,42,0.10);
+    color: #00462A;
+    font-weight: 600;
+  }
+  .icon-wrap { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* ──────────────── 하단 탭 ──────────────── */
+  .bottomnav-mock {
+    width: 320px;
+    background: #FFFDF1;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .bottomnav-header {
+    background: #00462A;
+    color: #FFFDF1;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 16px;
+    letter-spacing: 0.04em;
+  }
+  .bottomnav-bar {
+    display: flex;
+    border-top: 1px solid #e0e0e0;
+  }
+  .bottomnav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0 8px;
+    gap: 3px;
+    font-size: 10px;
+    color: #B9B9B9;
+  }
+  .bottomnav-item.active {
+    color: #00462A;
+    font-weight: 600;
+  }
+  .bottomnav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+
+  /* ──────────────── 옵션 레이블 ──────────────── */
+  .label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #00462A;
+    background: rgba(0,70,42,0.08);
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .option-wrap { display: flex; flex-direction: column; }
+</style>
+</head>
+<body>
+
+<h1>아이콘 옵션 미리보기</h1>
+<p class="subtitle">슬라이드 메뉴(사이드바) + 하단 탭 기준. 첫 번째 항목(홈)이 활성 상태.</p>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 옵션 A: 인라인 SVG -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">옵션 A — 인라인 SVG (stroke 방식)</div>
+  <div class="section-desc">현재 검색 아이콘과 동일한 방식. 추가 패키지 없음. 색상 자동 상속.</div>
+  <div class="preview-row">
+
+    <!-- 사이드바 A -->
+    <div class="option-wrap">
+      <span class="label">슬라이드 메뉴</span>
+      <div class="sidebar-mock">
+        <div class="sidebar-header">EWHA Kumdo</div>
+        <!-- 홈 (active) -->
+        <div class="sidebar-item active">
+          <div class="icon-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+              <path d="M9 21V12h6v9"/>
+            </svg>
+          </div>
+          홈
+        </div>
+        <!-- 캘린더 -->
+        <div class="sidebar-item">
+          <div class="icon-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          캘린더 보기
+        </div>
+        <!-- 주제별 -->
+        <div class="sidebar-item">
+          <div class="icon-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+            </svg>
+          </div>
+          주제별 보기
+        </div>
+        <!-- 참가자 -->
+        <div class="sidebar-item">
+          <div class="icon-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+              <path d="M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+          </div>
+          참가자별 보기
+        </div>
+      </div>
+    </div>
+
+    <!-- 하단탭 A -->
+    <div class="option-wrap">
+      <span class="label">하단 탭 (모바일)</span>
+      <div class="bottomnav-mock">
+        <div class="bottomnav-header">모바일 화면</div>
+        <div class="bottomnav-bar">
+          <div class="bottomnav-item active">
+            <div class="bottomnav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+                <path d="M9 21V12h6v9"/>
+              </svg>
+            </div>
+            홈
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            캘린더
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+              </svg>
+            </div>
+            주제별
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                <path d="M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+            </div>
+            참가자
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 옵션 B: Lucide React 스타일 (더 얇은 stroke) -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">옵션 B — Lucide React 스타일 (strokeWidth 1.5, 더 가늘고 모던)</div>
+  <div class="section-desc">npm install lucide-react 필요. 옵션 A와 동일한 SVG이지만 선 굵기가 달라 느낌이 다름.</div>
+  <div class="preview-row">
+
+    <!-- 사이드바 B -->
+    <div class="option-wrap">
+      <span class="label">슬라이드 메뉴</span>
+      <div class="sidebar-mock">
+        <div class="sidebar-header">EWHA Kumdo</div>
+        <div class="sidebar-item active">
+          <div class="icon-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+              <path d="M9 21V12h6v9"/>
+            </svg>
+          </div>
+          홈
+        </div>
+        <div class="sidebar-item">
+          <div class="icon-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          캘린더 보기
+        </div>
+        <div class="sidebar-item">
+          <div class="icon-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+            </svg>
+          </div>
+          주제별 보기
+        </div>
+        <div class="sidebar-item">
+          <div class="icon-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+              <path d="M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+          </div>
+          참가자별 보기
+        </div>
+      </div>
+    </div>
+
+    <!-- 하단탭 B -->
+    <div class="option-wrap">
+      <span class="label">하단 탭 (모바일)</span>
+      <div class="bottomnav-mock">
+        <div class="bottomnav-header">모바일 화면</div>
+        <div class="bottomnav-bar">
+          <div class="bottomnav-item active">
+            <div class="bottomnav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+                <path d="M9 21V12h6v9"/>
+              </svg>
+            </div>
+            홈
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            캘린더
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+              </svg>
+            </div>
+            주제별
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                <path d="M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+            </div>
+            참가자
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 옵션 C: 텍스트 심볼 -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">옵션 C — 텍스트 심볼 (무설치, 미니멀)</div>
+  <div class="section-desc">폰트 기반 심볼. 패키지 0. OS/브라우저마다 렌더링이 다를 수 있음.</div>
+  <div class="preview-row">
+
+    <!-- 사이드바 C -->
+    <div class="option-wrap">
+      <span class="label">슬라이드 메뉴</span>
+      <div class="sidebar-mock">
+        <div class="sidebar-header">EWHA Kumdo</div>
+        <div class="sidebar-item active">
+          <div class="icon-wrap" style="font-size:14px; font-weight:400;">⌂</div>
+          홈
+        </div>
+        <div class="sidebar-item">
+          <div class="icon-wrap" style="font-size:14px;">▦</div>
+          캘린더 보기
+        </div>
+        <div class="sidebar-item">
+          <div class="icon-wrap" style="font-size:14px;">≡</div>
+          주제별 보기
+        </div>
+        <div class="sidebar-item">
+          <div class="icon-wrap" style="font-size:14px;">◉</div>
+          참가자별 보기
+        </div>
+      </div>
+    </div>
+
+    <!-- 하단탭 C -->
+    <div class="option-wrap">
+      <span class="label">하단 탭 (모바일)</span>
+      <div class="bottomnav-mock">
+        <div class="bottomnav-header">모바일 화면</div>
+        <div class="bottomnav-bar">
+          <div class="bottomnav-item active">
+            <div class="bottomnav-icon" style="font-size:16px;">⌂</div>
+            홈
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon" style="font-size:16px;">▦</div>
+            캘린더
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon" style="font-size:16px;">≡</div>
+            주제별
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon" style="font-size:16px;">◉</div>
+            참가자
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 현재 상태 (비교용) -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">현재 상태 (이모지) — 비교용</div>
+  <div class="section-desc">현재 코드 그대로. OS/기기마다 다르게 보임.</div>
+  <div class="preview-row">
+
+    <div class="option-wrap">
+      <span class="label" style="background:rgba(0,0,0,0.06); color:#374151;">슬라이드 메뉴</span>
+      <div class="sidebar-mock">
+        <div class="sidebar-header">EWHA Kumdo</div>
+        <div class="sidebar-item active">
+          <div class="icon-wrap" style="font-size:15px;">🏠</div>
+          홈
+        </div>
+        <div class="sidebar-item">
+          <div class="icon-wrap" style="font-size:15px;">📅</div>
+          캘린더 보기
+        </div>
+        <div class="sidebar-item">
+          <div class="icon-wrap" style="font-size:15px;">📚</div>
+          주제별 보기
+        </div>
+        <div class="sidebar-item">
+          <div class="icon-wrap" style="font-size:15px;">👤</div>
+          참가자별 보기
+        </div>
+      </div>
+    </div>
+
+    <div class="option-wrap">
+      <span class="label" style="background:rgba(0,0,0,0.06); color:#374151;">하단 탭 (모바일)</span>
+      <div class="bottomnav-mock">
+        <div class="bottomnav-header">모바일 화면</div>
+        <div class="bottomnav-bar">
+          <div class="bottomnav-item active">
+            <div class="bottomnav-icon" style="font-size:18px;">🏠</div>
+            홈
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon" style="font-size:18px;">📅</div>
+            캘린더
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon" style="font-size:18px;">📚</div>
+            주제별
+          </div>
+          <div class="bottomnav-item">
+            <div class="bottomnav-icon" style="font-size:18px;">👤</div>
+            참가자
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
