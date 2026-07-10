@@ -4,6 +4,7 @@ import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
 import { getSupabase } from '@/lib/supabase';
 import { Competition } from '@/lib/types';
+import { getCompetitionColor } from '@/lib/utils';
 
 const COMPETITION_NAMES = ['사회인대회', '서울컵대회', '대선기대회', '서울시 춘계 대학연맹전', '서울시 추계 대학연맹전'];
 
@@ -28,18 +29,14 @@ export default async function CompetitionPage() {
     .map(Number)
     .sort((a, b) => b - a);
 
-  // 대회명별 색상
-  const nameColors: Record<string, string> = {
-    '사회인대회': '#00462A',
-    '서울컵대회': '#1a6b47',
-    '대선기대회': '#374151',
-    '서울시 춘계 대학연맹전': '#2d5a8e',
-    '서울시 추계 대학연맹전': '#7c3d8e',
-  };
+  const getColor = getCompetitionColor;
 
-  function getColor(name: string) {
-    return nameColors[name] || '#00462A';
-  }
+  // 대회 시리즈 칩 (대회명별 연도 비교 보기 진입점)
+  const distinctNames = Array.from(new Set(competitions.map((c) => c.name)));
+  const seriesNames = [
+    ...COMPETITION_NAMES.filter((n) => distinctNames.includes(n)),
+    ...distinctNames.filter((n) => !COMPETITION_NAMES.includes(n)).sort((a, b) => a.localeCompare(b, 'ko')),
+  ];
 
   return (
     <AppLayout>
@@ -49,6 +46,21 @@ export default async function CompetitionPage() {
           {competitions.length}개 대회
         </span>
       </div>
+
+      {seriesNames.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-6">
+          {seriesNames.map((n) => (
+            <Link
+              key={n}
+              href={`/competition/series/${encodeURIComponent(n)}`}
+              className="text-xs font-bold px-2.5 py-1 rounded-full text-white transition-opacity hover:opacity-80"
+              style={{ backgroundColor: getColor(n) }}
+            >
+              {n} 연도별 보기
+            </Link>
+          ))}
+        </div>
+      )}
 
       {competitions.length === 0 ? (
         <div className="text-center py-20">

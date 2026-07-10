@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Competition, Video } from '@/lib/types';
 import { formatDate, extractYouTubeId, getYouTubeThumbnail } from '@/lib/utils';
 import AngleBadge from '@/components/AngleBadge';
+import VenueInfoCard from '@/components/VenueInfoCard';
 
 type TabKey = 'participants' | 'venue' | 'files' | 'videos';
 
@@ -189,42 +190,7 @@ export default function CompetitionTabs({ comp, videos }: Props) {
             <EmptyState icon="📍" message="등록된 대회장 정보가 없습니다" />
           ) : (
             <div className="space-y-4">
-              <div className="rounded-xl border overflow-hidden" style={{ borderColor: '#e0e0e0' }}>
-                <div className="px-4 py-3 border-b" style={{ backgroundColor: '#F8FBF9', borderColor: '#e0e0e0' }}>
-                  <h3 className="text-base font-bold" style={{ color: '#00462A' }}>
-                    {comp.venue.name}
-                  </h3>
-                  {comp.venue.address && (
-                    <a
-                      href={`https://map.kakao.com/link/search/${encodeURIComponent(comp.venue.address)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs flex items-center gap-1 mt-0.5 hover:underline"
-                      style={{ color: '#2d5a8e' }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
-                      </svg>
-                      {comp.venue.address}
-                    </a>
-                  )}
-                </div>
-
-                <div className="divide-y divide-[#f0f0f0]">
-                  {[
-                    { label: '🅿️ 주차', value: comp.venue.parking_info },
-                    { label: '🏟️ 코트 수', value: comp.venue.court_count ? `${comp.venue.court_count}면` : undefined },
-                    { label: '🦶 바닥', value: comp.venue.floor_type },
-                    { label: '📐 규모', value: comp.venue.size_memo },
-                    { label: '🚇 교통', value: comp.venue.access_memo },
-                  ].filter((row) => row.value).map(({ label, value }) => (
-                    <div key={label} className="flex gap-3 px-4 py-3">
-                      <span className="text-sm flex-shrink-0 w-24" style={{ color: '#374151' }}>{label}</span>
-                      <span className="text-sm whitespace-pre-wrap" style={{ color: '#111' }}>{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <VenueInfoCard venue={comp.venue} nameHref={`/venue/${comp.venue.id}`} />
             </div>
           )}
         </div>

@@ -34,3 +34,15 @@ export function extractYouTubeId(url: string): string | null {
 export function getYouTubeThumbnail(videoId: string): string {
   return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
 }
+
+const COMPETITION_NAME_COLORS: Record<string, string> = {
+  '사회인대회': '#00462A',
+  '서울컵대회': '#1a6b47',
+  '대선기대회': '#374151',
+  '서울시 춘계 대학연맹전': '#2d5a8e',
+  '서울시 추계 대학연맹전': '#7c3d8e',
+};
+
+export function getCompetitionColor(name: string): string {
+  return COMPETITION_NAME_COLORS[name] || '#00462A';
+}

@@ -386,6 +386,7 @@ function CompetitionForm({
   const [dateStart, setDateStart] = useState(initial?.date_start || '');
   const [dateEnd, setDateEnd] = useState(initial?.date_end || '');
   const [venueId, setVenueId] = useState(initial?.venue_id || '');
+  const [customVenueName, setCustomVenueName] = useState('');
   const [resultSummary, setResultSummary] = useState(initial?.result_summary || '');
   const [entryFee, setEntryFee] = useState(String(initial?.entry_fee || ''));
   const [notes, setNotes] = useState(initial?.notes || '');
@@ -394,16 +395,60 @@ function CompetitionForm({
 
   const PRESET_NAMES = ['사회인대회', '서울컵대회', '대선기대회', '서울시 춘계 대학연맹전', '서울시 추계 대학연맹전'];
 
+  const PRESET_VENUE_NAMES = [
+    '과학기술대학교 체육관',
+    '올림픽공원 학생체육관',
+    '올림픽공원 핸드볼경기장',
+    '금천문화센터',
+    '경기도검도수련원',
+    '한석봉체육관',
+  ];
+  // 프리셋 대회장이 이미 등록되어 있으면 그 id를, 아니면 저장 시점에 자동 등록하도록 임시 값을 사용
+  const presetVenueOptions = PRESET_VENUE_NAMES.map((n) => {
+    const existing = venues.find((v) => v.name === n);
+    return { value: existing ? existing.id : `__new__:${n}`, label: n };
+  });
+  const otherVenues = venues.filter((v) => !PRESET_VENUE_NAMES.includes(v.name));
+
+  async function resolveVenueId(): Promise<string | null> {
+    if (!venueId) return null;
+    if (venueId === '__custom__') {
+      const trimmed = customVenueName.trim();
+      if (!trimmed) return null;
+      const existing = venues.find((v) => v.name === trimmed);
+      if (existing) return existing.id;
+      const res = await fetch('/api/venues', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || '대회장 등록 실패');
+      return json.data.id;
+    }
+    if (venueId.startsWith('__new__:')) {
+      const presetName = venueId.slice('__new__:'.length);
+      const res = await fetch('/api/venues', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: presetName }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || '대회장 등록 실패');
+      return json.data.id;
+    }
+    return venueId;
+  }
+
   async function handleSave() {
     const finalName = useCustom ? customName : name;
     if (!finalName || !year) { setError('대회명과 연도는 필수입니다'); return; }
     setSaving(true);
     setError('');
     try {
+      const resolvedVenueId = await resolveVenueId();
       const body = {
         name: finalName, year: Number(year),
         date_start: dateStart || null, date_end: dateEnd || null,
-        venue_id: venueId || null,
+        venue_id: resolvedVenueId,
         result_summary: resultSummary || null,
         entry_fee: entryFee ? Number(entryFee) : null,
         notes: notes || null,
@@ -498,8 +543,20 @@ function CompetitionForm({
         <select value={venueId} onChange={(e) => setVenueId(e.target.value)}
           className="w-full h-8 px-2 text-xs rounded border focus:outline-none bg-white" style={{ borderColor: '#e0e0e0' }}>
           <option value="">대회장 선택 안 함</option>
-          {venues.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+          {presetVenueOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          {otherVenues.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+          <option value="__custom__">기타 (직접 입력)</option>
         </select>
+        {venueId === '__custom__' && (
+          <input
+            type="text"
+            value={customVenueName}
+            onChange={(e) => setCustomVenueName(e.target.value)}
+            placeholder="대회장명 직접 입력"
+            className="w-full h-8 px-3 text-xs rounded border focus:outline-none mt-2"
+            style={{ borderColor: '#e0e0e0' }}
+          />
+        )}
       </div>
 
       {/* 결과 요약 */}
