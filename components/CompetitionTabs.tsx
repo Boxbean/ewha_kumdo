@@ -210,7 +210,7 @@ export default function CompetitionTabs({ comp, videos }: Props) {
                   )}
                 </div>
 
-                <div className="divide-y" style={{ divideColor: '#f0f0f0' }}>
+                <div className="divide-y divide-[#f0f0f0]">
                   {[
                     { label: '🅿️ 주차', value: comp.venue.parking_info },
                     { label: '🏟️ 코트 수', value: comp.venue.court_count ? `${comp.venue.court_count}면` : undefined },
