@@ -5,6 +5,7 @@ import AppLayout from '@/components/AppLayout';
 import { getSupabase } from '@/lib/supabase';
 import { Competition, Video } from '@/lib/types';
 import CompetitionTabs from '@/components/CompetitionTabs';
+import VenueInfoCard from '@/components/VenueInfoCard';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -87,6 +88,13 @@ export default async function CompetitionDetailPage({ params }: Props) {
           </div>
         )}
       </div>
+
+      {/* 대회장 정보 (항상 노출) */}
+      {comp.venue && (
+        <div className="mb-6">
+          <VenueInfoCard venue={comp.venue} nameHref={`/venue/${comp.venue.id}`} />
+        </div>
+      )}
 
       {/* 탭 컴포넌트 (클라이언트) */}
       <CompetitionTabs comp={comp} videos={videos} />

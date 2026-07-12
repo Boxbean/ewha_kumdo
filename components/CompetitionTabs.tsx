@@ -5,9 +5,8 @@ import Link from 'next/link';
 import { Competition, Video } from '@/lib/types';
 import { formatDate, extractYouTubeId, getYouTubeThumbnail } from '@/lib/utils';
 import AngleBadge from '@/components/AngleBadge';
-import VenueInfoCard from '@/components/VenueInfoCard';
 
-type TabKey = 'participants' | 'venue' | 'files' | 'videos';
+type TabKey = 'participants' | 'files' | 'videos';
 
 interface Props {
   comp: Competition;
@@ -19,7 +18,6 @@ export default function CompetitionTabs({ comp, videos }: Props) {
 
   const tabs: { key: TabKey; label: string; count?: number }[] = [
     { key: 'participants', label: '출전자', count: comp.participants?.length },
-    { key: 'venue', label: '대회장' },
     { key: 'files', label: '파일', count: comp.files?.length },
     { key: 'videos', label: '영상', count: videos.length },
   ];
@@ -178,19 +176,6 @@ export default function CompetitionTabs({ comp, videos }: Props) {
             >
               <p className="text-xs font-semibold mb-1" style={{ color: '#00462A' }}>메모</p>
               <p className="whitespace-pre-wrap">{comp.notes}</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 대회장 탭 */}
-      {tab === 'venue' && (
-        <div>
-          {!comp.venue ? (
-            <EmptyState icon="📍" message="등록된 대회장 정보가 없습니다" />
-          ) : (
-            <div className="space-y-4">
-              <VenueInfoCard venue={comp.venue} nameHref={`/venue/${comp.venue.id}`} />
             </div>
           )}
         </div>
