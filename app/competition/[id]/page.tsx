@@ -87,6 +87,16 @@ export default async function CompetitionDetailPage({ params }: Props) {
             🏆 {comp.result_summary}
           </div>
         )}
+
+        {/* 특이사항 */}
+        {comp.notes && (
+          <div
+            className="mt-3 p-3 rounded-lg text-sm whitespace-pre-wrap"
+            style={{ backgroundColor: '#F8FBF9', border: '1px solid #d1e8dc', color: '#374151' }}
+          >
+            📝 {comp.notes}
+          </div>
+        )}
       </div>
 
       {/* 대회장 정보 (항상 노출) */}
@@ -95,6 +105,28 @@ export default async function CompetitionDetailPage({ params }: Props) {
           <VenueInfoCard venue={comp.venue} nameHref={`/venue/${comp.venue.id}`} />
         </div>
       )}
+
+      {/* 팜플렛 바로가기 */}
+      {(() => {
+        const pamphlets = comp.files?.filter((f) => f.file_type === '팸플릿') || [];
+        if (pamphlets.length === 0) return null;
+        return (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {pamphlets.map((file) => (
+              <a
+                key={file.id}
+                href={file.file_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold px-3 py-1.5 rounded-full hover:opacity-80"
+                style={{ backgroundColor: 'rgba(0,70,42,0.08)', color: '#00462A' }}
+              >
+                📋 {file.file_name || '팜플렛'} 보기
+              </a>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* 탭 컴포넌트 (클라이언트) */}
       <CompetitionTabs comp={comp} videos={videos} />

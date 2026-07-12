@@ -167,17 +167,6 @@ export default function CompetitionTabs({ comp, videos }: Props) {
               );
             })()
           )}
-
-          {/* 메모 */}
-          {comp.notes && (
-            <div
-              className="mt-5 p-4 rounded-lg text-sm"
-              style={{ backgroundColor: '#F8FBF9', border: '1px solid #d1e8dc', color: '#374151' }}
-            >
-              <p className="text-xs font-semibold mb-1" style={{ color: '#00462A' }}>메모</p>
-              <p className="whitespace-pre-wrap">{comp.notes}</p>
-            </div>
-          )}
         </div>
       )}
 

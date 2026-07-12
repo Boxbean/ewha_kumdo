@@ -22,6 +22,8 @@ export interface Venue {
   floor_type?: string;
   size_memo?: string;
   access_memo?: string;
+  nearby_info?: string;
+  notes?: string;
   created_at: string;
 }
 

@@ -13,6 +13,8 @@ export default function VenueInfoCard({ venue, nameHref }: Props) {
     { icon: '🦶', value: venue.floor_type },
     { icon: '📐', value: venue.size_memo },
     { icon: '🚇', value: venue.access_memo },
+    { icon: '🍽️', value: venue.nearby_info },
+    { icon: '📝', value: venue.notes },
   ].filter((f) => f.value);
 
   return (

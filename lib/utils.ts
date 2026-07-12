@@ -41,6 +41,9 @@ const COMPETITION_NAME_COLORS: Record<string, string> = {
   '대선기대회': '#374151',
   '서울시 춘계 대학연맹전': '#2d5a8e',
   '서울시 추계 대학연맹전': '#7c3d8e',
+  '서울시 회장기대회': '#9d5b0b',
+  '금천구청장기 대회': '#0e7490',
+  '도봉구청장기 대회': '#65a30d',
 };
 
 export function getCompetitionColor(name: string): string {

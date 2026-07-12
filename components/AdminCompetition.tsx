@@ -374,13 +374,17 @@ function CompetitionForm({
   onSave: () => void;
   onCancel: () => void;
 }) {
+  const PRESET_NAMES = [
+    '사회인대회', '서울컵대회', '서울시 회장기대회', '서울시 춘계 대학연맹전', '서울시 추계 대학연맹전',
+    '금천구청장기 대회', '대선기대회', '도봉구청장기 대회',
+  ];
+
   const [name, setName] = useState(initial?.name || '');
   const [customName, setCustomName] = useState(
-    initial?.name && !['사회인대회', '서울컵대회', '대선기대회', '서울시 춘계 대학연맹전', '서울시 추계 대학연맹전'].includes(initial.name)
-      ? initial.name : ''
+    initial?.name && !PRESET_NAMES.includes(initial.name) ? initial.name : ''
   );
   const [useCustom, setUseCustom] = useState(
-    !!initial?.name && !['사회인대회', '서울컵대회', '대선기대회', '서울시 춘계 대학연맹전', '서울시 추계 대학연맹전'].includes(initial.name)
+    !!initial?.name && !PRESET_NAMES.includes(initial.name)
   );
   const [year, setYear] = useState(String(initial?.year || new Date().getFullYear()));
   const [dateStart, setDateStart] = useState(initial?.date_start || '');
@@ -392,8 +396,6 @@ function CompetitionForm({
   const [notes, setNotes] = useState(initial?.notes || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-
-  const PRESET_NAMES = ['사회인대회', '서울컵대회', '대선기대회', '서울시 춘계 대학연맹전', '서울시 추계 대학연맹전'];
 
   const PRESET_VENUE_NAMES = [
     '과학기술대학교 체육관',
@@ -618,6 +620,8 @@ function VenueForm({
   const [floorType, setFloorType] = useState(initial?.floor_type || '');
   const [sizeMemo, setSizeMemo] = useState(initial?.size_memo || '');
   const [accessMemo, setAccessMemo] = useState(initial?.access_memo || '');
+  const [nearbyInfo, setNearbyInfo] = useState(initial?.nearby_info || '');
+  const [venueNotes, setVenueNotes] = useState(initial?.notes || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -629,6 +633,7 @@ function VenueForm({
         name, address: address || null, parking_info: parkingInfo || null,
         court_count: courtCount ? Number(courtCount) : null,
         floor_type: floorType || null, size_memo: sizeMemo || null, access_memo: accessMemo || null,
+        nearby_info: nearbyInfo || null, notes: venueNotes || null,
       };
       const url = initial ? `/api/venues/${initial.id}` : '/api/venues';
       const method = initial ? 'PATCH' : 'POST';
@@ -657,6 +662,8 @@ function VenueForm({
         { label: '🦶 바닥 재질', value: floorType, set: setFloorType, placeholder: '마루 / 매트 / 타일' },
         { label: '📐 규모 메모', value: sizeMemo, set: setSizeMemo, placeholder: '코트 6면, 관람석 500석' },
         { label: '🚇 교통/접근', value: accessMemo, set: setAccessMemo, placeholder: '올림픽공원역 3번 출구 도보 5분' },
+        { label: '🍽️ 주변식당 및 편의시설', value: nearbyInfo, set: setNearbyInfo, placeholder: '체육관 1층 편의점, 인근 식당가 도보 5분' },
+        { label: '📝 경기장 특이사항', value: venueNotes, set: setVenueNotes, placeholder: '냉방 시설 없음, 관람석 협소' },
       ].map(({ label, value, set, placeholder }) => (
         <div key={label}>
           <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>{label}</label>

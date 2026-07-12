@@ -5,19 +5,32 @@ import AppLayout from '@/components/AppLayout';
 import { getSupabase } from '@/lib/supabase';
 import { Competition } from '@/lib/types';
 import { getCompetitionColor } from '@/lib/utils';
+import { getSeriesByKey } from '@/lib/competitionSeries';
 
 interface Props {
-  params: Promise<{ name: string }>;
+  params: Promise<{ key: string }>;
 }
 
 export default async function CompetitionSeriesPage({ params }: Props) {
-  const { name } = await params;
+  const { key } = await params;
+  const series = getSeriesByKey(key);
+
+  if (!series) {
+    return (
+      <AppLayout>
+        <div className="text-center py-20" style={{ color: '#B9B9B9' }}>
+          존재하지 않는 대회입니다.
+        </div>
+      </AppLayout>
+    );
+  }
+
   const supabase = getSupabase();
 
   const { data } = await supabase
     .from('competitions')
     .select('*, venue:venues(*), participants:competition_participants(id), files:competition_files(id)')
-    .eq('name', name)
+    .in('name', series.names)
     .order('year', { ascending: false })
     .order('date_start', { ascending: false });
 
@@ -33,7 +46,7 @@ export default async function CompetitionSeriesPage({ params }: Props) {
     .map(Number)
     .sort((a, b) => b - a);
 
-  const color = getCompetitionColor(name);
+  const color = getCompetitionColor(series.names[0]);
 
   return (
     <AppLayout>
@@ -54,7 +67,7 @@ export default async function CompetitionSeriesPage({ params }: Props) {
             className="text-sm font-bold px-3 py-1 rounded-full text-white"
             style={{ backgroundColor: color }}
           >
-            {name}
+            {series.label}
           </span>
           <span className="text-sm" style={{ color: '#B9B9B9' }}>
             {years.length}개 연도 · {competitions.length}회 개최
