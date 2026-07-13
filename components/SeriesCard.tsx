@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Competition } from '@/lib/types';
 import { CompetitionSeries } from '@/lib/competitionSeries';
+import KendoIcon from './KendoIcon';
 
 interface Props {
   series: CompetitionSeries;
@@ -22,7 +23,7 @@ export default function SeriesCard({ series, latest, thumbnailUrl, color }: Prop
             // eslint-disable-next-line @next/next/no-img-element
             <img src={thumbnailUrl} alt={series.label} className="w-full h-full object-cover" />
           ) : (
-            <span className="text-3xl" style={{ opacity: 0.9 }}>🥋</span>
+            <KendoIcon size={28} color="#fff" />
           )}
         </div>
 

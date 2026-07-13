@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Competition, Venue } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 import { COMPETITION_SERIES } from '@/lib/competitionSeries';
+import KendoIcon from './KendoIcon';
 
 interface Props {
   onMessage: (msg: string) => void;
@@ -779,7 +780,7 @@ function SeriesThumbnailManager({ onMessage }: { onMessage: (msg: string) => voi
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={thumbs[series.key]} alt={series.label} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-lg" style={{ opacity: 0.6 }}>🥋</span>
+                <KendoIcon size={18} color="#9CA3AF" />
               )}
             </div>
             <p className="text-sm font-medium" style={{ color: '#111' }}>{series.label}</p>
