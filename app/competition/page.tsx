@@ -1,10 +1,10 @@
 export const dynamic = 'force-dynamic';
 
-import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
 import CompetitionSubTabs from '@/components/CompetitionSubTabs';
+import SeriesCard from '@/components/SeriesCard';
 import { getSupabase } from '@/lib/supabase';
-import { Competition } from '@/lib/types';
+import { Competition, SeriesThumbnail } from '@/lib/types';
 import { getCompetitionColor } from '@/lib/utils';
 import { COMPETITION_SERIES } from '@/lib/competitionSeries';
 
@@ -12,14 +12,19 @@ export default async function CompetitionPage() {
   const supabase = getSupabase();
   const allNames = COMPETITION_SERIES.flatMap((s) => s.names);
 
-  const { data } = await supabase
-    .from('competitions')
-    .select('*, venue:venues(name)')
-    .in('name', allNames)
-    .order('year', { ascending: false })
-    .order('date_start', { ascending: false });
+  const [compRes, thumbRes] = await Promise.all([
+    supabase
+      .from('competitions')
+      .select('*, venue:venues(name)')
+      .in('name', allNames)
+      .order('year', { ascending: false })
+      .order('date_start', { ascending: false }),
+    supabase.from('series_thumbnails').select('*'),
+  ]);
 
-  const competitions: Competition[] = (data as Competition[]) || [];
+  const competitions: Competition[] = (compRes.data as Competition[]) || [];
+  const thumbnails: SeriesThumbnail[] = (thumbRes.data as SeriesThumbnail[]) || [];
+  const thumbByKey = new Map(thumbnails.map((t) => [t.series_key, t.thumbnail_url]));
 
   return (
     <AppLayout>
@@ -29,41 +34,17 @@ export default async function CompetitionPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {COMPETITION_SERIES.map((series) => {
-          const latest = competitions.find((c) => series.names.includes(c.name));
+          const latest = competitions.find((c) => series.names.includes(c.name)) || null;
           const color = getCompetitionColor(series.names[0]);
 
           return (
-            <Link
+            <SeriesCard
               key={series.key}
-              href={`/competition/series/${series.key}`}
-              className="block rounded-xl border p-4 transition-all hover:shadow-md"
-              style={{ borderColor: '#e0e0e0', backgroundColor: '#fff' }}
-            >
-              <span
-                className="inline-block text-xs font-bold px-2.5 py-1 rounded-full text-white mb-2"
-                style={{ backgroundColor: color }}
-              >
-                {series.label}
-              </span>
-              {latest ? (
-                <div className="space-y-0.5">
-                  {latest.date_start && (
-                    <p className="text-sm" style={{ color: '#374151' }}>
-                      🗓️ {latest.date_start}
-                    </p>
-                  )}
-                  {latest.venue?.name && (
-                    <p className="text-sm" style={{ color: '#374151' }}>
-                      📍 {latest.venue.name}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm" style={{ color: '#B9B9B9' }}>
-                  아직 등록된 기록이 없습니다
-                </p>
-              )}
-            </Link>
+              series={series}
+              latest={latest}
+              thumbnailUrl={thumbByKey.get(series.key) || undefined}
+              color={color}
+            />
           );
         })}
       </div>

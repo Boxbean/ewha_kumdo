@@ -5,7 +5,9 @@ import AppLayout from '@/components/AppLayout';
 import { getSupabase } from '@/lib/supabase';
 import { Competition, Video } from '@/lib/types';
 import CompetitionTabs from '@/components/CompetitionTabs';
-import VenueInfoCard from '@/components/VenueInfoCard';
+import CompetitionDetailFields from '@/components/CompetitionDetailFields';
+import CompetitionEditButton from '@/components/CompetitionEditButton';
+import { getSeriesByName } from '@/lib/competitionSeries';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -40,42 +42,36 @@ export default async function CompetitionDetailPage({ params }: Props) {
 
   const comp = compRes.data as Competition;
   const videos: Video[] = (videosRes.data as Video[]) || [];
+  const series = getSeriesByName(comp.name);
 
   return (
     <AppLayout>
       {/* 상단 헤더 */}
       <div className="mb-6">
         <Link
-          href="/competition"
+          href={series ? `/competition/series/${series.key}` : '/competition'}
           className="inline-flex items-center gap-1 text-sm mb-4"
           style={{ color: '#B9B9B9' }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
-          대회 목록
+          {series ? `${series.label} 이력` : '대회 목록'}
         </Link>
 
         <div className="flex items-start justify-between gap-2">
-          <div>
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span
-                className="text-xs font-bold px-2.5 py-1 rounded-full text-white"
-                style={{ backgroundColor: '#00462A' }}
-              >
-                {comp.name}
-              </span>
-              <span className="text-sm font-semibold" style={{ color: '#374151' }}>
-                {comp.year}년
-              </span>
-            </div>
-            {comp.date_start && (
-              <p className="text-sm" style={{ color: '#B9B9B9' }}>
-                {comp.date_start}
-                {comp.date_end && comp.date_end !== comp.date_start ? ` ~ ${comp.date_end}` : ''}
-              </p>
-            )}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className="text-xs font-bold px-2.5 py-1 rounded-full text-white"
+              style={{ backgroundColor: '#00462A' }}
+            >
+              {comp.name}
+            </span>
+            <span className="text-sm font-semibold" style={{ color: '#374151' }}>
+              {comp.year}년
+            </span>
           </div>
+          <CompetitionEditButton competitionId={comp.id} />
         </div>
 
         {/* 결과 요약 배너 */}
@@ -87,46 +83,12 @@ export default async function CompetitionDetailPage({ params }: Props) {
             🏆 {comp.result_summary}
           </div>
         )}
-
-        {/* 특이사항 */}
-        {comp.notes && (
-          <div
-            className="mt-3 p-3 rounded-lg text-sm whitespace-pre-wrap"
-            style={{ backgroundColor: '#F8FBF9', border: '1px solid #d1e8dc', color: '#374151' }}
-          >
-            📝 {comp.notes}
-          </div>
-        )}
       </div>
 
-      {/* 대회장 정보 (항상 노출) */}
-      {comp.venue && (
-        <div className="mb-6">
-          <VenueInfoCard venue={comp.venue} nameHref={`/venue/${comp.venue.id}`} />
-        </div>
-      )}
-
-      {/* 팜플렛 바로가기 */}
-      {(() => {
-        const pamphlets = comp.files?.filter((f) => f.file_type === '팸플릿') || [];
-        if (pamphlets.length === 0) return null;
-        return (
-          <div className="flex flex-wrap gap-2 mb-6">
-            {pamphlets.map((file) => (
-              <a
-                key={file.id}
-                href={file.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-semibold px-3 py-1.5 rounded-full hover:opacity-80"
-                style={{ backgroundColor: 'rgba(0,70,42,0.08)', color: '#00462A' }}
-              >
-                📋 {file.file_name || '팜플렛'} 보기
-              </a>
-            ))}
-          </div>
-        );
-      })()}
+      {/* 대회 정보 6요소 (항상 노출, 없으면 '등록된 정보 없음') */}
+      <div className="mb-6">
+        <CompetitionDetailFields comp={comp} />
+      </div>
 
       {/* 탭 컴포넌트 (클라이언트) */}
       <CompetitionTabs comp={comp} videos={videos} />

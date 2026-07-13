@@ -17,3 +17,7 @@ export const COMPETITION_SERIES: CompetitionSeries[] = [
 export function getSeriesByKey(key: string): CompetitionSeries | undefined {
   return COMPETITION_SERIES.find((s) => s.key === key);
 }
+
+export function getSeriesByName(name: string): CompetitionSeries | undefined {
+  return COMPETITION_SERIES.find((s) => s.names.includes(name));
+}

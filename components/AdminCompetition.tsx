@@ -3,14 +3,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { Competition, Venue } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
+import { COMPETITION_SERIES } from '@/lib/competitionSeries';
 
 interface Props {
   onMessage: (msg: string) => void;
+  initialEditId?: string | null;
 }
 
-type SubTab = 'competitions' | 'venues';
+type SubTab = 'competitions' | 'venues' | 'thumbnails';
 
-export default function AdminCompetition({ onMessage }: Props) {
+export default function AdminCompetition({ onMessage, initialEditId }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('competitions');
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -34,6 +36,18 @@ export default function AdminCompetition({ onMessage }: Props) {
 
   useEffect(() => { void load(); }, []);
 
+  useEffect(() => {
+    if (!initialEditId || competitions.length === 0) return;
+    const target = competitions.find((c) => c.id === initialEditId);
+    if (target) {
+      setSubTab('competitions');
+      setEditComp(target);
+      setShowCompForm(true);
+      setExpandedId(target.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialEditId, competitions.length]);
+
   return (
     <div>
       {/* 서브 탭 */}
@@ -41,6 +55,7 @@ export default function AdminCompetition({ onMessage }: Props) {
         {[
           { key: 'competitions' as SubTab, label: '대회 목록' },
           { key: 'venues' as SubTab, label: '대회장 관리' },
+          { key: 'thumbnails' as SubTab, label: '시리즈 썸네일' },
         ].map((t) => (
           <button
             key={t.key}
@@ -160,6 +175,9 @@ export default function AdminCompetition({ onMessage }: Props) {
               </div>
             </div>
           )}
+
+          {/* 시리즈 썸네일 */}
+          {subTab === 'thumbnails' && <SeriesThumbnailManager onMessage={onMessage} />}
         </>
       )}
     </div>
@@ -689,6 +707,113 @@ function VenueForm({
           취소
         </button>
       </div>
+    </div>
+  );
+}
+
+// ─── 시리즈 썸네일 관리 ────────────────────────────────────────────────────
+function SeriesThumbnailManager({ onMessage }: { onMessage: (msg: string) => void }) {
+  const [thumbs, setThumbs] = useState<Record<string, string | undefined>>({});
+  const [loading, setLoading] = useState(true);
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  async function load() {
+    setLoading(true);
+    const res = await fetch('/api/series-thumbnails').then((r) => r.json());
+    const map: Record<string, string | undefined> = {};
+    for (const row of res.data || []) map[row.series_key] = row.thumbnail_url || undefined;
+    setThumbs(map);
+    setLoading(false);
+  }
+
+  useEffect(() => { void load(); }, []);
+
+  async function uploadThumbnail(seriesKey: string, file: File) {
+    setUploadingKey(seriesKey);
+    try {
+      const path = `series-thumbnails/${seriesKey}_${Date.now()}_${file.name}`;
+      const { error: storageError } = await supabase.storage
+        .from('competition-files')
+        .upload(path, file, { upsert: true });
+      if (storageError) throw storageError;
+
+      const { data: urlData } = supabase.storage.from('competition-files').getPublicUrl(path);
+      const publicUrl = urlData?.publicUrl;
+
+      await fetch('/api/series-thumbnails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ series_key: seriesKey, thumbnail_url: publicUrl }),
+      });
+
+      await load();
+      onMessage('썸네일이 업로드되었습니다.');
+    } catch (e) {
+      alert('업로드 실패: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setUploadingKey(null);
+    }
+  }
+
+  async function removeThumbnail(seriesKey: string) {
+    if (!confirm('썸네일을 제거하시겠습니까?')) return;
+    await fetch('/api/series-thumbnails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ series_key: seriesKey, thumbnail_url: null }),
+    });
+    await load();
+    onMessage('썸네일이 제거되었습니다.');
+  }
+
+  if (loading) return <p className="text-sm py-8 text-center" style={{ color: '#B9B9B9' }}>불러오는 중...</p>;
+
+  return (
+    <div className="space-y-2">
+      {COMPETITION_SERIES.map((series) => (
+        <div key={series.key} className="flex items-center justify-between px-4 py-3 rounded-lg border" style={{ borderColor: '#e0e0e0' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#f3f4f6' }}>
+              {thumbs[series.key] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={thumbs[series.key]} alt={series.label} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg" style={{ opacity: 0.6 }}>🥋</span>
+              )}
+            </div>
+            <p className="text-sm font-medium" style={{ color: '#111' }}>{series.label}</p>
+          </div>
+          <div className="flex gap-2">
+            <input
+              ref={(el) => { fileRefs.current[series.key] = el; }}
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void uploadThumbnail(series.key, file);
+                if (fileRefs.current[series.key]) fileRefs.current[series.key]!.value = '';
+              }}
+            />
+            <button
+              onClick={() => fileRefs.current[series.key]?.click()}
+              disabled={uploadingKey === series.key}
+              className="text-xs px-2.5 py-1 rounded border"
+              style={{ borderColor: '#00462A', color: '#00462A', opacity: uploadingKey === series.key ? 0.6 : 1 }}
+            >
+              {uploadingKey === series.key ? '업로드 중...' : '이미지 변경'}
+            </button>
+            {thumbs[series.key] && (
+              <button
+                onClick={() => void removeThumbnail(series.key)}
+                className="text-xs px-2.5 py-1 rounded border"
+                style={{ borderColor: '#DC2626', color: '#DC2626' }}
+              >제거</button>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

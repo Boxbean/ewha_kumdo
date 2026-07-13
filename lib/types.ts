@@ -13,6 +13,12 @@ export interface Video {
   created_at: string;
 }
 
+export interface SeriesThumbnail {
+  series_key: string;
+  thumbnail_url?: string;
+  updated_at: string;
+}
+
 export interface Venue {
   id: string;
   name: string;

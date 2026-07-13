@@ -20,6 +20,7 @@ export default function AdminPage() {
   const [editVideo, setEditVideo] = useState<Video | null>(null);
   const [editLoading, setEditLoading] = useState(false);
   const [formKey, setFormKey] = useState(0);
+  const [editCompetitionId, setEditCompetitionId] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -37,6 +38,12 @@ export default function AdminPage() {
             setEditLoading(false);
           }
         })();
+      }
+      const editCompId = sessionStorage.getItem('admin_edit_competition_id');
+      if (editCompId) {
+        sessionStorage.removeItem('admin_edit_competition_id');
+        setEditCompetitionId(editCompId);
+        setTab('competition');
       }
     }
   }, []);
@@ -168,7 +175,7 @@ export default function AdminPage() {
             <h2 className="text-base font-bold mb-4" style={{ color: '#374151' }}>
               대회 관리
             </h2>
-            <AdminCompetition onMessage={(msg) => showSuccess(msg)} />
+            <AdminCompetition onMessage={(msg) => showSuccess(msg)} initialEditId={editCompetitionId} />
           </div>
         )}
       </div>
