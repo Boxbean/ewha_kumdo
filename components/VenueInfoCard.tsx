@@ -13,7 +13,6 @@ export default function VenueInfoCard({ venue, nameHref }: Props) {
     { icon: '🦶', value: venue.floor_type },
     { icon: '📐', value: venue.size_memo },
     { icon: '🚇', value: venue.access_memo },
-    { icon: '🍽️', value: venue.nearby_info },
     { icon: '📝', value: venue.notes },
   ].filter((f) => f.value);
 
@@ -42,8 +41,19 @@ export default function VenueInfoCard({ venue, nameHref }: Props) {
         )}
       </div>
 
-      {facts.length > 0 && (
+      {(venue.nearby_info || facts.length > 0) && (
         <div className="flex flex-wrap gap-1.5">
+          {venue.nearby_info && (
+            <a
+              href={`https://map.kakao.com/link/search/${encodeURIComponent(venue.nearby_info)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs px-2 py-0.5 rounded-full whitespace-pre-wrap hover:opacity-80"
+              style={{ backgroundColor: 'rgba(45,90,142,0.08)', color: '#2d5a8e' }}
+            >
+              🍽️ {venue.nearby_info}
+            </a>
+          )}
           {facts.map((f) => (
             <span
               key={f.icon}
