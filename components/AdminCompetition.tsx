@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Competition, Venue } from '@/lib/types';
+import { Competition, CompetitionFile, Venue } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 import { COMPETITION_SERIES } from '@/lib/competitionSeries';
 import KendoIcon from './KendoIcon';
@@ -27,8 +27,8 @@ export default function AdminCompetition({ onMessage, initialEditId }: Props) {
   async function load() {
     setLoading(true);
     const [compRes, venueRes] = await Promise.all([
-      fetch('/api/competitions').then((r) => r.json()),
-      fetch('/api/venues').then((r) => r.json()),
+      fetch('/api/competitions', { cache: 'no-store' }).then((r) => r.json()),
+      fetch('/api/venues', { cache: 'no-store' }).then((r) => r.json()),
     ]);
     setCompetitions(compRes.data || []);
     setVenues(venueRes.data || []);
@@ -410,11 +410,26 @@ function CompetitionForm({
   const [dateEnd, setDateEnd] = useState(initial?.date_end || '');
   const [venueId, setVenueId] = useState(initial?.venue_id || '');
   const [customVenueName, setCustomVenueName] = useState('');
+  const [venueAddress, setVenueAddress] = useState(initial?.venue?.address || '');
+  const [venueNearbyInfo, setVenueNearbyInfo] = useState(initial?.venue?.nearby_info || '');
+  const [venueNotes, setVenueNotes] = useState(initial?.venue?.notes || '');
   const [resultSummary, setResultSummary] = useState(initial?.result_summary || '');
   const [entryFee, setEntryFee] = useState(String(initial?.entry_fee || ''));
   const [notes, setNotes] = useState(initial?.notes || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // 대회장 선택(기존 대회장)이 바뀌면 해당 대회장의 현재 정보로 채워줌
+  useEffect(() => {
+    if (!venueId || venueId === '__custom__' || venueId.startsWith('__new__:')) return;
+    const v = venues.find((x) => x.id === venueId);
+    if (v) {
+      setVenueAddress(v.address || '');
+      setVenueNearbyInfo(v.nearby_info || '');
+      setVenueNotes(v.notes || '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [venueId]);
 
   const PRESET_VENUE_NAMES = [
     '과학기술대학교 체육관',
@@ -466,6 +481,24 @@ function CompetitionForm({
     setError('');
     try {
       const resolvedVenueId = await resolveVenueId();
+
+      // 진행 장소 / 주변식당 및 편의시설 / 경기장 특이사항은 대회장(venue) 엔티티에 저장됨
+      if (resolvedVenueId) {
+        const resolvedVenueName =
+          venueId === '__custom__' ? customVenueName.trim()
+          : venueId.startsWith('__new__:') ? venueId.slice('__new__:'.length)
+          : venues.find((v) => v.id === resolvedVenueId)?.name || '';
+        await fetch(`/api/venues/${resolvedVenueId}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: resolvedVenueName,
+            address: venueAddress || null,
+            nearby_info: venueNearbyInfo || null,
+            notes: venueNotes || null,
+          }),
+        });
+      }
+
       const body = {
         name: finalName, year: Number(year),
         date_start: dateStart || null, date_end: dateEnd || null,
@@ -539,28 +572,36 @@ function CompetitionForm({
         )}
       </div>
 
-      {/* 연도 / 날짜 */}
-      <div className="grid grid-cols-3 gap-2">
-        <div>
-          <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>연도 *</label>
-          <input type="number" value={year} onChange={(e) => setYear(e.target.value)}
-            className="w-full h-8 px-2 text-xs rounded border focus:outline-none" style={{ borderColor: '#e0e0e0' }} />
-        </div>
-        <div>
-          <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>시작일</label>
-          <input type="date" value={dateStart} onChange={(e) => setDateStart(e.target.value)}
-            className="w-full h-8 px-2 text-xs rounded border focus:outline-none" style={{ borderColor: '#e0e0e0' }} />
-        </div>
-        <div>
-          <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>종료일</label>
-          <input type="date" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)}
-            className="w-full h-8 px-2 text-xs rounded border focus:outline-none" style={{ borderColor: '#e0e0e0' }} />
+      {/* 연도 */}
+      <div className="w-24">
+        <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>연도 *</label>
+        <input type="number" value={year} onChange={(e) => setYear(e.target.value)}
+          className="w-full h-8 px-2 text-xs rounded border focus:outline-none" style={{ borderColor: '#e0e0e0' }} />
+      </div>
+
+      <hr style={{ borderColor: '#e0e0e0' }} />
+
+      {/* 📅 진행일자 */}
+      <div>
+        <label className="text-xs font-bold block mb-1.5" style={{ color: '#00462A' }}>📅 진행일자</label>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>시작일</label>
+            <input type="date" value={dateStart} onChange={(e) => setDateStart(e.target.value)}
+              className="w-full h-8 px-2 text-xs rounded border focus:outline-none" style={{ borderColor: '#e0e0e0' }} />
+          </div>
+          <div>
+            <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>종료일</label>
+            <input type="date" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)}
+              className="w-full h-8 px-2 text-xs rounded border focus:outline-none" style={{ borderColor: '#e0e0e0' }} />
+          </div>
         </div>
       </div>
 
-      {/* 대회장 */}
+      {/* 경기장 정보 (대회장 선택 + 경기장명/특이사항) */}
       <div>
-        <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>대회장 (선택)</label>
+        <label className="text-xs font-bold block mb-1.5" style={{ color: '#00462A' }}>🏟️ 경기장 정보</label>
+        <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>경기장명 (대회장 선택)</label>
         <select value={venueId} onChange={(e) => setVenueId(e.target.value)}
           className="w-full h-8 px-2 text-xs rounded border focus:outline-none bg-white" style={{ borderColor: '#e0e0e0' }}>
           <option value="">대회장 선택 안 함</option>
@@ -578,7 +619,41 @@ function CompetitionForm({
             style={{ borderColor: '#e0e0e0' }}
           />
         )}
+
+        {!!venueId && (
+          <div className="mt-2">
+            <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>경기장 특이사항</label>
+            <input type="text" value={venueNotes} onChange={(e) => setVenueNotes(e.target.value)}
+              placeholder="냉방 시설 없음, 관람석 협소"
+              className="w-full h-8 px-3 text-xs rounded border focus:outline-none" style={{ borderColor: '#e0e0e0' }} />
+            <p className="text-xs mt-1" style={{ color: '#B9B9B9' }}>
+              이 대회장에서 열린 다른 대회에도 함께 반영됩니다
+            </p>
+          </div>
+        )}
       </div>
+
+      {/* 📍 진행 장소 */}
+      {!!venueId && (
+        <div>
+          <label className="text-xs font-bold block mb-1.5" style={{ color: '#00462A' }}>📍 진행 장소</label>
+          <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)}
+            placeholder="서울시 송파구..."
+            className="w-full h-8 px-3 text-xs rounded border focus:outline-none" style={{ borderColor: '#e0e0e0' }} />
+        </div>
+      )}
+
+      {/* 🍽️ 주변식당 및 편의시설 */}
+      {!!venueId && (
+        <div>
+          <label className="text-xs font-bold block mb-1.5" style={{ color: '#00462A' }}>🍽️ 주변식당 및 편의시설</label>
+          <input type="text" value={venueNearbyInfo} onChange={(e) => setVenueNearbyInfo(e.target.value)}
+            placeholder="체육관 1층 편의점, 인근 식당가 도보 5분"
+            className="w-full h-8 px-3 text-xs rounded border focus:outline-none" style={{ borderColor: '#e0e0e0' }} />
+        </div>
+      )}
+
+      <hr style={{ borderColor: '#e0e0e0' }} />
 
       {/* 결과 요약 */}
       <div>
@@ -588,7 +663,7 @@ function CompetitionForm({
           className="w-full h-8 px-3 text-xs rounded border focus:outline-none" style={{ borderColor: '#e0e0e0' }} />
       </div>
 
-      {/* 참가비 / 메모 */}
+      {/* 참가비 */}
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>참가비 (원)</label>
@@ -599,8 +674,12 @@ function CompetitionForm({
         <div />
       </div>
 
+      {/* 📋 팜플렛 */}
+      {initial && <PamphletManager competitionId={initial.id} initialFiles={initial.files || []} />}
+
+      {/* 📝 특이사항 */}
       <div>
-        <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>메모</label>
+        <label className="text-xs font-bold block mb-1.5" style={{ color: '#00462A' }}>📝 특이사항</label>
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
           rows={2} placeholder="대회 전반적인 기록..."
           className="w-full px-3 py-2 text-xs rounded border focus:outline-none resize-y" style={{ borderColor: '#e0e0e0' }} />
@@ -620,6 +699,91 @@ function CompetitionForm({
           취소
         </button>
       </div>
+    </div>
+  );
+}
+
+// ─── 팜플렛 업로드/삭제 ───────────────────────────────────────────────────
+function PamphletManager({ competitionId, initialFiles }: { competitionId: string; initialFiles: CompetitionFile[] }) {
+  const [files, setFiles] = useState<CompetitionFile[]>(initialFiles.filter((f) => f.file_type === '팸플릿'));
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function upload(file: File) {
+    setUploading(true);
+    try {
+      const path = `${competitionId}/${Date.now()}_${file.name}`;
+      const { error: storageError } = await supabase.storage
+        .from('competition-files')
+        .upload(path, file, { upsert: true });
+      if (storageError) throw storageError;
+
+      const { data: urlData } = supabase.storage.from('competition-files').getPublicUrl(path);
+      const publicUrl = urlData?.publicUrl;
+
+      const res = await fetch(`/api/competitions/${competitionId}/files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_url: publicUrl, file_name: file.name, file_type: '팸플릿' }),
+      });
+      const json = await res.json();
+      if (json.data) setFiles((prev) => [...prev, json.data]);
+    } catch (e) {
+      alert('업로드 실패: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function remove(file: CompetitionFile) {
+    if (!confirm('팜플렛을 삭제하시겠습니까?')) return;
+    const storagePath = file.file_url.includes('competition-files/')
+      ? file.file_url.split('competition-files/')[1]
+      : undefined;
+    await fetch(`/api/competitions/${competitionId}/files`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file_id: file.id, storage_path: storagePath }),
+    });
+    setFiles((prev) => prev.filter((f) => f.id !== file.id));
+  }
+
+  return (
+    <div>
+      <label className="text-xs font-bold block mb-1.5" style={{ color: '#00462A' }}>📋 팜플렛</label>
+      {files.length > 0 && (
+        <div className="space-y-1 mb-2">
+          {files.map((f) => (
+            <div key={f.id} className="flex items-center justify-between px-3 py-1.5 rounded border text-xs" style={{ borderColor: '#e0e0e0' }}>
+              <span style={{ color: '#374151' }}>{f.file_name || '팜플렛'}</span>
+              <div className="flex gap-2">
+                <a href={f.file_url} target="_blank" rel="noopener noreferrer" style={{ color: '#2d5a8e' }}>보기</a>
+                <button type="button" onClick={() => void remove(f)} style={{ color: '#DC2626' }}>삭제</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".pdf,.jpg,.jpeg,.png,.webp"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void upload(file);
+          if (fileRef.current) fileRef.current.value = '';
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => fileRef.current?.click()}
+        disabled={uploading}
+        className="h-8 px-4 text-xs rounded border font-medium"
+        style={{ borderColor: '#00462A', color: '#00462A', opacity: uploading ? 0.6 : 1 }}
+      >
+        {uploading ? '업로드 중...' : '팜플렛 파일 선택 (PDF / 이미지)'}
+      </button>
     </div>
   );
 }
