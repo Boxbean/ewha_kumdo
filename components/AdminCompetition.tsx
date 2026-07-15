@@ -5,6 +5,7 @@ import { Competition, CompetitionFile, Venue } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 import { COMPETITION_SERIES } from '@/lib/competitionSeries';
 import KendoIcon from './KendoIcon';
+import BracketAdminPanel from './BracketAdminPanel';
 
 interface Props {
   onMessage: (msg: string) => void;
@@ -378,6 +379,9 @@ function CompetitionRow({
               </div>
             )}
           </div>
+
+          {/* 대진표 매치 입력 */}
+          <BracketAdminPanel competitionId={comp.id} initialMatches={comp.bracket_matches ?? []} onMessage={onMessage} />
         </div>
       )}
     </div>

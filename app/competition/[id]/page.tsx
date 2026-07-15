@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
 import { getSupabase } from '@/lib/supabase';
-import { Competition, Video } from '@/lib/types';
+import { BracketMatch, Competition, Video } from '@/lib/types';
 import CompetitionTabs from '@/components/CompetitionTabs';
 import CompetitionDetailFields from '@/components/CompetitionDetailFields';
 import CompetitionEditButton from '@/components/CompetitionEditButton';
@@ -17,7 +17,7 @@ export default async function CompetitionDetailPage({ params }: Props) {
   const { id } = await params;
   const supabase = getSupabase();
 
-  const [compRes, videosRes] = await Promise.all([
+  const [compRes, videosRes, bracketRes] = await Promise.all([
     supabase
       .from('competitions')
       .select('*, venue:venues(*), participants:competition_participants(*), files:competition_files(*)')
@@ -28,6 +28,10 @@ export default async function CompetitionDetailPage({ params }: Props) {
       .select('*')
       .eq('competition_id', id)
       .order('date', { ascending: true }),
+    supabase
+      .from('bracket_matches')
+      .select('*')
+      .eq('competition_id', id),
   ]);
 
   if (compRes.error || !compRes.data) {
@@ -42,6 +46,8 @@ export default async function CompetitionDetailPage({ params }: Props) {
 
   const comp = compRes.data as Competition;
   const videos: Video[] = (videosRes.data as Video[]) || [];
+  // bracket_matches 테이블이 아직 없어도(마이그레이션 전) 대회 상세 자체는 정상 노출되도록 별도 쿼리로 분리
+  comp.bracket_matches = (bracketRes.data as BracketMatch[]) || [];
   const series = getSeriesByName(comp.name);
 
   return (

@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { Competition, Video } from '@/lib/types';
 import { formatDate, extractYouTubeId, getYouTubeThumbnail } from '@/lib/utils';
 import AngleBadge from '@/components/AngleBadge';
+import BracketView from '@/components/BracketView';
 
-type TabKey = 'participants' | 'files' | 'videos';
+type TabKey = 'participants' | 'files' | 'videos' | 'bracket';
 
 interface Props {
   comp: Competition;
@@ -16,10 +17,14 @@ interface Props {
 export default function CompetitionTabs({ comp, videos }: Props) {
   const [tab, setTab] = useState<TabKey>('participants');
 
+  const hasBracket = (comp.bracket_matches?.length ?? 0) > 0
+    || (comp.files ?? []).some((f) => f.file_type === '대진표');
+
   const tabs: { key: TabKey; label: string; count?: number }[] = [
     { key: 'participants', label: '출전자', count: comp.participants?.length },
     { key: 'files', label: '파일', count: comp.files?.length },
     { key: 'videos', label: '영상', count: videos.length },
+    ...(hasBracket ? [{ key: 'bracket' as TabKey, label: '대진표', count: comp.bracket_matches?.length }] : []),
   ];
 
   return (
@@ -259,6 +264,11 @@ export default function CompetitionTabs({ comp, videos }: Props) {
             </div>
           )}
         </div>
+      )}
+
+      {/* 대진표 탭 */}
+      {tab === 'bracket' && (
+        <BracketView matches={comp.bracket_matches ?? []} files={comp.files ?? []} />
       )}
     </>
   );

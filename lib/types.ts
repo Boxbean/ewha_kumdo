@@ -49,6 +49,7 @@ export interface Competition {
   participants?: CompetitionParticipant[];
   files?: CompetitionFile[];
   videos?: Video[];
+  bracket_matches?: BracketMatch[];
 }
 
 export interface CompetitionParticipant {
@@ -69,4 +70,30 @@ export interface CompetitionFile {
   file_url: string;
   file_name?: string;
   created_at: string;
+}
+
+export type BracketSide = 'A' | 'B' | 'final';
+export type WinnerSlot = 'player1' | 'player2';
+
+export interface BracketMatch {
+  id: string;
+  competition_id: string;
+  division: string;      // "남자노년부" 등
+  event_type: string;    // "개인전" | "단체전"
+  side: BracketSide;
+  round: number;         // 1 = 해당 side의 첫 라운드, 결승 쪽으로 갈수록 증가
+  match_no: number;      // (side, round) 내 왼쪽부터 1-index
+  match_label?: string;  // 매치 코드 표기용 (예: "5-8"), 점수 아님
+  player1_name?: string;
+  player1_club?: string;
+  player1_is_ours: boolean;
+  player2_name?: string;
+  player2_club?: string;
+  player2_is_ours: boolean;
+  winner_slot?: WinnerSlot | null;
+  is_bye: boolean;
+  third_place_match: boolean;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
 }

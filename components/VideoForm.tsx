@@ -481,7 +481,7 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
 
       <div>
         <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-          대회 연결 (선택)
+          대회명 (선택)
         </label>
         <select
           value={competitionId}

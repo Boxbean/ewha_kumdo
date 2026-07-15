@@ -22,7 +22,21 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data }, {
+
+  // bracket_matches는 별도 조회 후 병합 — 테이블이 아직 없어도(마이그레이션 전) 대회 목록 자체는 정상 응답되도록 함
+  const { data: bracketData } = await supabase.from('bracket_matches').select('*');
+  const bracketByCompetition = new Map<string, unknown[]>();
+  for (const row of (bracketData as { competition_id: string }[]) || []) {
+    const list = bracketByCompetition.get(row.competition_id) || [];
+    list.push(row);
+    bracketByCompetition.set(row.competition_id, list);
+  }
+  const withBrackets = (data || []).map((c: { id: string }) => ({
+    ...c,
+    bracket_matches: bracketByCompetition.get(c.id) || [],
+  }));
+
+  return NextResponse.json({ data: withBrackets }, {
     headers: { 'Cache-Control': 'no-store' },
   });
 }
