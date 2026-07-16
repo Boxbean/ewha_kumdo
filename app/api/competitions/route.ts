@@ -5,6 +5,25 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const year = searchParams.get('year');
   const name = searchParams.get('name');
+  const basic = searchParams.get('basic');
+
+  // basic=1: 대회명 드롭다운 등 id/name/year만 필요한 화면용 — venue/participants/files/bracket_matches 조인·병합을 건너뛰어 매 요청 전체 브라켓 테이블 스캔을 피함
+  if (basic) {
+    let basicQuery = supabase
+      .from('competitions')
+      .select('id, name, year')
+      .order('year', { ascending: false })
+      .order('date_start', { ascending: false });
+
+    if (year) basicQuery = basicQuery.eq('year', Number(year));
+    if (name) basicQuery = basicQuery.eq('name', name);
+
+    const { data, error } = await basicQuery;
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ data }, {
+      headers: { 'Cache-Control': 'private, max-age=30' },
+    });
+  }
 
   let query = supabase
     .from('competitions')

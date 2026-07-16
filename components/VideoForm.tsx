@@ -66,7 +66,7 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
 
   // 대회 목록 로드
   useEffect(() => {
-    fetch('/api/competitions')
+    fetch('/api/competitions?basic=1')
       .then((r) => r.json())
       .then(({ data }) => {
         if (data) setCompetitions(data.map((c: Competition) => ({ id: c.id, name: c.name, year: c.year })));
