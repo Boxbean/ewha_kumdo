@@ -75,17 +75,25 @@ alter table competition_participants enable row level security;
 alter table competition_files enable row level security;
 
 -- 읽기: 모든 사용자 허용
-create policy if not exists "venues_select" on venues for select using (true);
-create policy if not exists "competitions_select" on competitions for select using (true);
-create policy if not exists "comp_participants_select" on competition_participants for select using (true);
-create policy if not exists "comp_files_select" on competition_files for select using (true);
+drop policy if exists "venues_select" on venues;
+create policy "venues_select" on venues for select using (true);
+drop policy if exists "competitions_select" on competitions;
+create policy "competitions_select" on competitions for select using (true);
+drop policy if exists "comp_participants_select" on competition_participants;
+create policy "comp_participants_select" on competition_participants for select using (true);
+drop policy if exists "comp_files_select" on competition_files;
+create policy "comp_files_select" on competition_files for select using (true);
 
 -- 쓰기: service_role 또는 anon 허용 (Next.js API 라우트 서버사이드에서만 호출)
 -- 주의: anon key를 사용하는 경우 아래 정책 필요
-create policy if not exists "venues_all" on venues for all using (true);
-create policy if not exists "competitions_all" on competitions for all using (true);
-create policy if not exists "comp_participants_all" on competition_participants for all using (true);
-create policy if not exists "comp_files_all" on competition_files for all using (true);
+drop policy if exists "venues_all" on venues;
+create policy "venues_all" on venues for all using (true);
+drop policy if exists "competitions_all" on competitions;
+create policy "competitions_all" on competitions for all using (true);
+drop policy if exists "comp_participants_all" on competition_participants;
+create policy "comp_participants_all" on competition_participants for all using (true);
+drop policy if exists "comp_files_all" on competition_files;
+create policy "comp_files_all" on competition_files for all using (true);
 
 -- ============================================================
 -- Supabase Storage 버킷 생성

@@ -40,5 +40,8 @@ create index if not exists bracket_matches_comp_div_idx on bracket_matches (comp
 
 alter table bracket_matches enable row level security;
 
-create policy if not exists "bracket_matches_select" on bracket_matches for select using (true);
-create policy if not exists "bracket_matches_all" on bracket_matches for all using (true);
+drop policy if exists "bracket_matches_select" on bracket_matches;
+create policy "bracket_matches_select" on bracket_matches for select using (true);
+
+drop policy if exists "bracket_matches_all" on bracket_matches;
+create policy "bracket_matches_all" on bracket_matches for all using (true);
