@@ -44,8 +44,9 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
         </button>
 
         {/* 로고 */}
-        <Link href="/" className="text-white font-bold text-lg flex-shrink-0 leading-none">
-          EWHA Kumdo
+        <Link href="/" className="flex-shrink-0 flex items-center py-2" aria-label="EWHA Kumdo">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="EWHA Kumdo" className="h-9 w-9 object-contain invert" />
         </Link>
 
         {/* 검색창 — 데스크톱 */}

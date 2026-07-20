@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { Video } from '@/lib/types';
+
+// 등록된 지 이 기간 이내인 영상은 경기일(date) 순서를 무시하고 최신 등록순으로 맨 앞에 노출
+const RECENT_UPLOAD_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -11,11 +15,7 @@ export async function GET(req: NextRequest) {
   const limit = Number(searchParams.get('limit') || '10');
   const offset = Number(searchParams.get('offset') || '0');
 
-  let query = supabase
-    .from('videos')
-    .select('*', { count: 'estimated' })
-    .order('date', { ascending: false })
-    .range(offset, offset + limit - 1);
+  let query = supabase.from('videos').select('*');
 
   if (angle) {
     query = query.eq('angle', angle);
@@ -40,9 +40,22 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const { data, error, count } = await query;
+  const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data, count }, {
+
+  // 경기일 순서와 등록순 정렬을 한 쿼리로 표현할 수 없어 앱 레벨에서 정렬 후 페이지네이션 적용
+  const cutoff = Date.now() - RECENT_UPLOAD_WINDOW_MS;
+  const rows = (data as Video[]) || [];
+  const recentlyUploaded = rows.filter((v) => new Date(v.created_at).getTime() >= cutoff);
+  const rest = rows.filter((v) => new Date(v.created_at).getTime() < cutoff);
+
+  recentlyUploaded.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  rest.sort((a, b) => b.date.localeCompare(a.date) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const sorted = [...recentlyUploaded, ...rest];
+  const paged = sorted.slice(offset, offset + limit);
+
+  return NextResponse.json({ data: paged, count: sorted.length }, {
     headers: { 'Cache-Control': 'private, max-age=30' },
   });
 }

@@ -16,11 +16,16 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await req.json();
-  const { name, address, parking_info, court_count, floor_type, size_memo, access_memo, nearby_info, notes } = body;
+
+  // 요청 본문에 실제로 포함된 필드만 업데이트 — 인라인 편집처럼 일부 필드만 보내는 호출이 나머지 값을 지우지 않도록 함
+  const update: Record<string, unknown> = {};
+  for (const key of ['name', 'address', 'parking_info', 'court_count', 'floor_type', 'size_memo', 'access_memo', 'nearby_info', 'notes'] as const) {
+    if (key in body) update[key] = body[key];
+  }
 
   const { data, error } = await supabase
     .from('venues')
-    .update({ name, address, parking_info, court_count, floor_type, size_memo, access_memo, nearby_info, notes })
+    .update(update)
     .eq('id', id)
     .select()
     .single();

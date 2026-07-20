@@ -370,7 +370,7 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
 
       <div>
         <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-          날짜 *
+          진행일 * <span className="font-normal" style={{ color: '#B9B9B9' }}>(운동/경기가 있었던 날짜)</span>
         </label>
         <div className="w-full overflow-hidden">
           <input

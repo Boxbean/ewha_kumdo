@@ -21,11 +21,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await req.json();
-  const { name, year, date_start, date_end, venue_id, result_summary, entry_fee, notes } = body;
+
+  // 요청 본문에 실제로 포함된 필드만 업데이트 — 일부 필드만 보내는 부분 수정(인라인 편집) 시
+  // 빠진 필드가 undefined로 인해 다른 값(특히 venue_id)을 의도치 않게 지우지 않도록 함
+  const update: Record<string, unknown> = {};
+  for (const key of ['name', 'year', 'date_start', 'date_end', 'result_summary', 'entry_fee', 'notes'] as const) {
+    if (key in body) update[key] = body[key];
+  }
+  if ('venue_id' in body) update.venue_id = body.venue_id || null;
 
   const { data, error } = await supabase
     .from('competitions')
-    .update({ name, year, date_start, date_end, venue_id: venue_id || null, result_summary, entry_fee, notes })
+    .update(update)
     .eq('id', id)
     .select()
     .single();
