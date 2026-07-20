@@ -80,7 +80,6 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
           </svg>
         </button>
 
-        {/* 영상 등록 버튼 */}
         {/* 튜토리얼 버튼 */}
         <button
           onClick={() => {
@@ -106,7 +105,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
           className="flex-shrink-0 h-8 px-3 text-sm bg-white text-[#00462A] font-semibold rounded hover:bg-white/90"
           style={{ lineHeight: '2rem' }}
         >
-          + 영상 등록
+          + 등록하기
         </Link>
       </header>
 

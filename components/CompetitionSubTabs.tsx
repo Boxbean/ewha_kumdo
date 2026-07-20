@@ -6,8 +6,8 @@ interface Props {
 
 export default function CompetitionSubTabs({ active }: Props) {
   const tabs = [
-    { key: 'series' as const, label: '대회별', href: '/competition' },
-    { key: 'venues' as const, label: '경기장별', href: '/competition/venues' },
+    { key: 'series' as const, label: '대회 보기', href: '/competition' },
+    { key: 'venues' as const, label: '경기장 보기', href: '/competition/venues' },
   ];
 
   return (

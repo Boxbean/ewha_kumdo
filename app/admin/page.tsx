@@ -100,12 +100,12 @@ export default function AdminPage() {
         )}
 
         {/* 탭 */}
-        <div className="flex gap-1 mb-6 border-b" style={{ borderColor: '#e0e0e0' }}>
+        <div className="flex gap-1 mb-6 border-b overflow-x-auto" style={{ borderColor: '#e0e0e0' }}>
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className="h-9 px-4 text-sm font-medium border-b-2 -mb-[1px] transition-colors"
+              className="h-9 px-2.5 sm:px-4 text-xs sm:text-sm font-medium border-b-2 -mb-[1px] transition-colors whitespace-nowrap flex-shrink-0"
               style={{
                 borderBottomColor: tab === t.key ? '#00462A' : 'transparent',
                 color: tab === t.key ? '#00462A' : '#B9B9B9',

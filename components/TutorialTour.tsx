@@ -34,7 +34,7 @@ const STEPS: TourStep[] = [
   },
   {
     targetId: 'tour-admin',
-    title: '🎈 영상 등록',
+    title: '🎈 등록하기',
     body: '영상을 자유롭게 등록하고 수정할 수 있습니다. 원하는 영상을 등록해보세요! (비밀번호 필요)',
   },
   {

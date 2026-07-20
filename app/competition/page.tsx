@@ -5,7 +5,6 @@ import CompetitionSubTabs from '@/components/CompetitionSubTabs';
 import SeriesCard from '@/components/SeriesCard';
 import { getSupabase } from '@/lib/supabase';
 import { Competition, SeriesThumbnail } from '@/lib/types';
-import { getCompetitionColor } from '@/lib/utils';
 import { buildSeriesUnion } from '@/lib/competitionSeries';
 
 export default async function CompetitionPage() {
@@ -32,7 +31,6 @@ export default async function CompetitionPage() {
     .map((series) => ({
       series,
       latest: competitions.find((c) => series.names.includes(c.name)) || null,
-      color: getCompetitionColor(series.names[0]),
     }))
     .sort((a, b) => {
       if (!a.latest && !b.latest) return 0;
@@ -49,13 +47,12 @@ export default async function CompetitionPage() {
       <CompetitionSubTabs active="series" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {cards.map(({ series, latest, color }) => (
+        {cards.map(({ series, latest }) => (
           <SeriesCard
             key={series.key}
             series={series}
             latest={latest}
             thumbnailUrl={thumbByKey.get(series.key) || undefined}
-            color={color}
           />
         ))}
       </div>

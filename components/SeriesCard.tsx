@@ -1,29 +1,28 @@
 import Link from 'next/link';
 import { Competition } from '@/lib/types';
 import { CompetitionSeries } from '@/lib/competitionSeries';
-import KendoIcon from './KendoIcon';
 
 interface Props {
   series: CompetitionSeries;
   latest: Competition | null;
   thumbnailUrl?: string;
-  color: string;
 }
 
-export default function SeriesCard({ series, latest, thumbnailUrl, color }: Props) {
+export default function SeriesCard({ series, latest, thumbnailUrl }: Props) {
   return (
     <div className="rounded-xl border p-3" style={{ borderColor: '#e0e0e0', backgroundColor: '#fff' }}>
       <div className="flex gap-3">
-        {/* 썸네일 */}
+        {/* 썸네일 — 관리자가 별도 이미지를 등록하지 않았다면 이화검도부 로고를 기본으로 표시 */}
         <div
           className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden flex items-center justify-center"
-          style={{ backgroundColor: thumbnailUrl ? '#f3f4f6' : color }}
+          style={{ backgroundColor: '#f3f4f6' }}
         >
           {thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={thumbnailUrl} alt={series.label} className="w-full h-full object-cover" />
           ) : (
-            <KendoIcon size={28} color="#fff" />
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/logo.png" alt="EWHA Kumdo" className="w-3/5 h-3/5 object-contain" />
           )}
         </div>
 

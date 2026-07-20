@@ -7,7 +7,7 @@ import { formatDate, extractYouTubeId, getYouTubeThumbnail } from '@/lib/utils';
 import AngleBadge from '@/components/AngleBadge';
 import BracketView from '@/components/BracketView';
 
-type TabKey = 'participants' | 'files' | 'videos' | 'bracket';
+type TabKey = 'files' | 'videos' | 'bracket';
 
 interface Props {
   comp: Competition;
@@ -15,16 +15,15 @@ interface Props {
 }
 
 export default function CompetitionTabs({ comp, videos }: Props) {
-  const [tab, setTab] = useState<TabKey>('participants');
-
   const hasBracket = (comp.bracket_matches?.length ?? 0) > 0
     || (comp.files ?? []).some((f) => f.file_type === '대진표');
 
+  const [tab, setTab] = useState<TabKey>(hasBracket ? 'bracket' : 'videos');
+
   const tabs: { key: TabKey; label: string; count?: number }[] = [
-    { key: 'participants', label: '출전자', count: comp.participants?.length },
-    { key: 'files', label: '파일', count: comp.files?.length },
-    { key: 'videos', label: '영상', count: videos.length },
     ...(hasBracket ? [{ key: 'bracket' as TabKey, label: '대진표', count: comp.bracket_matches?.length }] : []),
+    { key: 'videos', label: '영상', count: videos.length },
+    { key: 'files', label: '파일', count: comp.files?.length },
   ];
 
   return (
@@ -57,163 +56,9 @@ export default function CompetitionTabs({ comp, videos }: Props) {
         ))}
       </div>
 
-      {/* 출전자 탭 */}
-      {tab === 'participants' && (
-        <div>
-          {!comp.participants || comp.participants.length === 0 ? (
-            <EmptyState icon="👤" message="등록된 출전자 정보가 없습니다" />
-          ) : (
-            (() => {
-              // 부별 그룹핑
-              const byDivision = comp.participants.reduce<Record<string, typeof comp.participants>>((acc, p) => {
-                const key = p.division || '미분류';
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(p);
-                return acc;
-              }, {});
-
-              return (
-                <div className="space-y-5">
-                  {Object.entries(byDivision).map(([division, members]) => (
-                    <div key={division}>
-                      <h3
-                        className="text-xs font-bold uppercase tracking-wider mb-2 px-1"
-                        style={{ color: '#00462A' }}
-                      >
-                        {division}
-                        <span className="ml-1 font-normal" style={{ color: '#B9B9B9' }}>
-                          {members.length}명
-                        </span>
-                      </h3>
-
-                      {/* 데스크톱 테이블 */}
-                      <div className="hidden sm:block overflow-x-auto rounded-lg border" style={{ borderColor: '#e0e0e0' }}>
-                        <table className="w-full text-sm border-collapse">
-                          <thead>
-                            <tr style={{ backgroundColor: '#F8FBF9' }}>
-                              {['이름', '성별', '단/급', '결과', '메모'].map((col) => (
-                                <th
-                                  key={col}
-                                  className="px-3 py-2 text-left font-semibold border-b text-xs"
-                                  style={{ borderColor: '#e0e0e0', color: '#374151' }}
-                                >
-                                  {col}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {members.map((p) => (
-                              <tr key={p.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                <td className="px-3 py-2 font-medium" style={{ color: '#111' }}>{p.name}</td>
-                                <td className="px-3 py-2" style={{ color: '#6B7280' }}>{p.gender || '—'}</td>
-                                <td className="px-3 py-2" style={{ color: '#6B7280' }}>{p.dan_kyu || '—'}</td>
-                                <td className="px-3 py-2">
-                                  {p.result ? (
-                                    <span
-                                      className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                                      style={
-                                        p.result === '우승'
-                                          ? { backgroundColor: '#fef08a', color: '#92400e' }
-                                          : p.result === '준우승'
-                                          ? { backgroundColor: '#e0e7ff', color: '#3730a3' }
-                                          : p.result.includes('강')
-                                          ? { backgroundColor: 'rgba(0,70,42,0.1)', color: '#00462A' }
-                                          : { backgroundColor: '#f3f4f6', color: '#6B7280' }
-                                      }
-                                    >
-                                      {p.result}
-                                    </span>
-                                  ) : <span style={{ color: '#B9B9B9' }}>—</span>}
-                                </td>
-                                <td className="px-3 py-2 text-xs" style={{ color: '#6B7280' }}>{p.notes || '—'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      {/* 모바일 카드형 */}
-                      <div className="sm:hidden space-y-2">
-                        {members.map((p) => (
-                          <div
-                            key={p.id}
-                            className="flex items-center justify-between px-3 py-2.5 rounded-lg border"
-                            style={{ borderColor: '#e0e0e0' }}
-                          >
-                            <div>
-                              <span className="text-sm font-medium" style={{ color: '#111' }}>{p.name}</span>
-                              {p.dan_kyu && (
-                                <span className="text-xs ml-2" style={{ color: '#B9B9B9' }}>{p.dan_kyu}</span>
-                              )}
-                            </div>
-                            {p.result && (
-                              <span
-                                className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                                style={
-                                  p.result === '우승'
-                                    ? { backgroundColor: '#fef08a', color: '#92400e' }
-                                    : p.result === '준우승'
-                                    ? { backgroundColor: '#e0e7ff', color: '#3730a3' }
-                                    : p.result.includes('강')
-                                    ? { backgroundColor: 'rgba(0,70,42,0.1)', color: '#00462A' }
-                                    : { backgroundColor: '#f3f4f6', color: '#6B7280' }
-                                }
-                              >
-                                {p.result}
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()
-          )}
-        </div>
-      )}
-
-      {/* 파일 탭 */}
-      {tab === 'files' && (
-        <div>
-          {!comp.files || comp.files.length === 0 ? (
-            <EmptyState icon="📄" message="등록된 파일이 없습니다" />
-          ) : (
-            <div className="space-y-2">
-              {comp.files.map((file) => (
-                <a
-                  key={file.id}
-                  href={file.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors hover:border-[#00462A]"
-                  style={{ borderColor: '#e0e0e0' }}
-                >
-                  <span className="text-2xl flex-shrink-0">
-                    {file.file_type === '팸플릿' ? '📋'
-                     : file.file_type === '대진표' ? '🗂️'
-                     : file.file_type === '결과지' ? '🏆'
-                     : file.file_type === '사진' ? '📸'
-                     : '📄'}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: '#111' }}>
-                      {file.file_name || file.file_type || '파일'}
-                    </p>
-                    {file.file_type && (
-                      <p className="text-xs" style={{ color: '#B9B9B9' }}>{file.file_type}</p>
-                    )}
-                  </div>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B9B9B9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
+      {/* 대진표 탭 */}
+      {tab === 'bracket' && (
+        <BracketView matches={comp.bracket_matches ?? []} files={comp.files ?? []} />
       )}
 
       {/* 영상 탭 */}
@@ -266,9 +111,45 @@ export default function CompetitionTabs({ comp, videos }: Props) {
         </div>
       )}
 
-      {/* 대진표 탭 */}
-      {tab === 'bracket' && (
-        <BracketView matches={comp.bracket_matches ?? []} files={comp.files ?? []} />
+      {/* 파일 탭 */}
+      {tab === 'files' && (
+        <div>
+          {!comp.files || comp.files.length === 0 ? (
+            <EmptyState icon="📄" message="등록된 파일이 없습니다" />
+          ) : (
+            <div className="space-y-2">
+              {comp.files.map((file) => (
+                <a
+                  key={file.id}
+                  href={file.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors hover:border-[#00462A]"
+                  style={{ borderColor: '#e0e0e0' }}
+                >
+                  <span className="text-2xl flex-shrink-0">
+                    {file.file_type === '팸플릿' ? '📋'
+                     : file.file_type === '대진표' ? '🗂️'
+                     : file.file_type === '결과지' ? '🏆'
+                     : file.file_type === '사진' ? '📸'
+                     : '📄'}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: '#111' }}>
+                      {file.file_name || file.file_type || '파일'}
+                    </p>
+                    {file.file_type && (
+                      <p className="text-xs" style={{ color: '#B9B9B9' }}>{file.file_type}</p>
+                    )}
+                  </div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B9B9B9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </>
   );
