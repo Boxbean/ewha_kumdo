@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { BracketMatch, WinnerSlot } from '@/lib/types';
 
 interface Props {
@@ -21,8 +22,27 @@ export default function BracketMatchNode({ match }: Props) {
     { slot: 'player2', name: match.player2_name, club: match.player2_club, isOurs: match.player2_is_ours },
   ];
 
-  return (
-    <div className="rounded-md border overflow-hidden" style={{ borderColor: '#e0e0e0', backgroundColor: '#fff' }}>
+  const videos = match.videos || [];
+  const hasVideo = videos.length > 0;
+
+  const body = (
+    <div
+      className="rounded-md border overflow-hidden relative"
+      style={{
+        borderColor: hasVideo ? '#00462A' : '#e0e0e0',
+        backgroundColor: '#fff',
+        transition: 'box-shadow 0.15s',
+      }}
+    >
+      {hasVideo && (
+        <span
+          className="absolute -top-1.5 -right-1.5 flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white"
+          style={{ backgroundColor: '#00462A' }}
+          title={`영상 ${videos.length}개 보기`}
+        >
+          ▶ {videos.length > 1 ? videos.length : ''}
+        </span>
+      )}
       {slots.map((s, i) => {
         const isWinner = match.winner_slot === s.slot;
         const isLoser = !!match.winner_slot && match.winner_slot !== s.slot;
@@ -50,5 +70,13 @@ export default function BracketMatchNode({ match }: Props) {
         );
       })}
     </div>
+  );
+
+  if (!hasVideo) return body;
+
+  return (
+    <Link href={`/video/${videos[0].id}`} className="block hover:shadow-md" title="클릭해서 영상 보기">
+      {body}
+    </Link>
   );
 }

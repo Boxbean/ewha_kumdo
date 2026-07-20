@@ -22,7 +22,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data }, { headers: { 'Cache-Control': 'no-store' } });
+
+  // 매치별로 연결된 영상을 붙여줌 (대진표 관리 화면에서 영상 연결 상태를 바로 보여주기 위함)
+  const { data: videoData } = await supabase.from('videos').select('*').eq('competition_id', id);
+  const videosByMatch = new Map<string, unknown[]>();
+  for (const v of (videoData as { bracket_match_id?: string | null }[]) || []) {
+    if (!v.bracket_match_id) continue;
+    const list = videosByMatch.get(v.bracket_match_id) || [];
+    list.push(v);
+    videosByMatch.set(v.bracket_match_id, list);
+  }
+  const withVideos = (data || []).map((m: { id: string }) => ({
+    ...m,
+    videos: videosByMatch.get(m.id) || [],
+  }));
+
+  return NextResponse.json({ data: withVideos }, { headers: { 'Cache-Control': 'no-store' } });
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

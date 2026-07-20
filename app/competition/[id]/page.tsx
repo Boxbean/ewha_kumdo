@@ -43,7 +43,12 @@ export default async function CompetitionDetailPage({ params }: Props) {
   const comp = compRes.data as Competition;
   const videos: Video[] = (videosRes.data as Video[]) || [];
   // bracket_matches 테이블이 아직 없어도(마이그레이션 전) 대회 상세 자체는 정상 노출되도록 별도 쿼리로 분리
-  comp.bracket_matches = (bracketRes.data as BracketMatch[]) || [];
+  const bracketMatches = (bracketRes.data as BracketMatch[]) || [];
+  // 대진표에서 해당 경기 클릭 시 바로 영상을 볼 수 있도록, 매치에 연결된 영상들을 붙여줌
+  comp.bracket_matches = bracketMatches.map((m) => ({
+    ...m,
+    videos: videos.filter((v) => v.bracket_match_id === m.id),
+  }));
 
   return (
     <AppLayout>

@@ -16,11 +16,19 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await req.json();
-  const { youtube_url, title, date, angle, participants, topic, uploader, competition_id } = body;
+
+  // 요청 본문에 실제로 포함된 필드만 업데이트 — 대진표 매치 연결처럼 일부 필드만 보내는
+  // 호출이 competition_id 등 나머지 값을 의도치 않게 지우지 않도록 함
+  const update: Record<string, unknown> = {};
+  for (const key of ['youtube_url', 'title', 'date', 'angle', 'participants', 'topic', 'uploader'] as const) {
+    if (key in body) update[key] = body[key];
+  }
+  if ('competition_id' in body) update.competition_id = body.competition_id ?? null;
+  if ('bracket_match_id' in body) update.bracket_match_id = body.bracket_match_id ?? null;
 
   const { data, error } = await supabase
     .from('videos')
-    .update({ youtube_url, title, date, angle, participants, topic, uploader, competition_id: competition_id ?? null })
+    .update(update)
     .eq('id', id)
     .select()
     .single();

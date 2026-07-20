@@ -10,6 +10,7 @@ export interface Video {
   topic?: string;
   uploader?: string;
   competition_id?: string | null;  // 대회 연결 (null = 일반 훈련 영상)
+  bracket_match_id?: string | null; // 대진표 매치 연결 (대진표에서 클릭 시 바로 재생)
   created_at: string;
 }
 
@@ -96,4 +97,6 @@ export interface BracketMatch {
   notes?: string;
   created_at: string;
   updated_at: string;
+  // 조인 데이터 (조회 시 포함) — 이 매치에 연결된 영상들 (여러 각도 등으로 여러 개일 수 있음)
+  videos?: Video[];
 }

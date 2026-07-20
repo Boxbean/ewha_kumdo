@@ -84,7 +84,7 @@ export default function BracketView({ matches, files }: Props) {
       <div className="overflow-x-auto pb-2">
         <div className="flex items-center" style={{ width: 'max-content' }}>
           {structureA ? (
-            <BracketSideTree structure={structureA} mirrored={false} sideLabel="A조" barColor="#f59e0b" />
+            <BracketSideTree structure={structureA} mirrored={false} sideLabel="A조" />
           ) : (
             <EmptySideNote label="A조" />
           )}
@@ -99,7 +99,7 @@ export default function BracketView({ matches, files }: Props) {
           <FinalConnector />
 
           {structureB ? (
-            <BracketSideTree structure={structureB} mirrored sideLabel="B조" barColor="#facc15" />
+            <BracketSideTree structure={structureB} mirrored sideLabel="B조" />
           ) : (
             <EmptySideNote label="B조" />
           )}
@@ -130,12 +130,11 @@ function EmptySideNote({ label }: { label: string }) {
 }
 
 function BracketSideTree({
-  structure, mirrored, sideLabel, barColor,
+  structure, mirrored, sideLabel,
 }: {
   structure: SideStructure;
   mirrored: boolean;
   sideLabel: string;
-  barColor: string;
 }) {
   const { maxRound, leafCount, roundsMatches } = structure;
   const totalCols = 2 * maxRound - 1;
@@ -145,53 +144,46 @@ function BracketSideTree({
   ).join(' ');
 
   return (
-    <div className="flex items-stretch gap-2">
+    <div>
+      <p className="text-xs font-bold mb-1.5" style={{ color: '#374151' }}>{sideLabel}</p>
       <div
-        className="rounded-full flex-shrink-0"
-        style={{ width: 4, backgroundColor: barColor }}
-        aria-hidden
-      />
-      <div>
-        <p className="text-xs font-bold mb-1.5" style={{ color: '#374151' }}>{sideLabel}</p>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns,
-            gridTemplateRows: `repeat(${leafCount}, ${LEAF_HEIGHT}px)`,
-            columnGap: 0,
-          }}
-        >
-          {roundsMatches.map((row, roundIdx) => {
-            const round = roundIdx + 1;
-            const matchCol = sideMatchColumn(round, maxRound, mirrored);
-            return row.map((match, idx) => {
-              const matchNo = idx + 1;
-              const { start, end } = matchGridPosition(round, matchNo);
-              return (
-                <div
-                  key={`m-${round}-${matchNo}`}
-                  style={{ gridColumn: matchCol, gridRow: `${start} / ${end}`, alignSelf: 'center', padding: '2px 4px' }}
-                >
-                  <BracketMatchNode match={match} />
-                </div>
-              );
-            });
-          })}
+        style={{
+          display: 'grid',
+          gridTemplateColumns,
+          gridTemplateRows: `repeat(${leafCount}, ${LEAF_HEIGHT}px)`,
+          columnGap: 0,
+        }}
+      >
+        {roundsMatches.map((row, roundIdx) => {
+          const round = roundIdx + 1;
+          const matchCol = sideMatchColumn(round, maxRound, mirrored);
+          return row.map((match, idx) => {
+            const matchNo = idx + 1;
+            const { start, end } = matchGridPosition(round, matchNo);
+            return (
+              <div
+                key={`m-${round}-${matchNo}`}
+                style={{ gridColumn: matchCol, gridRow: `${start} / ${end}`, alignSelf: 'center', padding: '2px 4px' }}
+              >
+                <BracketMatchNode match={match} />
+              </div>
+            );
+          });
+        })}
 
-          {Array.from({ length: maxRound - 1 }, (_, i) => i + 2).map((round) => {
-            const connCol = sideConnectorColumn(round, maxRound, mirrored);
-            const countInRound = leafCount / Math.pow(2, round - 1);
-            return Array.from({ length: countInRound }, (_, idx) => {
-              const matchNo = idx + 1;
-              const { start, end } = matchGridPosition(round, matchNo);
-              return (
-                <div key={`c-${round}-${matchNo}`} style={{ gridColumn: connCol, gridRow: `${start} / ${end}` }}>
-                  <BracketConnector mirrored={mirrored} />
-                </div>
-              );
-            });
-          })}
-        </div>
+        {Array.from({ length: maxRound - 1 }, (_, i) => i + 2).map((round) => {
+          const connCol = sideConnectorColumn(round, maxRound, mirrored);
+          const countInRound = leafCount / Math.pow(2, round - 1);
+          return Array.from({ length: countInRound }, (_, idx) => {
+            const matchNo = idx + 1;
+            const { start, end } = matchGridPosition(round, matchNo);
+            return (
+              <div key={`c-${round}-${matchNo}`} style={{ gridColumn: connCol, gridRow: `${start} / ${end}` }}>
+                <BracketConnector mirrored={mirrored} />
+              </div>
+            );
+          });
+        })}
       </div>
     </div>
   );

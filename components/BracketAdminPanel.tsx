@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { BracketMatch, BracketSide, WinnerSlot } from '@/lib/types';
+import { useEffect, useState } from 'react';
+import { BracketMatch, BracketSide, Video, WinnerSlot } from '@/lib/types';
 import { groupByDivision } from '@/lib/bracket';
 
 interface Props {
@@ -18,6 +18,7 @@ const SIDE_OPTIONS: { value: BracketSide; label: string }[] = [
 
 export default function BracketAdminPanel({ competitionId, initialMatches, onMessage }: Props) {
   const [matches, setMatches] = useState<BracketMatch[]>(initialMatches);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<BracketMatch | null>(null);
 
@@ -26,6 +27,32 @@ export default function BracketAdminPanel({ competitionId, initialMatches, onMes
   async function refresh() {
     const res = await fetch(`/api/competitions/${competitionId}/bracket`, { cache: 'no-store' }).then((r) => r.json());
     setMatches(res.data || []);
+  }
+
+  async function loadVideos() {
+    const res = await fetch(`/api/videos?competition_id=${competitionId}&limit=500`, { cache: 'no-store' }).then((r) => r.json());
+    setVideos(res.data || []);
+  }
+
+  // 초기 진입 시 매치를 다시 불러와 영상 연결 상태(m.videos)까지 채워줌 — initialMatches는 목록 API에서 온 값이라 영상 정보가 없음
+  useEffect(() => { void refresh(); void loadVideos(); }, [competitionId]);
+
+  async function linkVideo(videoId: string, matchId: string) {
+    await fetch(`/api/videos/${videoId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bracket_match_id: matchId }),
+    });
+    await Promise.all([refresh(), loadVideos()]);
+  }
+
+  async function unlinkVideo(videoId: string) {
+    await fetch(`/api/videos/${videoId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bracket_match_id: null }),
+    });
+    await Promise.all([refresh(), loadVideos()]);
   }
 
   async function handleDelete(match: BracketMatch) {
@@ -55,6 +82,9 @@ export default function BracketAdminPanel({ competitionId, initialMatches, onMes
           competitionId={competitionId}
           initial={editing}
           divisionOptions={divisionOptions}
+          videos={videos}
+          onLinkVideo={linkVideo}
+          onUnlinkVideo={unlinkVideo}
           onSave={async () => { await refresh(); setShowForm(false); setEditing(null); onMessage(editing ? '매치가 수정되었습니다.' : '매치가 등록되었습니다.'); }}
           onCancel={() => { setShowForm(false); setEditing(null); }}
         />
@@ -80,6 +110,11 @@ export default function BracketAdminPanel({ competitionId, initialMatches, onMes
                         <span style={{ fontWeight: m.winner_slot === 'player1' ? 700 : 400 }}>{m.player1_name || '—'}</span>
                         {' vs '}
                         <span style={{ fontWeight: m.winner_slot === 'player2' ? 700 : 400 }}>{m.player2_name || '—'}</span>
+                        {(m.videos?.length ?? 0) > 0 && (
+                          <span className="ml-1.5" style={{ color: '#00462A' }} title={`영상 ${m.videos!.length}개 연결됨`}>
+                            ▶{m.videos!.length > 1 ? m.videos!.length : ''}
+                          </span>
+                        )}
                       </span>
                       <div className="flex gap-2 flex-shrink-0 ml-2">
                         <button onClick={() => { setEditing(m); setShowForm(true); }} style={{ color: '#00462A' }}>수정</button>
@@ -97,11 +132,14 @@ export default function BracketAdminPanel({ competitionId, initialMatches, onMes
 }
 
 function BracketMatchForm({
-  competitionId, initial, divisionOptions, onSave, onCancel,
+  competitionId, initial, divisionOptions, videos, onLinkVideo, onUnlinkVideo, onSave, onCancel,
 }: {
   competitionId: string;
   initial: BracketMatch | null;
   divisionOptions: string[];
+  videos: Video[];
+  onLinkVideo: (videoId: string, matchId: string) => Promise<void>;
+  onUnlinkVideo: (videoId: string) => Promise<void>;
   onSave: () => void;
   onCancel: () => void;
 }) {
@@ -123,6 +161,31 @@ function BracketMatchForm({
   const [notes, setNotes] = useState(initial?.notes || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [selectedVideoId, setSelectedVideoId] = useState('');
+  const [linking, setLinking] = useState<string | null>(null);
+
+  const linkedVideos = initial ? videos.filter((v) => v.bracket_match_id === initial.id) : [];
+  const unlinkedVideos = videos.filter((v) => !v.bracket_match_id);
+
+  async function handleLink() {
+    if (!initial || !selectedVideoId) return;
+    setLinking(selectedVideoId);
+    try {
+      await onLinkVideo(selectedVideoId, initial.id);
+      setSelectedVideoId('');
+    } finally {
+      setLinking(null);
+    }
+  }
+
+  async function handleUnlink(videoId: string) {
+    setLinking(videoId);
+    try {
+      await onUnlinkVideo(videoId);
+    } finally {
+      setLinking(null);
+    }
+  }
 
   async function handleSave() {
     if (!division.trim()) { setError('부문은 필수입니다'); return; }
@@ -256,6 +319,58 @@ function BracketMatchForm({
         <input type="checkbox" checked={thirdPlaceMatch} onChange={(e) => setThirdPlaceMatch(e.target.checked)} />
         3위 결정전 (드문 경우 — 없으면 준결승 패자 2명이 공동 3위로 표시됨)
       </label>
+
+      {initial && (
+        <div>
+          <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>
+            🎬 연결된 영상 <span style={{ color: '#B9B9B9', fontWeight: 400 }}>(대진표에서 클릭 시 바로 재생)</span>
+          </label>
+          {linkedVideos.length === 0 ? (
+            <p className="text-xs mb-2" style={{ color: '#B9B9B9' }}>연결된 영상이 없습니다</p>
+          ) : (
+            <div className="space-y-1 mb-2">
+              {linkedVideos.map((v) => (
+                <div key={v.id} className="flex items-center justify-between gap-2 px-2 py-1 rounded border text-xs" style={{ borderColor: '#e0e0e0' }}>
+                  <span className="truncate" style={{ color: '#374151' }}>{v.title}</span>
+                  <button
+                    type="button"
+                    disabled={linking === v.id}
+                    onClick={() => void handleUnlink(v.id)}
+                    className="flex-shrink-0"
+                    style={{ color: '#DC2626', opacity: linking === v.id ? 0.5 : 1 }}
+                  >
+                    {linking === v.id ? '처리 중...' : '해제'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {unlinkedVideos.length > 0 && (
+            <div className="flex gap-1.5">
+              <select
+                value={selectedVideoId}
+                onChange={(e) => setSelectedVideoId(e.target.value)}
+                className="flex-1 h-8 px-2 text-xs rounded border focus:outline-none bg-white"
+                style={{ borderColor: '#e0e0e0', minWidth: 0 }}
+              >
+                <option value="">영상 선택해서 연결...</option>
+                {unlinkedVideos.map((v) => (
+                  <option key={v.id} value={v.id}>{v.title}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                disabled={!selectedVideoId || linking === selectedVideoId}
+                onClick={() => void handleLink()}
+                className="h-8 px-3 text-xs rounded border flex-shrink-0"
+                style={{ borderColor: '#00462A', color: '#00462A', opacity: !selectedVideoId ? 0.5 : 1 }}
+              >
+                {linking === selectedVideoId && linking ? '연결 중...' : '연결'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div>
         <label className="text-xs font-medium block mb-1" style={{ color: '#374151' }}>메모</label>
