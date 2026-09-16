@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Competition, CompetitionFile, Venue } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
+import { adminFetch } from '@/lib/adminClient';
 import { COMPETITION_SERIES } from '@/lib/competitionSeries';
 import KendoIcon from './KendoIcon';
 import BracketAdminPanel from './BracketAdminPanel';
@@ -112,7 +113,7 @@ export default function AdminCompetition({ onMessage, initialEditId }: Props) {
                     onEdit={() => { setEditComp(comp); setShowCompForm(true); setExpandedId(null); }}
                     onDelete={async () => {
                       if (!confirm(`"${comp.year} ${comp.name}" 대회를 삭제하시겠습니까?\n출전자·파일 데이터도 함께 삭제됩니다.`)) return;
-                      await fetch(`/api/competitions/${comp.id}`, { method: 'DELETE' });
+                      await adminFetch(`/api/competitions/${comp.id}`, { method: 'DELETE' });
                       await load();
                       onMessage('대회가 삭제되었습니다.');
                     }}
@@ -164,7 +165,7 @@ export default function AdminCompetition({ onMessage, initialEditId }: Props) {
                       <button
                         onClick={async () => {
                           if (!confirm(`"${venue.name}" 대회장을 삭제하시겠습니까?`)) return;
-                          await fetch(`/api/venues/${venue.id}`, { method: 'DELETE' });
+                          await adminFetch(`/api/venues/${venue.id}`, { method: 'DELETE' });
                           await load();
                           onMessage('대회장이 삭제되었습니다.');
                         }}
@@ -218,7 +219,7 @@ function CompetitionRow({
       const { data: urlData } = supabase.storage.from('competition-files').getPublicUrl(path);
       const publicUrl = urlData?.publicUrl;
 
-      await fetch(`/api/competitions/${comp.id}/files`, {
+      await adminFetch(`/api/competitions/${comp.id}/files`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ file_url: publicUrl, file_name: file.name, file_type: fileType }),
@@ -238,7 +239,7 @@ function CompetitionRow({
     const storagePath = fileUrl.includes('competition-files/')
       ? fileUrl.split('competition-files/')[1]
       : undefined;
-    await fetch(`/api/competitions/${comp.id}/files`, {
+    await adminFetch(`/api/competitions/${comp.id}/files`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ file_id: fileId, storage_path: storagePath }),
@@ -249,7 +250,7 @@ function CompetitionRow({
 
   async function uploadParticipants() {
     if (!participantCsv.trim()) return;
-    const res = await fetch(`/api/competitions/${comp.id}/participants`, {
+    const res = await adminFetch(`/api/competitions/${comp.id}/participants`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ csv: participantCsv }),
@@ -457,7 +458,7 @@ function CompetitionForm({
       if (!trimmed) return null;
       const existing = venues.find((v) => v.name === trimmed);
       if (existing) return existing.id;
-      const res = await fetch('/api/venues', {
+      const res = await adminFetch('/api/venues', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: trimmed }),
       });
@@ -467,7 +468,7 @@ function CompetitionForm({
     }
     if (venueId.startsWith('__new__:')) {
       const presetName = venueId.slice('__new__:'.length);
-      const res = await fetch('/api/venues', {
+      const res = await adminFetch('/api/venues', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: presetName }),
       });
@@ -492,7 +493,7 @@ function CompetitionForm({
           venueId === '__custom__' ? customVenueName.trim()
           : venueId.startsWith('__new__:') ? venueId.slice('__new__:'.length)
           : venues.find((v) => v.id === resolvedVenueId)?.name || '';
-        await fetch(`/api/venues/${resolvedVenueId}`, {
+        await adminFetch(`/api/venues/${resolvedVenueId}`, {
           method: 'PATCH', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: resolvedVenueName,
@@ -513,7 +514,7 @@ function CompetitionForm({
       };
       const url = initial ? `/api/competitions/${initial.id}` : '/api/competitions';
       const method = initial ? 'PATCH' : 'POST';
-      const res = await fetch(url, {
+      const res = await adminFetch(url, {
         method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       });
       const json = await res.json();
@@ -725,7 +726,7 @@ function PamphletManager({ competitionId, initialFiles }: { competitionId: strin
       const { data: urlData } = supabase.storage.from('competition-files').getPublicUrl(path);
       const publicUrl = urlData?.publicUrl;
 
-      const res = await fetch(`/api/competitions/${competitionId}/files`, {
+      const res = await adminFetch(`/api/competitions/${competitionId}/files`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ file_url: publicUrl, file_name: file.name, file_type: '팸플릿' }),
@@ -744,7 +745,7 @@ function PamphletManager({ competitionId, initialFiles }: { competitionId: strin
     const storagePath = file.file_url.includes('competition-files/')
       ? file.file_url.split('competition-files/')[1]
       : undefined;
-    await fetch(`/api/competitions/${competitionId}/files`, {
+    await adminFetch(`/api/competitions/${competitionId}/files`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ file_id: file.id, storage_path: storagePath }),
@@ -824,7 +825,7 @@ function VenueForm({
       };
       const url = initial ? `/api/venues/${initial.id}` : '/api/venues';
       const method = initial ? 'PATCH' : 'POST';
-      const res = await fetch(url, {
+      const res = await adminFetch(url, {
         method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       });
       const json = await res.json();
@@ -910,7 +911,7 @@ function SeriesThumbnailManager({ onMessage }: { onMessage: (msg: string) => voi
       const { data: urlData } = supabase.storage.from('competition-files').getPublicUrl(path);
       const publicUrl = urlData?.publicUrl;
 
-      await fetch('/api/series-thumbnails', {
+      await adminFetch('/api/series-thumbnails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ series_key: seriesKey, thumbnail_url: publicUrl }),
@@ -927,7 +928,7 @@ function SeriesThumbnailManager({ onMessage }: { onMessage: (msg: string) => voi
 
   async function removeThumbnail(seriesKey: string) {
     if (!confirm('썸네일을 제거하시겠습니까?')) return;
-    await fetch('/api/series-thumbnails', {
+    await adminFetch('/api/series-thumbnails', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ series_key: seriesKey, thumbnail_url: null }),

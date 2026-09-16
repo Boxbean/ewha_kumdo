@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { Video } from '@/lib/types';
+import { requireAdmin } from '@/lib/adminAuth';
 
 // 등록된 지 이 기간 이내인 영상은 경기일(date) 순서를 무시하고 최신 등록순으로 맨 앞에 노출
 const RECENT_UPLOAD_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
@@ -61,6 +62,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   const body = await req.json();
   const { youtube_url, title, date, angle, participants, topic, uploader, competition_id } = body;
 

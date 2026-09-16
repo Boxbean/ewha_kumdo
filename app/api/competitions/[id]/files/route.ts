@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/adminAuth';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,6 +15,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   const { id } = await params;
   const body = await req.json();
   const { file_url, file_name, file_type } = body;
@@ -31,6 +35,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   await params;
   const { file_id, storage_path } = await req.json();
   if (!file_id) return NextResponse.json({ error: 'file_id 필수' }, { status: 400 });

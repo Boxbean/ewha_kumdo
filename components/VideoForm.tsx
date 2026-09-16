@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Video, Angle, Competition } from '@/lib/types';
 import { extractYouTubeId } from '@/lib/utils';
+import { adminFetch } from '@/lib/adminClient';
 
 interface VideoFormProps {
   initial?: Partial<Video>;
@@ -136,7 +137,7 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
       const body = { youtube_url: youtubeUrl, title, date, angle, participants, topic, uploader, competition_id: competitionId || null };
       const url = isEdit ? `/api/videos/${initial!.id}` : '/api/videos';
       const method = isEdit ? 'PATCH' : 'POST';
-      const res = await fetch(url, {
+      const res = await adminFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -158,7 +159,7 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
     setDeleteLoading(true);
     setDeleteError('');
     try {
-      const res = await fetch(`/api/videos/${initial.id}`, { method: 'DELETE' });
+      const res = await adminFetch(`/api/videos/${initial.id}`, { method: 'DELETE' });
       if (!res.ok) {
         const json = await res.json();
         throw new Error(json.error || '삭제 실패');

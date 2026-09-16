@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Video } from '@/lib/types';
 import { formatDate, extractYouTubeId, getYouTubeThumbnail } from '@/lib/utils';
+import { adminFetch } from '@/lib/adminClient';
 import AngleBadge from './AngleBadge';
 import VideoForm from './VideoForm';
 import Pagination from './Pagination';
@@ -31,7 +32,7 @@ export default function AdminVideoList() {
 
   async function handleDelete(id: string) {
     if (!confirm('이 영상을 삭제하시겠습니까?')) return;
-    const res = await fetch(`/api/videos/${id}`, { method: 'DELETE' });
+    const res = await adminFetch(`/api/videos/${id}`, { method: 'DELETE' });
     if (!res.ok) {
       alert('삭제에 실패했습니다.');
       return;

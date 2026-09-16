@@ -79,6 +79,7 @@ export default function AdminPage() {
           <button
             onClick={() => {
               sessionStorage.removeItem('admin_auth');
+              sessionStorage.removeItem('admin_pwd');
               setIsAuthenticated(false);
             }}
             className="text-sm"

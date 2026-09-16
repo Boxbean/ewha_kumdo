@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { BracketMatch, BracketSide, Video, WinnerSlot } from '@/lib/types';
 import { groupByDivision } from '@/lib/bracket';
+import { adminFetch } from '@/lib/adminClient';
 
 interface Props {
   competitionId: string;
@@ -38,7 +39,7 @@ export default function BracketAdminPanel({ competitionId, initialMatches, onMes
   useEffect(() => { void refresh(); void loadVideos(); }, [competitionId]);
 
   async function linkVideo(videoId: string, matchId: string) {
-    await fetch(`/api/videos/${videoId}`, {
+    await adminFetch(`/api/videos/${videoId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ bracket_match_id: matchId }),
@@ -47,7 +48,7 @@ export default function BracketAdminPanel({ competitionId, initialMatches, onMes
   }
 
   async function unlinkVideo(videoId: string) {
-    await fetch(`/api/videos/${videoId}`, {
+    await adminFetch(`/api/videos/${videoId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ bracket_match_id: null }),
@@ -57,7 +58,7 @@ export default function BracketAdminPanel({ competitionId, initialMatches, onMes
 
   async function handleDelete(match: BracketMatch) {
     if (!confirm('이 매치를 삭제하시겠습니까?')) return;
-    await fetch(`/api/bracket/${match.id}`, { method: 'DELETE' });
+    await adminFetch(`/api/bracket/${match.id}`, { method: 'DELETE' });
     await refresh();
     onMessage('매치가 삭제되었습니다.');
   }
@@ -202,7 +203,7 @@ function BracketMatchForm({
       };
       const url = initial ? `/api/bracket/${initial.id}` : `/api/competitions/${competitionId}/bracket`;
       const method = initial ? 'PATCH' : 'POST';
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const res = await adminFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
       onSave();

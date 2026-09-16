@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/adminAuth';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ matchId: string }> }) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   const { matchId } = await params;
   const body = await req.json();
   const {
@@ -28,7 +32,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ma
   return NextResponse.json({ data });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ matchId: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ matchId: string }> }) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   const { matchId } = await params;
   const { error } = await supabase.from('bracket_matches').delete().eq('id', matchId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

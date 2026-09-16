@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/adminAuth';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -61,6 +62,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   const body = await req.json();
   const { name, year, date_start, date_end, venue_id, result_summary, entry_fee, notes } = body;
 

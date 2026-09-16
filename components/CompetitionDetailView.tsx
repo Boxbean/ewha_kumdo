@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Competition, Video } from '@/lib/types';
 import { getSeriesByName } from '@/lib/competitionSeries';
+import { adminFetch } from '@/lib/adminClient';
 import CompetitionDetailFields from './CompetitionDetailFields';
 import CompetitionTabs from './CompetitionTabs';
 import EditableField from './EditableField';
@@ -58,7 +59,7 @@ export default function CompetitionDetailView({ initialComp, videos }: Props) {
   }
 
   async function updateComp(patch: Record<string, unknown>) {
-    const res = await fetch(`/api/competitions/${comp.id}`, {
+    const res = await adminFetch(`/api/competitions/${comp.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
@@ -73,7 +74,7 @@ export default function CompetitionDetailView({ initialComp, videos }: Props) {
 
   async function updateVenue(patch: Record<string, unknown>) {
     if (!comp.venue_id) return;
-    const res = await fetch(`/api/venues/${comp.venue_id}`, {
+    const res = await adminFetch(`/api/venues/${comp.venue_id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),

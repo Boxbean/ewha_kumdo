@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/adminAuth';
 import Papa from 'papaparse';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -16,6 +17,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   const { id } = await params;
   const contentType = req.headers.get('content-type') || '';
   let rows: Array<{
@@ -61,6 +65,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   const { id } = await params;
   const { participants } = await req.json();
 

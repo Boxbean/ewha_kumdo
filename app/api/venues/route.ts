@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/adminAuth';
 
 export async function GET() {
   const { data, error } = await supabase
@@ -12,6 +13,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   const body = await req.json();
   const { name, address, parking_info, court_count, floor_type, size_memo, access_memo, nearby_info, notes } = body;
 

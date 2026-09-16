@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/adminAuth';
 import Papa from 'papaparse';
 
 export async function POST(req: NextRequest) {
-  // 관리자 비밀번호 검증
-  const adminPassword = req.headers.get('x-admin-password');
-  if (adminPassword !== process.env.ADMIN_PASSWORD) {
-    return NextResponse.json({ error: '인증 실패' }, { status: 401 });
-  }
+  const authError = requireAdmin(req);
+  if (authError) return authError;
 
   const { csv } = await req.json();
   if (!csv) return NextResponse.json({ error: 'CSV 데이터 없음' }, { status: 400 });
