@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/adminAuth';
+import { sendPushToAllSubscribers } from '@/lib/push';
 import Papa from 'papaparse';
 
 export async function POST(req: NextRequest) {
@@ -38,5 +39,15 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabase.from('videos').insert(rows).select();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // 건별이 아니라 요청당 알림 1건으로 묶어 스팸 방지
+  after(() =>
+    sendPushToAllSubscribers({
+      title: '영상이 업로드되었어요',
+      body: `영상 ${rows.length}개가 새로 등록되었어요`,
+      url: '/',
+    })
+  );
+
   return NextResponse.json({ data, count: rows.length }, { status: 201 });
 }

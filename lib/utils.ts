@@ -49,3 +49,17 @@ const COMPETITION_NAME_COLORS: Record<string, string> = {
 export function getCompetitionColor(name: string): string {
   return COMPETITION_NAME_COLORS[name] || '#00462A';
 }
+
+/**
+ * VAPID 공개키(base64url) → pushManager.subscribe()의 applicationServerKey용 Uint8Array
+ */
+export function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}

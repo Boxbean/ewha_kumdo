@@ -1,62 +1,100 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { Video } from '@/lib/types';
 import { requireAdmin } from '@/lib/adminAuth';
+import { sendPushToAllSubscribers } from '@/lib/push';
 
 // 등록된 지 이 기간 이내인 영상은 경기일(date) 순서를 무시하고 최신 등록순으로 맨 앞에 노출
 const RECENT_UPLOAD_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 
+interface VideoFilters {
+  angle: string;
+  participant: string;
+  date: string;
+  competition_id: string;
+  search: string;
+}
+
+function parseFilters(searchParams: URLSearchParams): VideoFilters {
+  return {
+    angle: searchParams.get('angle') || '',
+    participant: searchParams.get('participant') || '',
+    date: searchParams.get('date') || '',
+    competition_id: searchParams.get('competition_id') || '',
+    search: searchParams.get('search') || '',
+  };
+}
+
+// 대회/영상 목록 GET에서 공통으로 쓰는 필터 — 최근 업로드 버킷/나머지 버킷 쿼리에 동일하게 적용하기 위해 분리
+// Supabase 쿼리 빌더의 제네릭 체이닝 타입을 함수 경계 너머로 그대로 통과시키면
+// 타입스크립트 인스턴스화 깊이 한도(TS2589)에 걸려 any로 완화함 — 호출부에서 반환값을 그대로 체이닝만 하고 즉시 as로 캐스팅해 사용
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applyFilters(query: any, f: VideoFilters): any {
+  let q = query;
+  if (f.angle) q = q.eq('angle', f.angle);
+  if (f.participant) q = q.contains('participants', [f.participant]);
+  if (f.date) q = q.eq('date', f.date);
+  if (f.competition_id) q = q.eq('competition_id', f.competition_id);
+  if (f.search && !f.angle && !f.participant && !f.date && !f.competition_id) {
+    // 앵글 키워드 검색
+    const angles = ['전면', '후면', '기타'];
+    if (angles.includes(f.search)) {
+      q = q.eq('angle', f.search);
+    } else {
+      // 제목, 주제, 참가자 이름 검색 — PostgREST or() 로직 트리 구문에서 쉼표/괄호/따옴표는
+      // 절 구분자로 해석되어 백슬래시로 이스케이프가 안 되므로(파싱 에러 발생), 검색어에서 아예 제거해
+      // 검색어로 필터 절을 주입하는 것을 방지
+      const sanitized = f.search.replace(/[,()"]/g, '');
+      q = q.or(`title.ilike.%${sanitized}%,topic.ilike.%${sanitized}%,participants.cs.{"${sanitized}"}`);
+    }
+  }
+  return q;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const search = searchParams.get('search') || '';
-  const angle = searchParams.get('angle') || '';
-  const participant = searchParams.get('participant') || '';
-  const date = searchParams.get('date') || '';
-  const competition_id = searchParams.get('competition_id') || '';
+  const filters = parseFilters(searchParams);
   const limit = Number(searchParams.get('limit') || '10');
   const offset = Number(searchParams.get('offset') || '0');
 
-  let query = supabase.from('videos').select('*');
+  const cutoffIso = new Date(Date.now() - RECENT_UPLOAD_WINDOW_MS).toISOString();
 
-  if (angle) {
-    query = query.eq('angle', angle);
+  // 최근 업로드 버킷: 시간 창(3일)으로 크기가 자연히 제한되어 전체 조회해도 안전 — 등록순 정렬 확정
+  const { data: recentData, error: recentError } = await applyFilters(supabase.from('videos').select('*'), filters)
+    .gte('created_at', cutoffIso)
+    .order('created_at', { ascending: false });
+  if (recentError) return NextResponse.json({ error: recentError.message }, { status: 500 });
+  const recentRows = (recentData as Video[]) || [];
+  const recentTotal = recentRows.length;
+
+  // 나머지 버킷 전체 개수만 추정치로 조회 (행 데이터는 가져오지 않음)
+  const { count: restCount, error: countError } = await applyFilters(
+    supabase.from('videos').select('*', { count: 'estimated', head: true }),
+    filters
+  ).lt('created_at', cutoffIso);
+  if (countError) return NextResponse.json({ error: countError.message }, { status: 500 });
+  const restTotal = restCount ?? 0;
+
+  // 요청된 페이지 구간 [offset, offset+limit) 중 최근 업로드 버킷에 해당하는 부분
+  const recentPage = recentRows.slice(Math.min(offset, recentTotal), Math.min(offset + limit, recentTotal));
+
+  // 나머지 구간은 DB에서 경기일순으로 정렬·페이지네이션까지 처리 — 전체 스캔 없이 필요한 행만 가져옴
+  const restOffset = Math.max(0, offset - recentTotal);
+  const restNeeded = limit - recentPage.length;
+  let restRows: Video[] = [];
+  if (restNeeded > 0 && restOffset < restTotal) {
+    const { data: restData, error: restError } = await applyFilters(supabase.from('videos').select('*'), filters)
+      .lt('created_at', cutoffIso)
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range(restOffset, restOffset + restNeeded - 1);
+    if (restError) return NextResponse.json({ error: restError.message }, { status: 500 });
+    restRows = (restData as Video[]) || [];
   }
-  if (participant) {
-    query = query.contains('participants', [participant]);
-  }
-  if (date) {
-    query = query.eq('date', date);
-  }
-  if (competition_id) {
-    query = query.eq('competition_id', competition_id);
-  }
-  if (search && !angle && !participant && !date && !competition_id) {
-    // 앵글 키워드 검색
-    const angles = ['전면', '후면', '기타'];
-    if (angles.includes(search)) {
-      query = query.eq('angle', search);
-    } else {
-      // 제목, 주제, 참가자 이름 검색
-      query = query.or(`title.ilike.%${search}%,topic.ilike.%${search}%,participants.cs.{"${search}"}`);
-    }
-  }
 
-  const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const paged = [...recentPage, ...restRows];
 
-  // 경기일 순서와 등록순 정렬을 한 쿼리로 표현할 수 없어 앱 레벨에서 정렬 후 페이지네이션 적용
-  const cutoff = Date.now() - RECENT_UPLOAD_WINDOW_MS;
-  const rows = (data as Video[]) || [];
-  const recentlyUploaded = rows.filter((v) => new Date(v.created_at).getTime() >= cutoff);
-  const rest = rows.filter((v) => new Date(v.created_at).getTime() < cutoff);
-
-  recentlyUploaded.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  rest.sort((a, b) => b.date.localeCompare(a.date) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-  const sorted = [...recentlyUploaded, ...rest];
-  const paged = sorted.slice(offset, offset + limit);
-
-  return NextResponse.json({ data: paged, count: sorted.length }, {
+  return NextResponse.json({ data: paged, count: recentTotal + restTotal }, {
     headers: { 'Cache-Control': 'private, max-age=30' },
   });
 }
@@ -79,5 +117,14 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  after(() =>
+    sendPushToAllSubscribers({
+      title: '영상이 업로드되었어요',
+      body: data.title,
+      url: `/video/${data.id}`,
+    })
+  );
+
   return NextResponse.json({ data }, { status: 201 });
 }

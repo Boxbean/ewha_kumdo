@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
+import PushNotificationButton from './PushNotificationButton';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -79,6 +80,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
         </button>
+
+        <PushNotificationButton />
 
         {/* 튜토리얼 버튼 */}
         <button
