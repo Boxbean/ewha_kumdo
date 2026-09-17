@@ -62,6 +62,15 @@ function IconTrophy() {
   );
 }
 
+function IconPlus() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  );
+}
+
 const menus = [
   { href: '/', label: '홈', Icon: IconHome },
   { href: '/list', label: '목록', Icon: IconList },
@@ -104,6 +113,17 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             );
           })}
         </nav>
+        <div className="px-2 pb-3" style={{ borderTop: '1px solid #e0e0e0', paddingTop: '10px' }}>
+          <Link
+            id="tour-admin"
+            href="/admin"
+            className="flex items-center h-9 px-2 gap-3 text-sm font-semibold rounded"
+            style={{ backgroundColor: '#00462A', color: '#ffffff' }}
+          >
+            <span className="flex-shrink-0"><IconPlus /></span>
+            {isOpen && <span className="truncate">영상 등록하기</span>}
+          </Link>
+        </div>
       </aside>
 
       {/* 모바일 오버레이 슬라이드 */}
@@ -113,9 +133,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         style={{ opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none' }}
         onClick={onClose}
       />
-      {/* 슬라이드 패널 */}
+      {/* 슬라이드 패널 — 하단 BottomNav(모바일 전용, z-50, 같은 z-index로 뒤에서 겹침 + 홈 인디케이터 안전영역)에 가리지 않게 공간 확보 */}
       <div
-        className="fixed top-[52px] left-0 bottom-0 z-50 md:hidden w-[200px] flex flex-col transition-transform duration-200"
+        className="fixed top-[52px] left-0 bottom-0 z-50 md:hidden w-[200px] flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom,0px))] transition-transform duration-200"
         style={{
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
           backgroundColor: '#FFFDF1',
@@ -143,6 +163,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             );
           })}
         </nav>
+        <div className="px-3 pb-4" style={{ borderTop: '1px solid #e0e0e0', paddingTop: '12px' }}>
+          <Link
+            id="tour-admin-mobile"
+            href="/admin"
+            onClick={onClose}
+            className="flex items-center h-10 px-3 gap-3 text-sm font-semibold rounded"
+            style={{ backgroundColor: '#00462A', color: '#ffffff' }}
+          >
+            <span className="flex-shrink-0"><IconPlus /></span>
+            <span className="truncate">영상 등록하기</span>
+          </Link>
+        </div>
       </div>
     </>
   );

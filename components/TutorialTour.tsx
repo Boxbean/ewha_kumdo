@@ -34,8 +34,9 @@ const STEPS: TourStep[] = [
   },
   {
     targetId: 'tour-admin',
+    fallbackId: 'tour-admin-mobile',
     title: '🎈 등록하기',
-    body: '영상을 자유롭게 등록하고 수정할 수 있습니다. 원하는 영상을 등록해보세요! (비밀번호 필요)',
+    body: '메뉴 안 "영상 등록하기"에서 자유롭게 등록하고 수정할 수 있습니다. 원하는 영상을 등록해보세요! (비밀번호 필요)',
   },
   {
     targetId: 'tour-help-btn',
@@ -78,10 +79,12 @@ export default function TutorialTour() {
 
   useEffect(() => {
     if (step === null) return;
-    const current = STEPS[step];
+    const currentStep = step;
+    const current = STEPS[currentStep];
 
     // Step 0: centered welcome card, no highlight
     if (current.targetId === 'tour-home') {
+      window.dispatchEvent(new Event('tutorial-close-sidebar'));
       setHighlightRect(null);
       setTooltipPos({
         top: 90,
@@ -90,20 +93,33 @@ export default function TutorialTour() {
       return;
     }
 
-    let el = document.getElementById(current.targetId);
-    if (!el || el.getBoundingClientRect().width === 0) {
-      if (current.fallbackId) el = document.getElementById(current.fallbackId);
-    }
-    // 엘리먼트 없거나 숨겨진 경우 다음 스텝으로 건너뜀
-    if (!el || el.getBoundingClientRect().width === 0) {
-      if (step < STEPS.length - 1) setStep(step + 1);
-      else finish();
-      return;
+    function measure() {
+      let el = document.getElementById(current.targetId);
+      if (!el || el.getBoundingClientRect().width === 0) {
+        if (current.fallbackId) el = document.getElementById(current.fallbackId);
+      }
+      // 엘리먼트 없거나 숨겨진 경우 다음 스텝으로 건너뜀
+      if (!el || el.getBoundingClientRect().width === 0) {
+        if (currentStep < STEPS.length - 1) setStep(currentStep + 1);
+        else finish();
+        return;
+      }
+
+      const rect = el.getBoundingClientRect();
+      setHighlightRect(rect);
+      setTooltipPos(calcPos(rect));
     }
 
-    const rect = el.getBoundingClientRect();
-    setHighlightRect(rect);
-    setTooltipPos(calcPos(rect));
+    // "등록하기"는 햄버거 메뉴 안에 있어서, 실제 위치를 재려면 먼저 메뉴를 강제로 열어야 함
+    // (모바일은 슬라이드 패널이라 닫힌 상태에선 transform으로 화면 밖에 있어 width=0 체크로 못 거름)
+    if (current.targetId === 'tour-admin') {
+      window.dispatchEvent(new Event('tutorial-open-sidebar'));
+      const t = setTimeout(measure, 260);
+      return () => clearTimeout(t);
+    }
+
+    window.dispatchEvent(new Event('tutorial-close-sidebar'));
+    measure();
   }, [step]);
 
   function calcPos(rect: DOMRect) {
@@ -130,6 +146,7 @@ export default function TutorialTour() {
   }
 
   function finish() {
+    window.dispatchEvent(new Event('tutorial-close-sidebar'));
     localStorage.setItem(STORAGE_KEY, '1');
     setStep(null);
   }

@@ -127,7 +127,7 @@ export default function VideoCard({ video }: VideoCardProps) {
 
         {/* 카드 정보 */}
         <div className="p-2.5 flex flex-col flex-grow">
-          <p className="text-xs" style={{ color: '#B9B9B9' }}>
+          <p className="text-xs" style={{ color: '#374151' }}>
             {formatDate(video.date)}
           </p>
         </div>

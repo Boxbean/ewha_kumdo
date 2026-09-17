@@ -32,32 +32,23 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
         style={{ backgroundColor: '#00462A' }}
         className="fixed top-0 left-0 right-0 z-50 flex items-center h-[52px] px-3 gap-3"
       >
-        {/* 사이드바 토글 */}
-        <button
-          id="tour-hamburger"
-          onClick={onToggleSidebar}
-          className="text-white w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded hover:bg-white/10 flex-shrink-0"
-          aria-label="메뉴"
-        >
-          <span className="block w-5 h-0.5 bg-white rounded-sm" />
-          <span className="block w-5 h-0.5 bg-white rounded-sm" />
-          <span className="block w-5 h-0.5 bg-white rounded-sm" />
-        </button>
-
-        {/* 로고 */}
+        {/* 로고 (왼쪽 정렬) */}
         <Link href="/" className="flex-shrink-0 flex items-center py-2" aria-label="EWHA Kumdo">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="EWHA Kumdo" className="h-9 w-9 object-contain invert" />
         </Link>
 
-        {/* 검색창 — 데스크톱 */}
-        <form id="tour-search" onSubmit={handleSearch} className="flex-1 hidden md:flex">
+        {/* 남는 공간 — 이 뒤 그룹을 오른쪽으로 밀어냄 */}
+        <div className="flex-1" />
+
+        {/* 검색 — 데스크톱: 인라인 폼 */}
+        <form id="tour-search" onSubmit={handleSearch} className="hidden md:flex flex-shrink-0">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="이름, 날짜, 주제 검색..."
-            className="w-full max-w-sm h-8 px-3 text-sm rounded-l bg-white/15 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:bg-white/20"
+            className="w-44 h-8 px-3 text-sm rounded-l bg-white/15 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:bg-white/20"
           />
           <button
             type="submit"
@@ -67,8 +58,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
           </button>
         </form>
 
-        {/* 모바일: spacer + 검색 아이콘 */}
-        <div className="flex-1 md:hidden" />
+        {/* 검색 — 모바일: 아이콘 */}
         <button
           id="tour-search-mobile"
           onClick={() => setMobileSearchOpen((v) => !v)}
@@ -81,6 +71,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
           </svg>
         </button>
 
+        {/* 알림 */}
         <PushNotificationButton />
 
         {/* 튜토리얼 버튼 */}
@@ -102,14 +93,17 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
           ?
         </button>
 
-        <Link
-          id="tour-admin"
-          href="/admin"
-          className="flex-shrink-0 h-8 px-3 text-sm bg-white text-[#00462A] font-semibold rounded hover:bg-white/90"
-          style={{ lineHeight: '2rem' }}
+        {/* 햄버거 메뉴 (오른쪽 끝) */}
+        <button
+          id="tour-hamburger"
+          onClick={onToggleSidebar}
+          className="text-white w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded hover:bg-white/10 flex-shrink-0"
+          aria-label="메뉴"
         >
-          + 등록하기
-        </Link>
+          <span className="block w-5 h-0.5 bg-white rounded-sm" />
+          <span className="block w-5 h-0.5 bg-white rounded-sm" />
+          <span className="block w-5 h-0.5 bg-white rounded-sm" />
+        </button>
       </header>
 
       {/* 모바일 검색바 드롭다운 */}

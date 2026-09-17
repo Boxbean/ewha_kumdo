@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
@@ -12,6 +12,18 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // 튜토리얼이 "등록하기" 단계(햄버거 메뉴 안)를 가리킬 때 메뉴를 강제로 열고/닫기 위한 이벤트
+  useEffect(() => {
+    function handleOpen() { setSidebarOpen(true); }
+    function handleClose() { setSidebarOpen(false); }
+    window.addEventListener('tutorial-open-sidebar', handleOpen);
+    window.addEventListener('tutorial-close-sidebar', handleClose);
+    return () => {
+      window.removeEventListener('tutorial-open-sidebar', handleOpen);
+      window.removeEventListener('tutorial-close-sidebar', handleClose);
+    };
+  }, []);
 
   return (
     <>

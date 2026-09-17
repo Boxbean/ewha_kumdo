@@ -71,7 +71,12 @@ export default function BottomNav() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden border-t"
-      style={{ backgroundColor: '#FFFDF1', borderColor: '#e0e0e0' }}
+      style={{
+        backgroundColor: '#FFFDF1',
+        borderColor: '#e0e0e0',
+        // 홈 화면에 설치한 아이폰(하단 홈 인디케이터)에서 아이콘이 베젤에 눌려 보이지 않도록 여백 확보
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
     >
       {menus.map((menu) => {
         const isActive = pathname === menu.href;
