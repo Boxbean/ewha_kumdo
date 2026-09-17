@@ -12,6 +12,16 @@ export interface Video {
   competition_id?: string | null;  // 대회 연결 (null = 일반 훈련 영상)
   bracket_match_id?: string | null; // 대진표 매치 연결 (대진표에서 클릭 시 바로 재생)
   created_at: string;
+  // 조인 데이터 (목록 조회 시 포함, 카드에 대회명/상대 노출용)
+  competition?: { name: string } | null;
+  bracket_match?: {
+    player1_name?: string;
+    player1_club?: string;
+    player1_is_ours: boolean;
+    player2_name?: string;
+    player2_club?: string;
+    player2_is_ours: boolean;
+  } | null;
 }
 
 export interface SeriesThumbnail {

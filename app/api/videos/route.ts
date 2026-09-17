@@ -7,6 +7,13 @@ import { sendPushToAllSubscribers } from '@/lib/push';
 // 등록된 지 이 기간 이내인 영상은 경기일(date) 순서를 무시하고 최신 등록순으로 맨 앞에 노출
 const RECENT_UPLOAD_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 
+// 목록 카드에서 대회명/상대 정보를 보여주기 위한 조인 — 카드 렌더링에 필요한 컬럼만 가져옴
+const VIDEO_SELECT = `
+  *,
+  competition:competitions(name),
+  bracket_match:bracket_matches(player1_name,player1_club,player1_is_ours,player2_name,player2_club,player2_is_ours)
+`;
+
 interface VideoFilters {
   angle: string;
   participant: string;
@@ -60,7 +67,7 @@ export async function GET(req: NextRequest) {
   const cutoffIso = new Date(Date.now() - RECENT_UPLOAD_WINDOW_MS).toISOString();
 
   // 최근 업로드 버킷: 시간 창(3일)으로 크기가 자연히 제한되어 전체 조회해도 안전 — 등록순 정렬 확정
-  const { data: recentData, error: recentError } = await applyFilters(supabase.from('videos').select('*'), filters)
+  const { data: recentData, error: recentError } = await applyFilters(supabase.from('videos').select(VIDEO_SELECT), filters)
     .gte('created_at', cutoffIso)
     .order('created_at', { ascending: false });
   if (recentError) return NextResponse.json({ error: recentError.message }, { status: 500 });
@@ -83,7 +90,7 @@ export async function GET(req: NextRequest) {
   const restNeeded = limit - recentPage.length;
   let restRows: Video[] = [];
   if (restNeeded > 0 && restOffset < restTotal) {
-    const { data: restData, error: restError } = await applyFilters(supabase.from('videos').select('*'), filters)
+    const { data: restData, error: restError } = await applyFilters(supabase.from('videos').select(VIDEO_SELECT), filters)
       .lt('created_at', cutoffIso)
       .order('date', { ascending: false })
       .order('created_at', { ascending: false })

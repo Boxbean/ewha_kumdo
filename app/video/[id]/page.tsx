@@ -27,10 +27,14 @@ export default async function VideoDetailPage({ params }: Props) {
   const video = data as Video;
   const videoId = extractYouTubeId(video.youtube_url);
 
-  // 같은 날짜의 다른 영상 (페어 영상)
+  // 같은 날짜의 다른 영상 (페어 영상) — 카드에 대회명/상대 정보를 보여주기 위한 조인 포함
   const { data: pairData } = await supabase
     .from('videos')
-    .select('*')
+    .select(`
+      *,
+      competition:competitions(name),
+      bracket_match:bracket_matches(player1_name,player1_club,player1_is_ours,player2_name,player2_club,player2_is_ours)
+    `)
     .eq('date', video.date)
     .neq('id', video.id)
     .limit(6);
