@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "EWHA Kumdo",
+    title: "EKUM",
     statusBarStyle: "default",
   },
 };

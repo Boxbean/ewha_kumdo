@@ -1,6 +1,6 @@
 {
   "name": "EWHA Kumdo",
-  "short_name": "EWHA검도",
+  "short_name": "EKUM",
   "description": "이화여대 검도부 훈련 영상 아카이브",
   "start_url": "/",
   "scope": "/",
