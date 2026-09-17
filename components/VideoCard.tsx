@@ -7,7 +7,6 @@ interface VideoCardProps {
   video: Video;
 }
 
-const MAX_TAGS = 4;
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
 // 대진표 연결 데이터에서 "우리 쪽이 아닌" 선수를 상대로 판단
@@ -21,22 +20,33 @@ function getOpponent(video: Video): { name?: string; club?: string } | null {
   return opponent.name ? opponent : null;
 }
 
-function getParticipantsHeadline(participants: string[]): string | null {
+// 문자열을 안정적인 정수 해시로 변환 — 같은 입력엔 항상 같은 결과 (매 로딩마다 바뀌지 않음)
+function hashStringToIndex(str: string, mod: number): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  }
+  return hash % mod;
+}
+
+// 참가자가 3명 이상이면 한 명만 헤드라인에 노출되는데, 항상 첫 번째 태그만 나오면 그 사람만 계속 보이게 되므로
+// 영상 id로 해시를 내 다른 참가자가 골고루 걸리게 함 (영상별로 고정, 로딩마다 바뀌지는 않음)
+function getParticipantsHeadline(video: Video): string | null {
+  const participants = video.participants;
   if (participants.length === 0) return null;
   if (participants.length <= 2) return participants.join(', ');
-  return `${participants[0]} 외 ${participants.length - 1}명`;
+  const featuredIndex = hashStringToIndex(video.id, participants.length);
+  return `${participants[featuredIndex]} 외 ${participants.length - 1}명`;
 }
 
 export default function VideoCard({ video }: VideoCardProps) {
   const isNew = Date.now() - new Date(video.created_at).getTime() < THREE_DAYS_MS;
   const videoId = extractYouTubeId(video.youtube_url);
   const thumbnail = videoId ? getYouTubeThumbnail(videoId) : null;
-  const visibleParticipants = video.participants.slice(0, MAX_TAGS);
-  const hiddenCount = video.participants.length - MAX_TAGS;
 
   const competitionName = video.competition?.name;
   const opponent = getOpponent(video);
-  const headline = opponent?.name ? `vs ${opponent.name}` : getParticipantsHeadline(video.participants);
+  const headline = opponent?.name ? `vs ${opponent.name}` : getParticipantsHeadline(video);
 
   return (
     <Link href={`/video/${video.id}`} className="block group h-full">
@@ -116,34 +126,10 @@ export default function VideoCard({ video }: VideoCardProps) {
         </div>
 
         {/* 카드 정보 */}
-        <div className="p-2.5 flex flex-col flex-grow gap-1.5">
+        <div className="p-2.5 flex flex-col flex-grow">
           <p className="text-xs" style={{ color: '#B9B9B9' }}>
             {formatDate(video.date)}
           </p>
-          {video.participants.length > 0 && (
-            <div
-              className="flex flex-wrap gap-1 overflow-hidden"
-              style={{ maxHeight: '52px' }}
-            >
-              {visibleParticipants.map((p) => (
-                <span
-                  key={p}
-                  className="text-xs px-1.5 py-0.5 rounded-full shrink-0"
-                  style={{ backgroundColor: 'rgba(0,70,42,0.08)', color: '#00462A' }}
-                >
-                  #{p}
-                </span>
-              ))}
-              {hiddenCount > 0 && (
-                <span
-                  className="text-xs px-1.5 py-0.5 rounded-full shrink-0"
-                  style={{ backgroundColor: 'rgba(0,0,0,0.06)', color: '#B9B9B9' }}
-                >
-                  +{hiddenCount}
-                </span>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </Link>

@@ -125,10 +125,12 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  const [, monthStr, dayStr] = (data.date as string).split('-');
+
   after(() =>
     sendPushToAllSubscribers({
-      title: '영상이 업로드되었어요',
-      body: data.title,
+      title: `${Number(monthStr)}월 ${Number(dayStr)}일 정규운동 영상이 업로드되었어요!`,
+      body: '',
       url: `/video/${data.id}`,
     })
   );

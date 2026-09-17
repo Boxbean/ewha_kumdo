@@ -27,6 +27,27 @@ function parseParticipantsFromTitle(title: string): string[] {
     .filter(Boolean);
 }
 
+// 정규운동 영상 제목은 보통 "YYMMDD ..." 형식으로 시작 — 앞 6자리가 유효한 날짜면 그 날짜를 반환, 아니면 null
+function deriveDateFromTitle(title: string): string | null {
+  const prefix = title.slice(0, 6);
+  if (!/^\d{6}$/.test(prefix)) return null;
+  const yy = Number(prefix.slice(0, 2));
+  const mm = Number(prefix.slice(2, 4));
+  const dd = Number(prefix.slice(4, 6));
+  const year = 2000 + yy;
+  const parsed = new Date(year, mm - 1, dd);
+  if (parsed.getFullYear() !== year || parsed.getMonth() !== mm - 1 || parsed.getDate() !== dd) return null;
+  return `${year}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+}
+
+function getYesterdayDateString(): string {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
+  const dd = String(yesterday.getDate()).padStart(2, '0');
+  return `${yesterday.getFullYear()}-${mm}-${dd}`;
+}
+
 export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: VideoFormProps) {
   const router = useRouter();
   const isEdit = !!initial?.id;
@@ -85,6 +106,7 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
       const json = await res.json();
       const rawTitle: string = json.title || '';
       setTitle(rawTitle);
+      setDate(deriveDateFromTitle(rawTitle) || getYesterdayDateString());
       const names = parseParticipantsFromTitle(rawTitle);
       if (names.length > 0) {
         setParticipants((prev) => {
@@ -101,13 +123,10 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
   }
 
   function fillAutoComplete() {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yy = String(yesterday.getFullYear()).slice(2);
-    const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
-    const dd = String(yesterday.getDate()).padStart(2, '0');
-    setTitle(`${yy}${mm}${dd} 저녁운동`);
-    setDate(`${yesterday.getFullYear()}-${mm}-${dd}`);
+    const yesterdayStr = getYesterdayDateString();
+    const [yyyy, mm, dd] = yesterdayStr.split('-');
+    setTitle(`${yyyy.slice(2)}${mm}${dd} 저녁운동`);
+    setDate(yesterdayStr);
     setAngle('후면');
   }
 
