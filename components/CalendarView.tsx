@@ -78,7 +78,7 @@ export default function CalendarView({ videos, initialYear, initialMonth }: Cale
           <button
             onClick={openPicker}
             className="font-bold text-base px-4 py-1.5 rounded-full"
-            style={{ backgroundColor: '#00462A', color: '#FFFDF1' }}
+            style={{ backgroundColor: '#00462A', color: '#ffffff' }}
           >
             {year}년 {month + 1}월
           </button>
@@ -124,7 +124,7 @@ export default function CalendarView({ videos, initialYear, initialMonth }: Cale
                         className="h-8 text-sm rounded-lg transition-colors"
                         style={{
                           backgroundColor: isSelected ? '#00462A' : 'transparent',
-                          color: isSelected ? '#FFFDF1' : '#374151',
+                          color: isSelected ? '#ffffff' : '#374151',
                         }}
                       >
                         {i + 1}월

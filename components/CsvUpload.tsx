@@ -183,7 +183,7 @@ export default function CsvUpload({ onSuccess }: CsvUploadProps) {
           </p>
           <table className="text-xs border-collapse" style={{ minWidth: '400px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#FFFDF1' }}>
+              <tr style={{ backgroundColor: '#ffffff' }}>
                 {['링크', '날짜', '앵글', '참가자', '제목', '주제', '등록자'].map((col) => (
                   <th
                     key={col}

@@ -75,7 +75,7 @@ export default async function VenueDetailPage({ params }: Props) {
                   <div className="flex items-center gap-3 mb-3">
                     <span
                       className="text-base font-bold px-3 py-0.5 rounded-full"
-                      style={{ backgroundColor: '#00462A', color: '#FFFDF1' }}
+                      style={{ backgroundColor: '#00462A', color: '#ffffff' }}
                     >
                       {year}
                     </span>

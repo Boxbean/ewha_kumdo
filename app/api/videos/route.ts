@@ -66,20 +66,25 @@ export async function GET(req: NextRequest) {
 
   const cutoffIso = new Date(Date.now() - RECENT_UPLOAD_WINDOW_MS).toISOString();
 
-  // 최근 업로드 버킷: 시간 창(3일)으로 크기가 자연히 제한되어 전체 조회해도 안전 — 등록순 정렬 확정
-  const { data: recentData, error: recentError } = await applyFilters(supabase.from('videos').select(VIDEO_SELECT), filters)
-    .gte('created_at', cutoffIso)
-    .order('created_at', { ascending: false });
+  // 최근 업로드 버킷과 나머지 버킷 개수는 서로 독립적인 쿼리라 병렬로 조회 — 순차 대기 시간 절약
+  const [
+    { data: recentData, error: recentError },
+    { count: restCount, error: countError },
+  ] = await Promise.all([
+    // 최근 업로드 버킷: 시간 창(3일)으로 크기가 자연히 제한되어 전체 조회해도 안전 — 등록순 정렬 확정
+    applyFilters(supabase.from('videos').select(VIDEO_SELECT), filters)
+      .gte('created_at', cutoffIso)
+      .order('created_at', { ascending: false }),
+    // 나머지 버킷 전체 개수만 추정치로 조회 (행 데이터는 가져오지 않음)
+    applyFilters(supabase.from('videos').select('*', { count: 'estimated', head: true }), filters).lt(
+      'created_at',
+      cutoffIso
+    ),
+  ]);
   if (recentError) return NextResponse.json({ error: recentError.message }, { status: 500 });
+  if (countError) return NextResponse.json({ error: countError.message }, { status: 500 });
   const recentRows = (recentData as Video[]) || [];
   const recentTotal = recentRows.length;
-
-  // 나머지 버킷 전체 개수만 추정치로 조회 (행 데이터는 가져오지 않음)
-  const { count: restCount, error: countError } = await applyFilters(
-    supabase.from('videos').select('*', { count: 'estimated', head: true }),
-    filters
-  ).lt('created_at', cutoffIso);
-  if (countError) return NextResponse.json({ error: countError.message }, { status: 500 });
   const restTotal = restCount ?? 0;
 
   // 요청된 페이지 구간 [offset, offset+limit) 중 최근 업로드 버킷에 해당하는 부분

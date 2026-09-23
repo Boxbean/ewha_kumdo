@@ -106,7 +106,7 @@ export default function PushNotificationButton() {
         {showIosHint && (
           <div
             className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 rounded-lg p-3 text-xs leading-relaxed shadow-lg"
-            style={{ backgroundColor: '#FFFDF1', color: '#374151', border: '1px solid #e0e0e0' }}
+            style={{ backgroundColor: '#ffffff', color: '#374151', border: '1px solid #e0e0e0' }}
           >
             아이폰에서는 홈 화면에 추가한 후에만 알림을 받을 수 있어요. 공유 버튼 → &quot;홈 화면에 추가&quot;로 먼저 설치해주세요.
           </div>

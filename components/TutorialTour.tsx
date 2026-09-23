@@ -23,11 +23,6 @@ const STEPS: TourStep[] = [
     body: '이름, 날짜, 주제로 영상을 검색할 수 있어요. 보고싶은 영상을 검색해보세요!',
   },
   {
-    targetId: 'tour-filterbar',
-    title: '🫧 해시태그',
-    body: '앵글(전면·후면·기타)과 참가자 이름 태그를 눌러 원하는 영상만 확인하세요. 이름 태그 노출 순서는 랜덤입니다.',
-  },
-  {
     targetId: 'tour-hamburger',
     title: '⭐ 메뉴',
     body: '리스트, 캘린더, 주제별 보기 등으로 영상을 확인하세요. 목록 탭을 열어 확인해보세요.',
@@ -186,7 +181,7 @@ export default function TutorialTour() {
           top: tooltipPos.top,
           left: tooltipPos.left,
           width: TOOLTIP_W,
-          backgroundColor: '#FFFDF1',
+          backgroundColor: '#ffffff',
           border: '1px solid #e0e0e0',
         }}
       >

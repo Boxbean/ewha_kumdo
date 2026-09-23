@@ -89,7 +89,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         className="fixed top-[52px] left-0 bottom-0 z-40 hidden md:flex flex-col overflow-hidden transition-all duration-200"
         style={{
           width: isOpen ? '200px' : '56px',
-          backgroundColor: '#FFFDF1',
+          backgroundColor: '#ffffff',
           borderRight: '1px solid #e0e0e0',
         }}
       >
@@ -133,13 +133,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         style={{ opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none' }}
         onClick={onClose}
       />
-      {/* 슬라이드 패널 — 하단 BottomNav(모바일 전용, z-50, 같은 z-index로 뒤에서 겹침 + 홈 인디케이터 안전영역)에 가리지 않게 공간 확보 */}
+      {/* 슬라이드 패널 — 햄버거 아이콘이 헤더 오른쪽에 있으므로 오른쪽에서 슬라이드 / 하단 BottomNav(모바일 전용, z-50, 같은 z-index로 뒤에서 겹침 + 홈 인디케이터 안전영역)에 가리지 않게 공간 확보 */}
       <div
-        className="fixed top-[52px] left-0 bottom-0 z-50 md:hidden w-[200px] flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom,0px))] transition-transform duration-200"
+        className="fixed top-[52px] right-0 bottom-0 z-50 md:hidden w-[200px] flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom,0px))] transition-transform duration-200"
         style={{
-          transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
-          backgroundColor: '#FFFDF1',
-          borderRight: '1px solid #e0e0e0',
+          transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
+          backgroundColor: '#ffffff',
+          borderLeft: '1px solid #e0e0e0',
         }}
       >
         <nav className="flex-1 py-2">

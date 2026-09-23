@@ -12,7 +12,7 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         'ewha-green': '#00462A',
-        'ewha-pear':  '#FFFDF1',
+        'ewha-pear':  '#ffffff',
         'ewha-grey':  '#B9B9B9',
       },
     },
