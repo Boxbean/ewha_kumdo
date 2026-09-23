@@ -46,8 +46,7 @@ export default function RootLayout({
         />
       </head>
       <body style={{ fontFamily: "'Pretendard', sans-serif" }}>
-        {children}
-        <SplashScreen />
+        <SplashScreen>{children}</SplashScreen>
         <RegisterServiceWorker />
         <Analytics />
         <SpeedInsights />
