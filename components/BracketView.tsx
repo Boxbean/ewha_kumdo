@@ -2,12 +2,10 @@
 
 import { useState } from 'react';
 import { BracketMatch, CompetitionFile } from '@/lib/types';
-import {
-  groupByDivision, groupBySide, buildSideStructure, matchGridPosition,
-  sideMatchColumn, sideConnectorColumn, SideStructure,
-} from '@/lib/bracket';
-import BracketMatchNode from './BracketMatchNode';
-import BracketConnector from './BracketConnector';
+import { groupByDivision, groupBySide, buildSideStructure, assignMatchNumbers } from '@/lib/bracket';
+import { computeSideLayout, matchCenterY, LineState } from '@/lib/bracketLayout';
+import BracketPlayerCard from './BracketPlayerCard';
+import BracketMatchCircle from './BracketMatchCircle';
 import BracketPodium from './BracketPodium';
 
 interface Props {
@@ -15,9 +13,42 @@ interface Props {
   files: CompetitionFile[];
 }
 
-const LEAF_HEIGHT = 64;
-const MATCH_COL_WIDTH = 152;
-const CONN_COL_WIDTH = 28;
+const ROW_H = 54;    // 선수 한 명당 세로 간격 (참고 사이트의 좌표 방식과 동일하게, 매치가 아니라 선수 단위로 행을 잡는다)
+const STEP = 36;     // 라운드 사이 가로 간격
+const CARD_GAP = 8;  // 리프 경계와 선수 카드 사이 여백
+const CARD_HEIGHT = 36;
+const CARD_MIN_WIDTH = 96;
+const CARD_PADDING = 20; // 카드 좌우 padding + border
+
+const GREEN = '#00462A';
+const GRAY = '#cbd5e1';
+
+function lineStyle(state: LineState) {
+  if (state === 'won') return { stroke: GREEN, strokeWidth: 2.5 };
+  if (state === 'lost') return { stroke: GRAY, strokeWidth: 1.2 };
+  return { stroke: GRAY, strokeWidth: 1.2, strokeDasharray: '3,3' };
+}
+
+// 한글은 알파벳보다 넓게 대략 어림잡아 이름/소속 텍스트의 픽셀 폭을 추정.
+function estimateTextWidth(text: string, hangulPx: number, otherPx: number): number {
+  let width = 0;
+  for (const ch of text) {
+    width += /[ㄱ-힝가-힣]/.test(ch) ? hangulPx : otherPx;
+  }
+  return width;
+}
+
+// 한 대진표(선택된 부문) 전체에서 가장 긴 이름/소속을 기준으로 모든 카드가 공유할 폭을 계산.
+function computeCardWidth(matches: BracketMatch[]): number {
+  let maxContent = 0;
+  for (const m of matches) {
+    for (const [name, club] of [[m.player1_name, m.player1_club], [m.player2_name, m.player2_club]] as const) {
+      if (name) maxContent = Math.max(maxContent, estimateTextWidth(name, 13, 8));
+      if (club) maxContent = Math.max(maxContent, estimateTextWidth(club, 10, 6));
+    }
+  }
+  return Math.max(CARD_MIN_WIDTH, maxContent + CARD_PADDING);
+}
 
 export default function BracketView({ matches, files }: Props) {
   const groups = groupByDivision(matches);
@@ -25,6 +56,7 @@ export default function BracketView({ matches, files }: Props) {
   const [selectedKey, setSelectedKey] = useState(
     groups[0] ? `${groups[0].event_type}__${groups[0].division}` : ''
   );
+  const [zoom, setZoom] = useState(1);
 
   if (groups.length === 0) {
     return (
@@ -44,7 +76,9 @@ export default function BracketView({ matches, files }: Props) {
   const bySide = groupBySide(selected.matches);
   const structureA = buildSideStructure(bySide.A);
   const structureB = buildSideStructure(bySide.B);
-  const finalMatch = bySide.final[0] || null;
+  const final = bySide.final[0] || null;
+  const numbers = assignMatchNumbers(structureA, structureB, final);
+  const cardWidth = computeCardWidth(selected.matches);
 
   return (
     <div>
@@ -70,10 +104,7 @@ export default function BracketView({ matches, files }: Props) {
       )}
 
       <div className="flex items-center gap-2 mb-3">
-        <span
-          className="text-xs font-bold px-2.5 py-1 rounded-full text-white"
-          style={{ backgroundColor: '#00462A' }}
-        >
+        <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: '#00462A' }}>
           {selected.event_type}
         </span>
         <span className="text-sm font-bold" style={{ color: '#111' }}>{selected.division}</span>
@@ -81,30 +112,7 @@ export default function BracketView({ matches, files }: Props) {
 
       <BracketPodium matches={selected.matches} />
 
-      <div className="overflow-x-auto pb-2">
-        <div className="flex items-center" style={{ width: 'max-content' }}>
-          {structureA ? (
-            <BracketSideTree structure={structureA} mirrored={false} sideLabel="A조" />
-          ) : (
-            <EmptySideNote label="A조" />
-          )}
-
-          <FinalConnector />
-
-          <div style={{ width: 160 }}>
-            <p className="text-center text-[11px] font-bold mb-1" style={{ color: '#B9B9B9' }}>결승</p>
-            <BracketMatchNode match={finalMatch} />
-          </div>
-
-          <FinalConnector />
-
-          {structureB ? (
-            <BracketSideTree structure={structureB} mirrored sideLabel="B조" />
-          ) : (
-            <EmptySideNote label="B조" />
-          )}
-        </div>
-      </div>
+      <BracketTree structureA={structureA} structureB={structureB} final={final} numbers={numbers} cardWidth={cardWidth} zoom={zoom} setZoom={setZoom} />
 
       {bracketFiles.length > 0 && (
         <div className="mt-6">
@@ -115,75 +123,167 @@ export default function BracketView({ matches, files }: Props) {
   );
 }
 
-function FinalConnector() {
-  return (
-    <div style={{ width: 24, height: 2, backgroundColor: '#cbd5e1', flexShrink: 0 }} />
-  );
-}
-
-function EmptySideNote({ label }: { label: string }) {
-  return (
-    <div className="flex items-center justify-center px-6" style={{ width: 160, color: '#B9B9B9' }}>
-      <span className="text-xs">{label} 데이터 없음</span>
-    </div>
-  );
-}
-
-function BracketSideTree({
-  structure, mirrored, sideLabel,
+function BracketTree({
+  structureA, structureB, final, numbers, cardWidth, zoom, setZoom,
 }: {
-  structure: SideStructure;
-  mirrored: boolean;
-  sideLabel: string;
+  structureA: ReturnType<typeof buildSideStructure>;
+  structureB: ReturnType<typeof buildSideStructure>;
+  final: BracketMatch | null;
+  numbers: Map<string, number>;
+  cardWidth: number;
+  zoom: number;
+  setZoom: (fn: (z: number) => number) => void;
 }) {
-  const { maxRound, leafCount, roundsMatches } = structure;
-  const totalCols = 2 * maxRound - 1;
+  if (!structureA && !structureB && !final) {
+    return <p className="text-sm text-center py-10" style={{ color: '#B9B9B9' }}>대진 데이터가 없습니다</p>;
+  }
 
-  const gridTemplateColumns = Array.from({ length: totalCols }, (_, i) =>
-    i % 2 === 0 ? `${MATCH_COL_WIDTH}px` : `${CONN_COL_WIDTH}px`
-  ).join(' ');
+  const layoutA = computeSideLayout(structureA, ROW_H, STEP);
+  const layoutB = computeSideLayout(structureB, ROW_H, STEP);
+
+  const canvasHeight = Math.max(layoutA.height, layoutB.height, ROW_H);
+  const offsetA = (canvasHeight - layoutA.height) / 2;
+  const offsetB = (canvasHeight - layoutB.height) / 2;
+
+  const maxRound = Math.max(structureA?.maxRound ?? 0, structureB?.maxRound ?? 0);
+  const canvasWidth = 2 * (maxRound + 1) * STEP;
+  const finalX = canvasWidth / 2;
+
+  const marginX = cardWidth + CARD_GAP;
+  const totalWidth = canvasWidth + marginX * 2;
+
+  const toOuterA = (x: number, y: number) => ({ x: marginX + x, y: y + offsetA });
+  const toOuterB = (x: number, y: number) => ({ x: marginX + canvasWidth - x, y: y + offsetB });
+
+  const champA = structureA
+    ? toOuterA(structureA.maxRound * STEP, matchCenterY(structureA.maxRound, 1, ROW_H))
+    : null;
+  const champB = structureB
+    ? toOuterB(structureB.maxRound * STEP, matchCenterY(structureB.maxRound, 1, ROW_H))
+    : null;
+  const finalY = champA && champB ? (champA.y + champB.y) / 2 : (champA ?? champB)?.y ?? canvasHeight / 2;
+  const finalPoint = { x: marginX + finalX, y: finalY };
+
+  const leftState: LineState = final?.winner_slot === 'player1' ? 'won' : final?.winner_slot ? 'lost' : 'pending';
+  const rightState: LineState = final?.winner_slot === 'player2' ? 'won' : final?.winner_slot ? 'lost' : 'pending';
 
   return (
     <div>
-      <p className="text-xs font-bold mb-1.5" style={{ color: '#374151' }}>{sideLabel}</p>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns,
-          gridTemplateRows: `repeat(${leafCount}, ${LEAF_HEIGHT}px)`,
-          columnGap: 0,
-        }}
-      >
-        {roundsMatches.map((row, roundIdx) => {
-          const round = roundIdx + 1;
-          const matchCol = sideMatchColumn(round, maxRound, mirrored);
-          return row.map((match, idx) => {
-            const matchNo = idx + 1;
-            const { start, end } = matchGridPosition(round, matchNo);
-            return (
-              <div
-                key={`m-${round}-${matchNo}`}
-                style={{ gridColumn: matchCol, gridRow: `${start} / ${end}`, alignSelf: 'center', padding: '2px 4px' }}
-              >
-                <BracketMatchNode match={match} />
-              </div>
-            );
-          });
-        })}
+      <div className="flex items-center justify-end gap-1 mb-2">
+        <button
+          onClick={() => setZoom((z) => Math.max(0.6, +(z - 0.15).toFixed(2)))}
+          className="w-7 h-7 rounded-full border text-sm"
+          style={{ borderColor: '#e0e0e0', color: '#374151' }}
+        >
+          −
+        </button>
+        <span className="text-xs w-10 text-center" style={{ color: '#B9B9B9' }}>{Math.round(zoom * 100)}%</span>
+        <button
+          onClick={() => setZoom((z) => Math.min(1.3, +(z + 0.15).toFixed(2)))}
+          className="w-7 h-7 rounded-full border text-sm"
+          style={{ borderColor: '#e0e0e0', color: '#374151' }}
+        >
+          +
+        </button>
+      </div>
 
-        {Array.from({ length: maxRound - 1 }, (_, i) => i + 2).map((round) => {
-          const connCol = sideConnectorColumn(round, maxRound, mirrored);
-          const countInRound = leafCount / Math.pow(2, round - 1);
-          return Array.from({ length: countInRound }, (_, idx) => {
-            const matchNo = idx + 1;
-            const { start, end } = matchGridPosition(round, matchNo);
+      <div className="overflow-x-auto pb-2">
+        <div
+          className="relative"
+          style={{
+            width: totalWidth, height: canvasHeight,
+            transform: `scale(${zoom})`, transformOrigin: 'top left',
+            marginBottom: zoom < 1 ? -(canvasHeight * (1 - zoom)) : 0,
+          }}
+        >
+          <div className="absolute -top-6 text-[11px] font-bold" style={{ left: 4, color: '#374151' }}>A조</div>
+          <div className="absolute -top-6 text-[11px] font-bold" style={{ right: 4, color: '#374151' }}>B조</div>
+
+          <svg className="absolute inset-0 pointer-events-none" width={totalWidth} height={canvasHeight}>
+            {layoutA.lines.map((l, i) => {
+              const p1 = toOuterA(l.x1, l.y1);
+              const p2 = toOuterA(l.x2, l.y2);
+              const s = lineStyle(l.state);
+              return <line key={`a-${i}`} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} strokeLinecap="round" {...s} />;
+            })}
+            {layoutB.lines.map((l, i) => {
+              const p1 = toOuterB(l.x1, l.y1);
+              const p2 = toOuterB(l.x2, l.y2);
+              const s = lineStyle(l.state);
+              return <line key={`b-${i}`} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} strokeLinecap="round" {...s} />;
+            })}
+            {champA && (
+              <>
+                <line x1={champA.x} y1={champA.y} x2={finalPoint.x} y2={champA.y} strokeLinecap="round" {...lineStyle(leftState)} />
+                {champA.y !== finalPoint.y && (
+                  <line x1={finalPoint.x} y1={champA.y} x2={finalPoint.x} y2={finalPoint.y} strokeLinecap="round" {...lineStyle(leftState)} />
+                )}
+              </>
+            )}
+            {champB && (
+              <>
+                <line x1={champB.x} y1={champB.y} x2={finalPoint.x} y2={champB.y} strokeLinecap="round" {...lineStyle(rightState)} />
+                {champB.y !== finalPoint.y && (
+                  <line x1={finalPoint.x} y1={champB.y} x2={finalPoint.x} y2={finalPoint.y} strokeLinecap="round" {...lineStyle(rightState)} />
+                )}
+              </>
+            )}
+          </svg>
+
+          {layoutA.leaves.map((leaf, i) => {
+            const p = toOuterA(leaf.x, leaf.y);
+            const name = leaf.slot === 'player1' ? leaf.match.player1_name : leaf.match.player2_name;
+            const club = leaf.slot === 'player1' ? leaf.match.player1_club : leaf.match.player2_club;
+            const isOurs = leaf.slot === 'player1' ? leaf.match.player1_is_ours : leaf.match.player2_is_ours;
             return (
-              <div key={`c-${round}-${matchNo}`} style={{ gridColumn: connCol, gridRow: `${start} / ${end}` }}>
-                <BracketConnector mirrored={mirrored} />
+              <div key={`la-${i}`} className="absolute" style={{ left: p.x - marginX, top: p.y - CARD_HEIGHT / 2, width: cardWidth }}>
+                <BracketPlayerCard name={name} club={club} isOurs={isOurs} mirrored={false} width={cardWidth} />
               </div>
             );
-          });
-        })}
+          })}
+          {layoutB.leaves.map((leaf, i) => {
+            const p = toOuterB(leaf.x, leaf.y);
+            const name = leaf.slot === 'player1' ? leaf.match.player1_name : leaf.match.player2_name;
+            const club = leaf.slot === 'player1' ? leaf.match.player1_club : leaf.match.player2_club;
+            const isOurs = leaf.slot === 'player1' ? leaf.match.player1_is_ours : leaf.match.player2_is_ours;
+            return (
+              <div key={`lb-${i}`} className="absolute" style={{ left: p.x, top: p.y - CARD_HEIGHT / 2, width: cardWidth }}>
+                <BracketPlayerCard name={name} club={club} isOurs={isOurs} mirrored width={cardWidth} />
+              </div>
+            );
+          })}
+
+          {layoutA.circles.map((c) => {
+            const p = toOuterA(c.x, c.y);
+            const number = numbers.get(c.match.id) ?? null;
+            if (number === null) return null;
+            return (
+              <div key={`ca-${c.match.id}`} className="absolute" style={{ left: p.x, top: p.y, transform: 'translate(-50%, -50%)' }}>
+                <BracketMatchCircle number={number} videoId={c.match.videos?.[0]?.id} decided={!!c.match.winner_slot} />
+              </div>
+            );
+          })}
+          {layoutB.circles.map((c) => {
+            const p = toOuterB(c.x, c.y);
+            const number = numbers.get(c.match.id) ?? null;
+            if (number === null) return null;
+            return (
+              <div key={`cb-${c.match.id}`} className="absolute" style={{ left: p.x, top: p.y, transform: 'translate(-50%, -50%)' }}>
+                <BracketMatchCircle number={number} videoId={c.match.videos?.[0]?.id} decided={!!c.match.winner_slot} />
+              </div>
+            );
+          })}
+          {final && (
+            <div className="absolute" style={{ left: finalPoint.x, top: finalPoint.y, transform: 'translate(-50%, -50%)' }}>
+              <BracketMatchCircle number={numbers.get(final.id) ?? 0} videoId={final.videos?.[0]?.id} decided={!!final.winner_slot} />
+            </div>
+          )}
+          {final && (
+            <div className="absolute text-[11px] font-bold" style={{ left: finalPoint.x, top: finalPoint.y - 24, transform: 'translateX(-50%)', color: '#B9B9B9' }}>
+              결승
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

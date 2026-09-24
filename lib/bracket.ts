@@ -86,16 +86,30 @@ export function buildSideStructure(sideMatches: BracketMatch[]): SideStructure |
   return { maxRound, leafCount, roundsMatches };
 }
 
-/** side 트리 내에서 round가 위치할 그리드 컬럼 번호 (1-index, 홀수=매치, 짝수=커넥터) */
-export function sideMatchColumn(round: number, maxRound: number, mirrored: boolean): number {
-  const totalCols = 2 * maxRound - 1;
-  return mirrored ? totalCols - 2 * round + 2 : 2 * round - 1;
-}
-
-/** round(1..maxRound)로 진출시키는 커넥터가 위치할 그리드 컬럼 번호 (round>=2일 때만 존재) */
-export function sideConnectorColumn(round: number, maxRound: number, mirrored: boolean): number {
-  const totalCols = 2 * maxRound - 1;
-  return mirrored ? totalCols - 2 * round + 3 : 2 * round - 2;
+/**
+ * 대진표에 표시할 경기 번호(①②③...)를 라운드 순 → A조 → B조 → 결승 순서로 매김.
+ * 부전승(실제 경기가 없는 매치)은 번호를 매기지 않는다.
+ */
+export function assignMatchNumbers(
+  structureA: SideStructure | null,
+  structureB: SideStructure | null,
+  final: BracketMatch | null
+): Map<string, number> {
+  let n = 1;
+  const map = new Map<string, number>();
+  const maxRound = Math.max(structureA?.maxRound ?? 0, structureB?.maxRound ?? 0);
+  for (let r = 1; r <= maxRound; r++) {
+    for (const structure of [structureA, structureB]) {
+      if (!structure) continue;
+      const row = structure.roundsMatches[r - 1] ?? [];
+      for (const match of row) {
+        if (!match || match.is_bye) continue;
+        map.set(match.id, n++);
+      }
+    }
+  }
+  if (final) map.set(final.id, n++);
+  return map;
 }
 
 export function groupBySide(matches: BracketMatch[]): Record<BracketSide, BracketMatch[]> {
