@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BracketMatch, CompetitionFile } from '@/lib/types';
 import { groupByDivision, groupBySide, buildSideStructure, assignMatchNumbers } from '@/lib/bracket';
 import { computeSideLayout, matchCenterY, LineState } from '@/lib/bracketLayout';
-import BracketPlayerCard from './BracketPlayerCard';
+import BracketPlayerCard, { CARD_HEIGHT } from './BracketPlayerCard';
 import BracketMatchCircle from './BracketMatchCircle';
 import BracketPodium from './BracketPodium';
 
@@ -13,12 +13,14 @@ interface Props {
   files: CompetitionFile[];
 }
 
-const ROW_H = 54;    // 선수 한 명당 세로 간격 (참고 사이트의 좌표 방식과 동일하게, 매치가 아니라 선수 단위로 행을 잡는다)
+const CARD_ROW_GAP = 10; // 카드 사이 최소 여백(위아래 합산) — 같은 매치 내 두 선수, 서로 다른 매치 사이 모두 동일하게 적용
+const ROW_H = (CARD_HEIGHT + CARD_ROW_GAP) * 2; // 선수 한 명당 세로 간격 (카드 높이 + 여백을 넉넉히 반영)
 const STEP = 36;     // 라운드 사이 가로 간격
 const CARD_GAP = 8;  // 리프 경계와 선수 카드 사이 여백
-const CARD_HEIGHT = 36;
-const CARD_MIN_WIDTH = 96;
+const CARD_MIN_WIDTH = 56;
 const CARD_PADDING = 20; // 카드 좌우 padding + border
+const NAME_FONT = "700 12px 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif";
+const CLUB_FONT = "400 10px 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif";
 
 const GREEN = '#00462A';
 const GRAY = '#cbd5e1';
@@ -29,7 +31,7 @@ function lineStyle(state: LineState) {
   return { stroke: GRAY, strokeWidth: 1.2, strokeDasharray: '3,3' };
 }
 
-// 한글은 알파벳보다 넓게 대략 어림잡아 이름/소속 텍스트의 픽셀 폭을 추정.
+// 한글은 알파벳보다 넓게 대략 어림잡아 이름/소속 텍스트의 픽셀 폭을 추정 (canvas 측정 전 초기값용).
 function estimateTextWidth(text: string, hangulPx: number, otherPx: number): number {
   let width = 0;
   for (const ch of text) {
@@ -38,8 +40,7 @@ function estimateTextWidth(text: string, hangulPx: number, otherPx: number): num
   return width;
 }
 
-// 한 대진표(선택된 부문) 전체에서 가장 긴 이름/소속을 기준으로 모든 카드가 공유할 폭을 계산.
-function computeCardWidth(matches: BracketMatch[]): number {
+function roughCardWidth(matches: BracketMatch[]): number {
   let maxContent = 0;
   for (const m of matches) {
     for (const [name, club] of [[m.player1_name, m.player1_club], [m.player2_name, m.player2_club]] as const) {
@@ -50,13 +51,46 @@ function computeCardWidth(matches: BracketMatch[]): number {
   return Math.max(CARD_MIN_WIDTH, maxContent + CARD_PADDING);
 }
 
+// canvas로 실제 렌더링 폰트 기준 텍스트 폭을 정확히 측정 — 카드가 텍스트보다 불필요하게 넓어져
+// 한쪽으로만 여백이 남는 것을 막고, 카드 양옆 여백(padding)이 균일하게 보이도록 한다.
+function measureCardWidth(matches: BracketMatch[]): number | null {
+  if (typeof document === 'undefined') return null;
+  const ctx = document.createElement('canvas').getContext('2d');
+  if (!ctx) return null;
+  let maxContent = 0;
+  for (const m of matches) {
+    for (const [name, club] of [[m.player1_name, m.player1_club], [m.player2_name, m.player2_club]] as const) {
+      if (name) {
+        ctx.font = NAME_FONT;
+        maxContent = Math.max(maxContent, ctx.measureText(name).width);
+      }
+      if (club) {
+        ctx.font = CLUB_FONT;
+        maxContent = Math.max(maxContent, ctx.measureText(club).width);
+      }
+    }
+  }
+  return Math.max(CARD_MIN_WIDTH, Math.ceil(maxContent) + CARD_PADDING);
+}
+
+function useCardWidth(matches: BracketMatch[], selectedKey: string): number {
+  const [width, setWidth] = useState(() => roughCardWidth(matches));
+  useEffect(() => {
+    const measured = measureCardWidth(matches);
+    if (measured) setWidth(measured);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedKey, matches]);
+  return width;
+}
+
 export default function BracketView({ matches, files }: Props) {
   const groups = groupByDivision(matches);
   const bracketFiles = files.filter((f) => f.file_type === '대진표');
   const [selectedKey, setSelectedKey] = useState(
     groups[0] ? `${groups[0].event_type}__${groups[0].division}` : ''
   );
-  const [zoom, setZoom] = useState(1);
+  const selected = groups.find((g) => `${g.event_type}__${g.division}` === selectedKey) || groups[0];
+  const cardWidth = useCardWidth(selected?.matches ?? [], selectedKey);
 
   if (groups.length === 0) {
     return (
@@ -72,13 +106,11 @@ export default function BracketView({ matches, files }: Props) {
     );
   }
 
-  const selected = groups.find((g) => `${g.event_type}__${g.division}` === selectedKey) || groups[0];
   const bySide = groupBySide(selected.matches);
   const structureA = buildSideStructure(bySide.A);
   const structureB = buildSideStructure(bySide.B);
   const final = bySide.final[0] || null;
   const numbers = assignMatchNumbers(structureA, structureB, final);
-  const cardWidth = computeCardWidth(selected.matches);
 
   return (
     <div>
@@ -112,7 +144,7 @@ export default function BracketView({ matches, files }: Props) {
 
       <BracketPodium matches={selected.matches} />
 
-      <BracketTree structureA={structureA} structureB={structureB} final={final} numbers={numbers} cardWidth={cardWidth} zoom={zoom} setZoom={setZoom} />
+      <BracketTree structureA={structureA} structureB={structureB} final={final} numbers={numbers} cardWidth={cardWidth} />
 
       {bracketFiles.length > 0 && (
         <div className="mt-6">
@@ -124,15 +156,13 @@ export default function BracketView({ matches, files }: Props) {
 }
 
 function BracketTree({
-  structureA, structureB, final, numbers, cardWidth, zoom, setZoom,
+  structureA, structureB, final, numbers, cardWidth,
 }: {
   structureA: ReturnType<typeof buildSideStructure>;
   structureB: ReturnType<typeof buildSideStructure>;
   final: BracketMatch | null;
   numbers: Map<string, number>;
   cardWidth: number;
-  zoom: number;
-  setZoom: (fn: (z: number) => number) => void;
 }) {
   if (!structureA && !structureB && !final) {
     return <p className="text-sm text-center py-10" style={{ color: '#B9B9B9' }}>대진 데이터가 없습니다</p>;
@@ -151,6 +181,30 @@ function BracketTree({
 
   const marginX = cardWidth + CARD_GAP;
   const totalWidth = canvasWidth + marginX * 2;
+
+  // 화면(가로/세로)에 전체 대진이 한 번에 들어오는 배율을 기기 크기에 맞춰 자동 계산.
+  // 사용자가 +/- 버튼으로 직접 조정하면 그 값을 유지하고, 부문 전환 등으로 대진 크기가 바뀌면 다시 자동 계산한다.
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  const [manual, setManual] = useState(false);
+
+  useEffect(() => {
+    setManual(false);
+  }, [totalWidth, canvasHeight]);
+
+  useEffect(() => {
+    if (manual) return;
+    function fit() {
+      if (!wrapperRef.current) return;
+      const availW = wrapperRef.current.clientWidth || totalWidth;
+      const availH = Math.max(320, window.innerHeight * 0.55);
+      const fitZoom = Math.min(availW / totalWidth, availH / canvasHeight, 1);
+      setZoom(Math.max(0.3, +fitZoom.toFixed(2)));
+    }
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [totalWidth, canvasHeight, manual]);
 
   const toOuterA = (x: number, y: number) => ({ x: marginX + x, y: y + offsetA });
   const toOuterB = (x: number, y: number) => ({ x: marginX + canvasWidth - x, y: y + offsetB });
@@ -171,7 +225,7 @@ function BracketTree({
     <div>
       <div className="flex items-center justify-end gap-1 mb-2">
         <button
-          onClick={() => setZoom((z) => Math.max(0.6, +(z - 0.15).toFixed(2)))}
+          onClick={() => { setManual(true); setZoom((z) => Math.max(0.3, +(z - 0.1).toFixed(2))); }}
           className="w-7 h-7 rounded-full border text-sm"
           style={{ borderColor: '#e0e0e0', color: '#374151' }}
         >
@@ -179,7 +233,7 @@ function BracketTree({
         </button>
         <span className="text-xs w-10 text-center" style={{ color: '#B9B9B9' }}>{Math.round(zoom * 100)}%</span>
         <button
-          onClick={() => setZoom((z) => Math.min(1.3, +(z + 0.15).toFixed(2)))}
+          onClick={() => { setManual(true); setZoom((z) => Math.min(1.3, +(z + 0.1).toFixed(2))); }}
           className="w-7 h-7 rounded-full border text-sm"
           style={{ borderColor: '#e0e0e0', color: '#374151' }}
         >
@@ -187,7 +241,7 @@ function BracketTree({
         </button>
       </div>
 
-      <div className="overflow-x-auto pb-2">
+      <div ref={wrapperRef} className="overflow-x-auto pb-2">
         <div
           className="relative"
           style={{
@@ -276,11 +330,6 @@ function BracketTree({
           {final && (
             <div className="absolute" style={{ left: finalPoint.x, top: finalPoint.y, transform: 'translate(-50%, -50%)' }}>
               <BracketMatchCircle number={numbers.get(final.id) ?? 0} videoId={final.videos?.[0]?.id} decided={!!final.winner_slot} />
-            </div>
-          )}
-          {final && (
-            <div className="absolute text-[11px] font-bold" style={{ left: finalPoint.x, top: finalPoint.y - 24, transform: 'translateX(-50%)', color: '#B9B9B9' }}>
-              결승
             </div>
           )}
         </div>

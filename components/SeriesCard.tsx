@@ -35,12 +35,12 @@ export default function SeriesCard({ series, latest, thumbnailUrl }: Props) {
             <div className="space-y-0.5">
               {latest.date_start && (
                 <p className="text-xs" style={{ color: '#6B7280' }}>
-                  🗓️ {latest.date_start}
+                  {latest.date_start}
                 </p>
               )}
               {latest.venue?.name && (
                 <p className="text-xs truncate" style={{ color: '#6B7280' }}>
-                  📍 {latest.venue.name}
+                  {latest.venue.name}
                 </p>
               )}
             </div>
@@ -71,8 +71,8 @@ export default function SeriesCard({ series, latest, thumbnailUrl }: Props) {
           </Link>
           <Link
             href={`/competition/series/${series.key}/videos`}
-            className="flex-1 text-center text-xs font-semibold py-1.5 rounded-md text-white hover:opacity-90"
-            style={{ backgroundColor: '#00462A' }}
+            className="flex-1 text-center text-xs font-semibold py-1.5 rounded-md hover:opacity-80"
+            style={{ backgroundColor: 'rgba(0,70,42,0.08)', color: '#00462A' }}
           >
             영상
           </Link>
