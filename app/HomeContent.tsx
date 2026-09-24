@@ -64,7 +64,7 @@ export default function HomeContent() {
         </p>
       )}
       {loading && videos.length === 0 ? (
-        <p className="py-12 text-center text-sm tracking-widest select-none" style={{ color: '#00462A', fontFamily: "'Pretendard', sans-serif" }}>
+        <p className="py-12 text-center text-sm tracking-widest select-none" style={{ color: '#00462A', fontFamily: 'var(--font-pretendard), sans-serif' }}>
           Loading... : ▮▮▮▮▮▮▯▯▯
         </p>
       ) : (

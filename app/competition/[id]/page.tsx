@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 import AppLayout from '@/components/AppLayout';
 import { getSupabase } from '@/lib/supabase';

@@ -1,4 +1,5 @@
-export const dynamic = 'force-dynamic';
+// 30초 단위로 캐시된 페이지를 즉시 서빙하고 백그라운드에서 갱신 — 탭 이동마다 Supabase 왕복이 발생하던 것을 제거
+export const revalidate = 30;
 
 import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';

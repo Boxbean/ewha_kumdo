@@ -10,7 +10,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-pretendard), -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 * {

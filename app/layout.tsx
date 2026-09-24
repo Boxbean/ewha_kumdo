@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import RegisterServiceWorker from "@/components/RegisterServiceWorker";
 import SplashScreen from "@/components/SplashScreen";
+import { pretendard } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -38,14 +39,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <head>
-        <link
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
-          rel="stylesheet"
-        />
-      </head>
-      <body style={{ fontFamily: "'Pretendard', sans-serif" }}>
+    <html lang="ko" className={pretendard.variable}>
+      <body>
         <SplashScreen>{children}</SplashScreen>
         <RegisterServiceWorker />
         <Analytics />

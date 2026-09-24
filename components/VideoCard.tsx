@@ -5,6 +5,7 @@ import { extractYouTubeId, getYouTubeThumbnail, formatDate, getCompetitionColor 
 
 interface VideoCardProps {
   video: Video;
+  priority?: boolean;
 }
 
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
@@ -39,7 +40,7 @@ function getParticipantsHeadline(video: Video): string | null {
   return `${participants[featuredIndex]} 외 ${participants.length - 1}명`;
 }
 
-export default function VideoCard({ video }: VideoCardProps) {
+export default function VideoCard({ video, priority }: VideoCardProps) {
   const isNew = Date.now() - new Date(video.created_at).getTime() < THREE_DAYS_MS;
   const videoId = extractYouTubeId(video.youtube_url);
   const thumbnail = videoId ? getYouTubeThumbnail(videoId) : null;
@@ -67,6 +68,7 @@ export default function VideoCard({ video }: VideoCardProps) {
               fill
               sizes="(max-width: 640px) 50vw, 25vw"
               className="object-cover"
+              priority={priority}
             />
           ) : (
             <div className="w-full h-full" style={{ backgroundColor: '#e0e0e0' }} />

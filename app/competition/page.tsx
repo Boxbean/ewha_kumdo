@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 import AppLayout from '@/components/AppLayout';
 import CompetitionSubTabs from '@/components/CompetitionSubTabs';

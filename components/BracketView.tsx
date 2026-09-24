@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BracketMatch, CompetitionFile } from '@/lib/types';
 import { groupByDivision, groupBySide, buildSideStructure, assignMatchNumbers } from '@/lib/bracket';
 import { computeSideLayout, matchCenterY, LineState } from '@/lib/bracketLayout';
+import { pretendard } from '@/lib/fonts';
 import BracketPlayerCard, { CARD_HEIGHT } from './BracketPlayerCard';
 import BracketMatchCircle from './BracketMatchCircle';
 import BracketPodium from './BracketPodium';
@@ -19,8 +20,10 @@ const STEP = 36;     // 라운드 사이 가로 간격
 const CARD_GAP = 8;  // 리프 경계와 선수 카드 사이 여백
 const CARD_MIN_WIDTH = 56;
 const CARD_PADDING = 20; // 카드 좌우 padding + border
-const NAME_FONT = "700 12px 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif";
-const CLUB_FONT = "400 10px 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif";
+// canvas의 font 속성은 CSS 변수(var(--font-pretendard))를 해석하지 못하므로
+// next/font가 생성한 실제 폰트 패밀리명을 직접 넣어줘야 함
+const NAME_FONT = `700 12px ${pretendard.style.fontFamily}, -apple-system, BlinkMacSystemFont, sans-serif`;
+const CLUB_FONT = `400 10px ${pretendard.style.fontFamily}, -apple-system, BlinkMacSystemFont, sans-serif`;
 
 const GREEN = '#00462A';
 const GRAY = '#cbd5e1';

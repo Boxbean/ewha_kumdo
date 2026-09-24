@@ -29,8 +29,10 @@ export default function VideoGrid({ videos }: VideoGridProps) {
         }
       `}</style>
       <div className="video-grid">
-        {videos.map((video) => (
-          <VideoCard key={video.id} video={video} />
+        {videos.map((video, i) => (
+          // 처음 4장(2열 그리드 기준 첫 2줄, 접힘 없이 바로 보이는 영역)만 eager 로딩 —
+          // 나머지를 계속 priority로 두면 오히려 네트워크 대역폭을 두고 서로 경쟁해 LCP가 늦어짐
+          <VideoCard key={video.id} video={video} priority={i < 4} />
         ))}
       </div>
     </>
