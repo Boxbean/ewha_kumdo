@@ -7,10 +7,12 @@ import VideoForm from '@/components/VideoForm';
 import CsvUpload from '@/components/CsvUpload';
 import AdminVideoList from '@/components/AdminVideoList';
 import AdminCompetition from '@/components/AdminCompetition';
+import AdminShortsList from '@/components/AdminShortsList';
+import AdminFeedbackList from '@/components/AdminFeedbackList';
 import { supabase } from '@/lib/supabase';
 import { Video } from '@/lib/types';
 
-type Tab = 'register' | 'csv' | 'list' | 'competition';
+type Tab = 'register' | 'csv' | 'list' | 'competition' | 'shorts' | 'feedback';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -67,6 +69,8 @@ export default function AdminPage() {
     { key: 'csv', label: 'CSV 대량 업로드' },
     { key: 'list', label: '영상 목록' },
     { key: 'competition', label: '대회 관리' },
+    { key: 'shorts', label: '쇼츠 관리' },
+    { key: 'feedback', label: '피드백 관리' },
   ];
 
   return (
@@ -177,6 +181,24 @@ export default function AdminPage() {
               대회 관리
             </h2>
             <AdminCompetition onMessage={(msg) => showSuccess(msg)} initialEditId={editCompetitionId} />
+          </div>
+        )}
+
+        {tab === 'shorts' && (
+          <div>
+            <h2 className="text-base font-bold mb-4" style={{ color: '#374151' }}>
+              등록된 검도쇼츠
+            </h2>
+            <AdminShortsList key={refreshKey} />
+          </div>
+        )}
+
+        {tab === 'feedback' && (
+          <div>
+            <h2 className="text-base font-bold mb-4" style={{ color: '#374151' }}>
+              등록된 피드백
+            </h2>
+            <AdminFeedbackList key={refreshKey} />
           </div>
         )}
       </div>

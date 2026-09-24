@@ -12,27 +12,6 @@ function IconHome() {
   );
 }
 
-function IconCalendar() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/>
-    </svg>
-  );
-}
-
-function IconBulb() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21h6"/>
-      <path d="M10 17h4"/>
-      <path d="M12 3a6 6 0 0 1 6 6c0 2.2-1.1 3.8-2.5 4.8V16a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-2.2C7.1 12.8 6 11.2 6 9a6 6 0 0 1 6-6z"/>
-    </svg>
-  );
-}
-
 function IconList() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -57,11 +36,30 @@ function IconTrophy() {
   );
 }
 
+function IconShorts() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+      <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+      <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+      <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+    </svg>
+  );
+}
+
+function IconFeedback() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+    </svg>
+  );
+}
+
 const menus = [
   { href: '/', label: '홈', Icon: IconHome },
   { href: '/list', label: '목록', Icon: IconList },
-  { href: '/calendar', label: '캘린더', Icon: IconCalendar },
-  { href: '/topic', label: '주제별', Icon: IconBulb },
+  { href: '/shorts', label: '검도쇼츠', Icon: IconShorts },
+  { href: '/feedback', label: '피드백', Icon: IconFeedback },
   { href: '/competition', label: '대회', Icon: IconTrophy },
 ];
 

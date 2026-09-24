@@ -25,6 +25,9 @@ export function extractYouTubeId(url: string): string | null {
   // youtube.com/embed/ID
   const embedMatch = url.match(/embed\/([a-zA-Z0-9_-]{11})/);
   if (embedMatch) return embedMatch[1];
+  // youtube.com/shorts/ID
+  const shortsMatch = url.match(/shorts\/([a-zA-Z0-9_-]{11})/);
+  if (shortsMatch) return shortsMatch[1];
   return null;
 }
 
@@ -33,6 +36,15 @@ export function extractYouTubeId(url: string): string | null {
  */
 export function getYouTubeThumbnail(videoId: string): string {
   return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+}
+
+/**
+ * 검도쇼츠에 제출된 링크의 플랫폼 판별 — 서버(API 라우트)에서만 호출해 platform 값을 신뢰할 수 있게 함
+ */
+export function detectPlatform(url: string): 'youtube' | 'instagram' | 'other' {
+  if (/(?:youtube\.com|youtu\.be)/i.test(url)) return 'youtube';
+  if (/(?:instagram\.com|instagr\.am)/i.test(url)) return 'instagram';
+  return 'other';
 }
 
 const COMPETITION_NAME_COLORS: Record<string, string> = {
@@ -48,6 +60,15 @@ const COMPETITION_NAME_COLORS: Record<string, string> = {
 
 export function getCompetitionColor(name: string): string {
   return COMPETITION_NAME_COLORS[name] || '#00462A';
+}
+
+/**
+ * 초 단위 정수 → "mm:ss"
+ */
+export function formatTimestamp(totalSeconds: number): string {
+  const mm = Math.floor(totalSeconds / 60);
+  const ss = totalSeconds % 60;
+  return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
 }
 
 /**

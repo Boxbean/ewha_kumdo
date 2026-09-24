@@ -24,6 +24,44 @@ export interface Video {
   } | null;
 }
 
+export type ShortsPlatform = 'youtube' | 'instagram' | 'other';
+
+export interface Shorts {
+  id: string;
+  video_url: string;
+  platform: ShortsPlatform;
+  title: string;
+  thumbnail_url?: string | null;
+  submitter_name?: string;
+  created_at: string;
+}
+
+export type FeedbackVideoType = 'video' | 'shorts';
+
+export interface FeedbackComment {
+  id: string;
+  feedback_post_id: string;
+  body: string;
+  author_name?: string;
+  created_at: string;
+}
+
+export interface FeedbackPost {
+  id: string;
+  video_id?: string | null;
+  shorts_id?: string | null;
+  video_type: FeedbackVideoType; // API가 video_id/shorts_id로부터 파생해서 내려줌 (DB 컬럼 아님)
+  timestamp_seconds: number;
+  body: string;
+  author_name?: string;
+  created_at: string;
+  // 조인 데이터
+  video?: Pick<Video, 'id' | 'title' | 'youtube_url' | 'date'> | null;
+  shorts?: Pick<Shorts, 'id' | 'title' | 'video_url' | 'platform'> | null;
+  comment_count?: number;
+  comments?: FeedbackComment[];
+}
+
 export interface SeriesThumbnail {
   series_key: string;
   thumbnail_url?: string;
