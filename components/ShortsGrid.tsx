@@ -5,13 +5,12 @@ interface ShortsGridProps {
   onSelect: (index: number) => void;
 }
 
-const PLATFORM_ICON: Record<Shorts['platform'], string> = {
-  youtube: '▶',
-  instagram: '◎',
-  other: '↗',
-};
+// 유튜브 검색 결과 스타일: 2열, 둥근 모서리의 세로형(2:3) 카드, 제목은 썸네일 하단에 오버레이
+function sharpenThumbnail(url: string): string {
+  // 등록 시 저장된 유튜브 썸네일은 320x180(mqdefault)이라 세로로 크롭하면 흐려서 480x360으로 올려 사용
+  return url.replace('/mqdefault.jpg', '/hqdefault.jpg');
+}
 
-// 인스타 돋보기 탭 배치: 3열, 6개 단위 블록마다 2x2 큰 타일이 좌/우로 번갈아 나옴
 export default function ShortsGrid({ shorts, onSelect }: ShortsGridProps) {
   if (shorts.length === 0) {
     return (
@@ -24,85 +23,68 @@ export default function ShortsGrid({ shorts, onSelect }: ShortsGridProps) {
   return (
     <>
       <style>{`
-        .explore-grid {
+        .shorts-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          grid-auto-flow: dense;
-          gap: 2px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.75rem;
         }
-        .explore-tile {
+        .shorts-card {
           position: relative;
           overflow: hidden;
+          border-radius: 12px;
           background: #e0e0e0;
-          aspect-ratio: 1 / 1;
+          aspect-ratio: 2 / 3;
           padding: 0;
           border: 0;
           cursor: pointer;
           display: block;
         }
-        /* 큰 타일도 정사각형(2칸 너비 = 2행 높이+간격)으로 두어, 옆에 작은 타일이 없어도(예: 영상 1개) 높이가 0으로 접히지 않게 함 */
-        .explore-tile.big { grid-row: span 2; }
-        .explore-tile.big-left { grid-column: 1 / span 2; }
-        .explore-tile.big-right { grid-column: 2 / span 2; }
-        @media (min-width: 768px) {
-          .explore-grid { max-width: 640px; margin: 0 auto; }
+        @media (min-width: 640px) {
+          .shorts-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
         }
       `}</style>
-      <div className="explore-grid">
-        {shorts.map((s, i) => {
-          const block = Math.floor(i / 6);
-          const isBig = i % 6 === 0;
-          const cls = isBig ? `big ${block % 2 === 0 ? 'big-left' : 'big-right'}` : '';
-          return (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => onSelect(i)}
-              className={`explore-tile ${cls}`}
-              aria-label={s.title}
+      <div className="shorts-grid">
+        {shorts.map((s, i) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => onSelect(i)}
+            className="shorts-card"
+            aria-label={s.title}
+          >
+            {/* 썸네일이 없거나 만료로 로드 실패해도 아래 placeholder가 그대로 보이도록 항상 깔아둠 */}
+            <div
+              className="absolute inset-0 flex items-center justify-center text-3xl"
+              style={{ color: '#B9B9B9' }}
             >
-              {/* 썸네일이 없거나 만료로 로드 실패해도 아래 placeholder가 그대로 보이도록 항상 깔아둠 */}
-              <div
-                className="absolute inset-0 flex items-center justify-center text-2xl"
-                style={{ color: '#B9B9B9' }}
-              >
-                🎬
-              </div>
-              {s.thumbnail_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={s.thumbnail_url}
-                  alt=""
-                  loading={i < 9 ? 'eager' : 'lazy'}
-                  referrerPolicy="no-referrer"
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              )}
-              <div
-                className="absolute inset-x-0 bottom-0 pointer-events-none"
-                style={{
-                  height: '60%',
-                  background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
-                }}
+              🎬
+            </div>
+            {s.thumbnail_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={sharpenThumbnail(s.thumbnail_url)}
+                alt=""
+                loading={i < 6 ? 'eager' : 'lazy'}
+                referrerPolicy="no-referrer"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                className="absolute inset-0 w-full h-full object-cover"
               />
-              <span
-                className="absolute top-1.5 right-1.5 text-xs font-bold leading-none"
-                style={{ color: '#ffffff', textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
-              >
-                {PLATFORM_ICON[s.platform]}
-              </span>
-              <p
-                className={`absolute left-1.5 right-1.5 bottom-1.5 text-left font-semibold leading-snug ${
-                  isBig ? 'text-sm line-clamp-3' : 'text-[11px] line-clamp-2'
-                }`}
-                style={{ color: '#ffffff' }}
-              >
-                {s.title}
-              </p>
-            </button>
-          );
-        })}
+            )}
+            <div
+              className="absolute inset-x-0 bottom-0 pointer-events-none"
+              style={{
+                height: '45%',
+                background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
+              }}
+            />
+            <p
+              className="absolute left-3 right-3 bottom-3 text-left text-[15px] font-bold leading-snug line-clamp-2"
+              style={{ color: '#ffffff' }}
+            >
+              {s.title}
+            </p>
+          </button>
+        ))}
       </div>
     </>
   );

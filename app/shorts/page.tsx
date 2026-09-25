@@ -103,7 +103,7 @@ export default function ShortsPage() {
         </div>
       </div>
 
-      <div className="-mx-4 md:mx-0">
+      <div className="pt-1">
         {loading && shorts.length === 0 ? (
           <p className="py-12 text-center text-sm tracking-widest select-none" style={{ color: '#00462A', fontFamily: 'var(--font-pretendard), sans-serif' }}>
             Loading... : ▮▮▮▮▮▮▯▯▯
