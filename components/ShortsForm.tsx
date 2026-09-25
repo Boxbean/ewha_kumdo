@@ -46,10 +46,6 @@ export default function ShortsForm({ onSuccess, onCancel }: ShortsFormProps) {
       setError('영상 링크를 입력해주세요.');
       return;
     }
-    if (!title.trim()) {
-      setError('제목을 입력해주세요.');
-      return;
-    }
     setLoading(true);
     try {
       const res = await fetch('/api/shorts', {
@@ -97,22 +93,21 @@ export default function ShortsForm({ onSuccess, onCancel }: ShortsFormProps) {
             </span>
           )}
         </div>
-        {platform === 'instagram' && (
+        {platform === 'instagram' && manual && !fetchingInfo && (
           <p className="text-xs mt-1" style={{ color: '#B9B9B9' }}>
-            인스타그램 링크는 제목을 자동으로 가져올 수 없어 직접 입력해주세요.
+            제목/썸네일을 가져오지 못했어요. 비워두면 기본 제목 + 썸네일 없음으로 등록돼요.
           </p>
         )}
       </div>
 
       <div>
         <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-          제목 * {manual && <span className="font-normal" style={{ color: '#B9B9B9' }}>(직접 입력)</span>}
+          제목 <span className="font-normal" style={{ color: '#B9B9B9' }}>(비워두면 자동)</span>
         </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          required
           className="w-full h-9 px-3 text-sm rounded border focus:outline-none"
           style={{ borderColor: '#e0e0e0' }}
         />

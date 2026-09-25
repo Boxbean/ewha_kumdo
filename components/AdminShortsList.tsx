@@ -76,6 +76,8 @@ export default function AdminShortsList() {
               <img
                 src={s.thumbnail_url}
                 alt={s.title}
+                referrerPolicy="no-referrer"
+                onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
                 className="flex-shrink-0 rounded object-cover"
                 style={{ width: 60, height: 80 }}
               />
