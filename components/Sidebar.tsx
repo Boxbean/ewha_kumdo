@@ -74,10 +74,8 @@ function IconPlus() {
 function IconShorts() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-      <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-      <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-      <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+      <rect x="3" y="4" width="18" height="16" rx="4"/>
+      <path d="M10 9l5 3-5 3V9z"/>
     </svg>
   );
 }
@@ -93,7 +91,7 @@ function IconFeedback() {
 const menus = [
   { href: '/', label: '홈', Icon: IconHome },
   { href: '/list', label: '목록', Icon: IconList },
-  { href: '/shorts', label: '검도쇼츠', Icon: IconShorts },
+  { href: '/shorts', label: '쇼츠', Icon: IconShorts },
   { href: '/feedback', label: '피드백', Icon: IconFeedback },
   { href: '/calendar', label: '캘린더 보기', Icon: IconCalendar },
   { href: '/topic', label: '주제별 보기', Icon: IconBulb },

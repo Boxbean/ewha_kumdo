@@ -1,6 +1,5 @@
 import { ShortsPlatform } from '@/lib/types';
-import { extractYouTubeId } from '@/lib/utils';
-import InstagramEmbed from './InstagramEmbed';
+import { extractYouTubeId, getInstagramEmbedUrl } from '@/lib/utils';
 
 interface ShortsPlayerProps {
   videoUrl: string;
@@ -32,9 +31,20 @@ export default function ShortsPlayer({ videoUrl, platform, title, startSeconds }
   }
 
   if (platform === 'instagram') {
+    const embed = getInstagramEmbedUrl(videoUrl);
     return (
       <div className="space-y-3">
-        <InstagramEmbed url={videoUrl} />
+        {embed && (
+          <iframe
+            src={embed}
+            title={title}
+            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+            allowFullScreen
+            scrolling="no"
+            className="w-full max-w-[420px] mx-auto block"
+            style={{ height: 640, border: 0, backgroundColor: '#fff' }}
+          />
+        )}
         <LinkOutButton videoUrl={videoUrl} />
       </div>
     );

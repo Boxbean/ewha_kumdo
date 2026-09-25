@@ -39,6 +39,15 @@ export function getYouTubeThumbnail(videoId: string): string {
 }
 
 /**
+ * 인스타그램 릴스/게시물 링크 → 사이트 안에서 바로 재생 가능한 공식 embed iframe 주소
+ * (embed.js 위젯 방식보다 로딩이 안정적이고 자체 재생 버튼이 있음)
+ */
+export function getInstagramEmbedUrl(url: string): string | null {
+  const m = url.match(/instagram\.com\/(?:[^/?#]+\/)?(?:reels?|p|tv)\/([A-Za-z0-9_-]+)/);
+  return m ? `https://www.instagram.com/reel/${m[1]}/embed/` : null;
+}
+
+/**
  * 검도쇼츠에 제출된 링크의 플랫폼 판별 — 서버(API 라우트)에서만 호출해 platform 값을 신뢰할 수 있게 함
  */
 export function detectPlatform(url: string): 'youtube' | 'instagram' | 'other' {

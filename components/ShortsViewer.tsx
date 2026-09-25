@@ -2,8 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Shorts } from '@/lib/types';
-import { extractYouTubeId } from '@/lib/utils';
-import InstagramEmbed from './InstagramEmbed';
+import { extractYouTubeId, getInstagramEmbedUrl } from '@/lib/utils';
 
 interface ShortsViewerProps {
   shorts: Shorts[];
@@ -89,6 +88,7 @@ export default function ShortsViewer({ shorts, startIndex, hasMore, onNeedMore, 
 
 function Slide({ shorts, isActive }: { shorts: Shorts; isActive: boolean }) {
   const youtubeId = shorts.platform === 'youtube' ? extractYouTubeId(shorts.video_url) : null;
+  const igEmbed = shorts.platform === 'instagram' ? getInstagramEmbedUrl(shorts.video_url) : null;
 
   return (
     <section
@@ -104,38 +104,18 @@ function Slide({ shorts, isActive }: { shorts: Shorts; isActive: boolean }) {
           className="w-full max-w-[520px]"
           style={{ height: 'calc(100dvh - 160px)', border: 0 }}
         />
-      ) : isActive && shorts.platform === 'instagram' ? (
-        // 인스타 임베드는 비공개/삭제/차단 등으로 조용히 비어 보일 수 있어, 포스터(썸네일)+원본 링크를 항상 아래에 깔고
-        // 임베드가 정상 렌더링되면 그 위를 덮도록 함
-        <div className="relative w-full max-w-[420px]" style={{ maxHeight: 'calc(100dvh - 160px)' }}>
-          <a
-            href={shorts.video_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative flex items-center justify-center w-full overflow-hidden"
-            style={{ aspectRatio: '4 / 5', backgroundColor: '#1a1a1a' }}
-          >
-            {shorts.thumbnail_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={shorts.thumbnail_url}
-                alt=""
-                referrerPolicy="no-referrer"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            )}
-            <span
-              className="relative flex items-center justify-center rounded-full text-2xl"
-              style={{ width: 64, height: 64, backgroundColor: 'rgba(0,0,0,0.55)', color: '#fff' }}
-            >
-              ▶
-            </span>
-          </a>
-          <div className="absolute inset-x-0 top-0 z-10 overflow-y-auto" style={{ maxHeight: 'calc(100dvh - 160px)' }}>
-            <InstagramEmbed url={shorts.video_url} />
-          </div>
-        </div>
+      ) : isActive && igEmbed ? (
+        // 인스타그램 공식 embed iframe — 사이트 안에서 재생 (자체 ▶ 버튼을 한 번 눌러야 재생됨).
+        // 비공개/삭제 게시물은 iframe 안에 안내 문구가 뜨고, 하단 "원본 보기"로 이동 가능
+        <iframe
+          src={igEmbed}
+          title={shorts.title}
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          allowFullScreen
+          scrolling="no"
+          className="w-full max-w-[420px]"
+          style={{ height: 'calc(100dvh - 150px)', maxHeight: 780, border: 0, backgroundColor: '#fff' }}
+        />
       ) : shorts.thumbnail_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img

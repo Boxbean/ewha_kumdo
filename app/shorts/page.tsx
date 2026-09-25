@@ -15,8 +15,6 @@ export default function ShortsPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   const requestId = useRef(0);
@@ -24,13 +22,12 @@ export default function ShortsPage() {
   const lengthRef = useRef(0);
   lengthRef.current = shorts.length;
 
-  const fetchShorts = useCallback(async (offset: number, append: boolean, query: string) => {
+  const fetchShorts = useCallback(async (offset: number, append: boolean) => {
     const id = ++requestId.current;
     loadingRef.current = true;
     setLoading(true);
     try {
       const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
-      if (query) params.set('search', query);
       const res = await fetch(`/api/shorts?${params.toString()}`);
       const json = await res.json();
       if (id !== requestId.current) return;
@@ -44,22 +41,16 @@ export default function ShortsPage() {
     }
   }, []);
 
-  // 검색어 변경 시 300ms 디바운스 후 재조회
   useEffect(() => {
-    const t = setTimeout(() => setSearch(searchInput.trim()), 300);
-    return () => clearTimeout(t);
-  }, [searchInput]);
-
-  useEffect(() => {
-    fetchShorts(0, false, search);
-  }, [fetchShorts, search]);
+    fetchShorts(0, false);
+  }, [fetchShorts]);
 
   const hasMore = shorts.length < total;
 
   const loadMore = useCallback(() => {
     if (loadingRef.current) return;
-    fetchShorts(lengthRef.current, true, search);
-  }, [fetchShorts, search]);
+    fetchShorts(lengthRef.current, true);
+  }, [fetchShorts]);
 
   // 그리드 하단 센티널이 보이면 다음 페이지 자동 로드
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -77,33 +68,12 @@ export default function ShortsPage() {
 
   function handleSubmitted() {
     setFormOpen(false);
-    fetchShorts(0, false, search);
+    fetchShorts(0, false);
   }
 
   return (
     <AppLayout>
-      {/* 상단 검색창 */}
-      <div className="sticky top-[52px] z-30 -mx-4 md:-mx-6 px-4 md:px-6 py-2" style={{ backgroundColor: '#ffffff' }}>
-        <div
-          className="flex items-center gap-2 h-9 px-3 rounded-lg"
-          style={{ backgroundColor: '#efefef' }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8e8e8e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="7" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="search"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="검색"
-            className="flex-1 min-w-0 bg-transparent text-sm focus:outline-none"
-            style={{ color: '#111' }}
-          />
-        </div>
-      </div>
-
-      <div className="pt-1">
+      <div>
         {loading && shorts.length === 0 ? (
           <p className="py-12 text-center text-sm tracking-widest select-none" style={{ color: '#00462A', fontFamily: 'var(--font-pretendard), sans-serif' }}>
             Loading... : ▮▮▮▮▮▮▯▯▯
