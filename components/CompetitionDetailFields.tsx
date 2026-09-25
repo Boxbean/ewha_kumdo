@@ -1,11 +1,13 @@
-import { Competition } from '@/lib/types';
+import { Competition, CompetitionFile } from '@/lib/types';
 import EditableField from './EditableField';
+import CompetitionThumbnail from './CompetitionThumbnail';
 
 interface Props {
   comp: Competition;
   editMode: boolean;
   onUpdateComp: (patch: Record<string, unknown>) => Promise<void>;
   onUpdateVenue: (patch: Record<string, unknown>) => Promise<void>;
+  onFilesChange: (files: CompetitionFile[]) => void;
 }
 
 function EmptyValue() {
@@ -47,12 +49,21 @@ function VenueNotLinked() {
   );
 }
 
-export default function CompetitionDetailFields({ comp, editMode, onUpdateComp, onUpdateVenue }: Props) {
+export default function CompetitionDetailFields({ comp, editMode, onUpdateComp, onUpdateVenue, onFilesChange }: Props) {
   const pamphlets = comp.files?.filter((f) => f.file_type === '팸플릿') || [];
   const hasVenue = !!comp.venue_id;
 
   return (
     <div className="rounded-xl border px-4" style={{ borderColor: '#e0e0e0', backgroundColor: '#fff' }}>
+      <Field icon="🖼️" label="대회 썸네일">
+        <CompetitionThumbnail
+          competitionId={comp.id}
+          files={comp.files || []}
+          editMode={editMode}
+          onFilesChange={onFilesChange}
+        />
+      </Field>
+
       <Field icon="📅" label="진행일자">
         {editMode ? (
           <div className="flex items-center gap-2 flex-wrap">

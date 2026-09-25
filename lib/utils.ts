@@ -93,3 +93,6 @@ export function urlBase64ToUint8Array(base64String: string): Uint8Array {
   }
   return outputArray;
 }
+
+// 대회 썸네일은 competition_files에 이 file_type으로 1장만 저장
+export const THUMBNAIL_FILE_TYPE = '썸네일';

@@ -6,6 +6,7 @@ import { getSupabase } from '@/lib/supabase';
 import { Competition } from '@/lib/types';
 import { getCompetitionColor } from '@/lib/utils';
 import { getSeriesByKey } from '@/lib/competitionSeries';
+import { THUMBNAIL_FILE_TYPE } from '@/lib/utils';
 
 interface Props {
   params: Promise<{ key: string }>;
@@ -29,7 +30,7 @@ export default async function CompetitionSeriesPage({ params }: Props) {
 
   const { data } = await supabase
     .from('competitions')
-    .select('*, venue:venues(*), participants:competition_participants(id), files:competition_files(id)')
+    .select('*, venue:venues(*), participants:competition_participants(id), files:competition_files(id, file_type)')
     .in('name', series.names)
     .order('year', { ascending: false })
     .order('date_start', { ascending: false });
@@ -97,7 +98,10 @@ export default async function CompetitionSeriesPage({ params }: Props) {
               <div className="space-y-2">
                 {byYear[year].map((comp) => {
                   const participantCount = Array.isArray(comp.participants) ? comp.participants.length : 0;
-                  const fileCount = Array.isArray(comp.files) ? comp.files.length : 0;
+                  // 썸네일 이미지는 첨부 파일 개수에서 제외
+                  const fileCount = Array.isArray(comp.files)
+                    ? comp.files.filter((f) => f.file_type !== THUMBNAIL_FILE_TYPE).length
+                    : 0;
 
                   return (
                     <Link

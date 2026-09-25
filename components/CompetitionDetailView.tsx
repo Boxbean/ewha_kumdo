@@ -206,9 +206,15 @@ export default function CompetitionDetailView({ initialComp, videos }: Props) {
         )}
       </div>
 
-      {/* 대회 정보 6요소 (항상 노출, 없으면 '등록된 정보 없음') */}
+      {/* 대회 정보 7요소 (항상 노출, 없으면 '등록된 정보 없음') */}
       <div className="mb-6">
-        <CompetitionDetailFields comp={comp} editMode={editMode} onUpdateComp={updateComp} onUpdateVenue={updateVenue} />
+        <CompetitionDetailFields
+          comp={comp}
+          editMode={editMode}
+          onUpdateComp={updateComp}
+          onUpdateVenue={updateVenue}
+          onFilesChange={(files) => setComp((prev) => ({ ...prev, files }))}
+        />
       </div>
 
       {/* 탭 컴포넌트 */}
