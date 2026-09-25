@@ -40,7 +40,8 @@ export default function ShortsGrid({ shorts, onSelect }: ShortsGridProps) {
           cursor: pointer;
           display: block;
         }
-        .explore-tile.big { aspect-ratio: auto; min-height: 0; grid-row: span 2; }
+        /* 큰 타일도 정사각형(2칸 너비 = 2행 높이+간격)으로 두어, 옆에 작은 타일이 없어도(예: 영상 1개) 높이가 0으로 접히지 않게 함 */
+        .explore-tile.big { grid-row: span 2; }
         .explore-tile.big-left { grid-column: 1 / span 2; }
         .explore-tile.big-right { grid-column: 2 / span 2; }
         @media (min-width: 768px) {

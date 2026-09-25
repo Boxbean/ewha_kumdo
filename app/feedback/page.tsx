@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import FeedbackPostCard from '@/components/FeedbackPostCard';
 import FeedbackForm from '@/components/FeedbackForm';
+import FloatingAddButton from '@/components/FloatingAddButton';
 import Pagination from '@/components/Pagination';
 import { FeedbackPost } from '@/lib/types';
 
@@ -76,27 +77,11 @@ export default function FeedbackPage() {
       <Pagination hasMore={hasMore} onLoadMore={handleLoadMore} loading={loading} pageSize={PAGE_SIZE} />
 
       {/* 우하단 원형 + 버튼 */}
-      <button
-        onClick={() => setFormOpen(true)}
-        aria-label="피드백 남기기"
-        className="fixed z-40 flex items-center justify-center rounded-full shadow-lg"
-        style={{
-          width: '52px',
-          height: '52px',
-          right: '1rem',
-          bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))',
-          backgroundColor: '#00462A',
-          color: '#ffffff',
-          fontSize: '28px',
-          lineHeight: 1,
-        }}
-      >
-        +
-      </button>
+      <FloatingAddButton label="피드백 남기기" onClick={() => setFormOpen(true)} />
 
       {formOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-6 sm:pb-0"
+          className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/40 px-4 pb-6 sm:pb-0"
           onClick={() => setFormOpen(false)}
         >
           <div

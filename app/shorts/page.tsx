@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import ShortsGrid from '@/components/ShortsGrid';
 import ShortsForm from '@/components/ShortsForm';
+import FloatingAddButton from '@/components/FloatingAddButton';
 import ShortsViewer from '@/components/ShortsViewer';
 import { Shorts } from '@/lib/types';
 
@@ -117,27 +118,11 @@ export default function ShortsPage() {
       </div>
 
       {/* 우하단 원형 + 버튼 */}
-      <button
-        onClick={() => setFormOpen(true)}
-        aria-label="쇼츠 등록하기"
-        className="fixed z-40 flex items-center justify-center rounded-full shadow-lg"
-        style={{
-          width: '52px',
-          height: '52px',
-          right: '1rem',
-          bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))',
-          backgroundColor: '#00462A',
-          color: '#ffffff',
-          fontSize: '28px',
-          lineHeight: 1,
-        }}
-      >
-        +
-      </button>
+      <FloatingAddButton label="쇼츠 등록하기" onClick={() => setFormOpen(true)} />
 
       {formOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-6 sm:pb-0"
+          className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/40 px-4 pb-6 sm:pb-0"
           onClick={() => setFormOpen(false)}
         >
           <div

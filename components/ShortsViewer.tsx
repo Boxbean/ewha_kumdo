@@ -105,8 +105,36 @@ function Slide({ shorts, isActive }: { shorts: Shorts; isActive: boolean }) {
           style={{ height: 'calc(100dvh - 160px)', border: 0 }}
         />
       ) : isActive && shorts.platform === 'instagram' ? (
-        <div className="w-full max-w-[420px] overflow-y-auto" style={{ maxHeight: 'calc(100dvh - 160px)', backgroundColor: '#fff' }}>
-          <InstagramEmbed url={shorts.video_url} />
+        // 인스타 임베드는 비공개/삭제/차단 등으로 조용히 비어 보일 수 있어, 포스터(썸네일)+원본 링크를 항상 아래에 깔고
+        // 임베드가 정상 렌더링되면 그 위를 덮도록 함
+        <div className="relative w-full max-w-[420px]" style={{ maxHeight: 'calc(100dvh - 160px)' }}>
+          <a
+            href={shorts.video_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative flex items-center justify-center w-full overflow-hidden"
+            style={{ aspectRatio: '4 / 5', backgroundColor: '#1a1a1a' }}
+          >
+            {shorts.thumbnail_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={shorts.thumbnail_url}
+                alt=""
+                referrerPolicy="no-referrer"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+            <span
+              className="relative flex items-center justify-center rounded-full text-2xl"
+              style={{ width: 64, height: 64, backgroundColor: 'rgba(0,0,0,0.55)', color: '#fff' }}
+            >
+              ▶
+            </span>
+          </a>
+          <div className="absolute inset-x-0 top-0 z-10 overflow-y-auto" style={{ maxHeight: 'calc(100dvh - 160px)' }}>
+            <InstagramEmbed url={shorts.video_url} />
+          </div>
         </div>
       ) : shorts.thumbnail_url ? (
         // eslint-disable-next-line @next/next/no-img-element
