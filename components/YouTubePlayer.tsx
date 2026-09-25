@@ -135,7 +135,7 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function YouTubePla
         <button
           type="button"
           onClick={unmute}
-          className="absolute left-3 bottom-12 flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold text-white"
+          className="absolute left-3 top-3 flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold text-white"
           style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
         >
           🔊 탭하여 소리 켜기

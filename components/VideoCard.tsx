@@ -6,6 +6,8 @@ import { extractYouTubeId, getYouTubeThumbnail, formatDate, getCompetitionColor 
 interface VideoCardProps {
   video: Video;
   priority?: boolean;
+  // 상세 페이지 진입 즉시 (음소거) 재생 — 홈에서 재생까지의 탭 수를 줄이기 위함
+  autoplay?: boolean;
 }
 
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
@@ -40,7 +42,7 @@ function getParticipantsHeadline(video: Video): string | null {
   return `${participants[featuredIndex]} 외 ${participants.length - 1}명`;
 }
 
-export default function VideoCard({ video, priority }: VideoCardProps) {
+export default function VideoCard({ video, priority, autoplay }: VideoCardProps) {
   const isNew = Date.now() - new Date(video.created_at).getTime() < THREE_DAYS_MS;
   const videoId = extractYouTubeId(video.youtube_url);
   const thumbnail = videoId ? getYouTubeThumbnail(videoId) : null;
@@ -50,7 +52,7 @@ export default function VideoCard({ video, priority }: VideoCardProps) {
   const headline = opponent?.name ? `vs ${opponent.name}` : getParticipantsHeadline(video);
 
   return (
-    <Link href={`/video/${video.id}`} className="block group h-full">
+    <Link href={`/video/${video.id}${autoplay ? '?autoplay=1' : ''}`} className="block group h-full">
       <div
         className="rounded-lg overflow-hidden border transition-transform duration-150 group-hover:-translate-y-0.5 h-full flex flex-col"
         style={{

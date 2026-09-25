@@ -14,7 +14,7 @@ const STEPS: TourStep[] = [
   {
     targetId: 'tour-home',
     title: '👋 환영합니다! \n 사용법을 알려드릴게요.',
-    body: '홈 화면에서는 최근 운동 영상을 볼 수 있어요. 영상을 누르면 자세한 내용을 확인할 수 있습니다!',
+    body: '홈 화면 맨 위에서 최근 운동 영상을 바로 볼 수 있어요. 아래에서는 날짜별로 지난 운동 영상을 볼 수 있어요!',
   },
   {
     targetId: 'tour-search',
