@@ -1,5 +1,6 @@
 export const revalidate = 30;
 
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import AppLayout from '@/components/AppLayout';
 import AngleBadge from '@/components/AngleBadge';
@@ -11,6 +12,12 @@ import { extractYouTubeId, formatDate } from '@/lib/utils';
 
 interface Props {
   params: Promise<{ id: string }>;
+}
+
+// 기존 영상 상세를 빌드 시 미리 생성해 캐시(ISR)로 즉시 서빙 — 새로 등록된 영상은 첫 요청 때 생성 후 캐시됨
+export async function generateStaticParams() {
+  const { data } = await getSupabase().from('videos').select('id');
+  return (data || []).map((v: { id: string }) => ({ id: v.id }));
 }
 
 export default async function VideoDetailPage({ params }: Props) {
@@ -26,20 +33,6 @@ export default async function VideoDetailPage({ params }: Props) {
 
   const video = data as Video;
   const videoId = extractYouTubeId(video.youtube_url);
-
-  // 같은 날짜의 다른 영상 (페어 영상) — 카드에 대회명/상대 정보를 보여주기 위한 조인 포함
-  const { data: pairData } = await supabase
-    .from('videos')
-    .select(`
-      *,
-      competition:competitions(name),
-      bracket_match:bracket_matches(player1_name,player1_club,player1_is_ours,player2_name,player2_club,player2_is_ours)
-    `)
-    .eq('date', video.date)
-    .neq('id', video.id)
-    .limit(6);
-
-  const pairVideos: Video[] = (pairData as Video[]) || [];
 
   return (
     <AppLayout>
@@ -112,20 +105,41 @@ export default async function VideoDetailPage({ params }: Props) {
           )}
         </div>
 
-        {/* 페어 영상 */}
-        {pairVideos.length > 0 && (
-          <div>
-            <h2 className="text-base font-bold mb-3" style={{ color: '#374151' }}>
-              같은 날짜의 다른 영상
-            </h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {pairVideos.map((v) => (
-                <VideoCard key={v.id} video={v} />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* 페어 영상 — 메인 영상/메타는 먼저 보내고 이 쿼리는 뒤따라 스트리밍 */}
+        <Suspense fallback={null}>
+          <PairVideos date={video.date} excludeId={video.id} />
+        </Suspense>
       </div>
     </AppLayout>
+  );
+}
+
+// 같은 날짜의 다른 영상 (페어 영상) — 카드에 대회명/상대 정보를 보여주기 위한 조인 포함
+async function PairVideos({ date, excludeId }: { date: string; excludeId: string }) {
+  const { data } = await getSupabase()
+    .from('videos')
+    .select(`
+      *,
+      competition:competitions(name),
+      bracket_match:bracket_matches(player1_name,player1_club,player1_is_ours,player2_name,player2_club,player2_is_ours)
+    `)
+    .eq('date', date)
+    .neq('id', excludeId)
+    .limit(6);
+
+  const pairVideos: Video[] = (data as Video[]) || [];
+  if (pairVideos.length === 0) return null;
+
+  return (
+    <div>
+      <h2 className="text-base font-bold mb-3" style={{ color: '#374151' }}>
+        같은 날짜의 다른 영상
+      </h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {pairVideos.map((v) => (
+          <VideoCard key={v.id} video={v} />
+        ))}
+      </div>
+    </div>
   );
 }
