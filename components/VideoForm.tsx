@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Video, Angle, Competition } from '@/lib/types';
+import { Video, Angle, Competition, VideoChapter } from '@/lib/types';
 import { extractYouTubeId } from '@/lib/utils';
 import { adminFetch } from '@/lib/adminClient';
+import ChapterEditor from './ChapterEditor';
 
 interface VideoFormProps {
   initial?: Partial<Video>;
@@ -61,6 +62,7 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
   const [topic, setTopic] = useState(initial?.topic || '');
   const [uploader, setUploader] = useState(initial?.uploader || '');
   const [competitionId, setCompetitionId] = useState<string>(initial?.competition_id || '');
+  const [chapters, setChapters] = useState<VideoChapter[]>(initial?.chapters || []);
   const [competitions, setCompetitions] = useState<Pick<Competition, 'id' | 'name' | 'year'>[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -81,6 +83,7 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
     setTopic('');
     setUploader('');
     setCompetitionId('');
+    setChapters([]);
     setError('');
     setApiError('');
     setResultStatus(null);
@@ -153,7 +156,7 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
     }
     setLoading(true);
     try {
-      const body = { youtube_url: youtubeUrl, title, date, angle, participants, topic, uploader, competition_id: competitionId || null };
+      const body = { youtube_url: youtubeUrl, title, date, angle, participants, topic, uploader, competition_id: competitionId || null, chapters };
       const url = isEdit ? `/api/videos/${initial!.id}` : '/api/videos';
       const method = isEdit ? 'PATCH' : 'POST';
       const res = await adminFetch(url, {
@@ -524,6 +527,15 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
           </p>
         )}
       </div>
+
+      {extractYouTubeId(youtubeUrl) && (
+        <div>
+          <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
+            구간 표시 (선택)
+          </label>
+          <ChapterEditor videoId={extractYouTubeId(youtubeUrl)!} chapters={chapters} onChange={setChapters} />
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 

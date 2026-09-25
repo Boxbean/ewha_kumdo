@@ -6,6 +6,7 @@ import AppLayout from '@/components/AppLayout';
 import AngleBadge from '@/components/AngleBadge';
 import EditButton from '@/components/EditButton';
 import VideoCard from '@/components/VideoCard';
+import VideoPlayerSection from '@/components/VideoPlayerSection';
 import { getSupabase } from '@/lib/supabase';
 import { Video } from '@/lib/types';
 import { extractYouTubeId, formatDate } from '@/lib/utils';
@@ -37,20 +38,9 @@ export default async function VideoDetailPage({ params }: Props) {
   return (
     <AppLayout>
       <div className="max-w-3xl mx-auto">
-        {/* YouTube 임베드 */}
+        {/* YouTube 플레이어 + 구간 버튼 */}
         {videoId ? (
-          <div
-            className="relative w-full rounded-lg overflow-hidden mb-4"
-            style={{ aspectRatio: '16/9', backgroundColor: '#000' }}
-          >
-            <iframe
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title={video.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="absolute inset-0 w-full h-full"
-            />
-          </div>
+          <VideoPlayerSection videoId={videoId} chapters={video.chapters || []} />
         ) : (
           <div
             className="w-full rounded-lg flex items-center justify-center text-sm mb-4"

@@ -96,3 +96,23 @@ export function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 // 대회 썸네일은 competition_files에 이 file_type으로 1장만 저장
 export const THUMBNAIL_FILE_TYPE = '썸네일';
+
+/**
+ * "mm:ss" 또는 "h:mm:ss" → 초 단위 정수 (형식이 틀리면 null)
+ */
+export function parseTimestamp(text: string): number | null {
+  const parts = text.trim().split(':');
+  if (parts.length < 2 || parts.length > 3 || parts.some((p) => !/^\d+$/.test(p))) return null;
+  return parts.map(Number).reduce((acc, n) => acc * 60 + n, 0);
+}
+
+/**
+ * API 입력으로 받은 구간 목록을 검증·정렬 — 형식이 틀린 항목은 버림
+ */
+export function normalizeChapters(input: unknown): { label: string; seconds: number }[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .filter((c) => c && typeof c.label === 'string' && c.label.trim() && Number.isFinite(c.seconds) && c.seconds >= 0)
+    .map((c) => ({ label: c.label.trim(), seconds: Math.floor(c.seconds) }))
+    .sort((a, b) => a.seconds - b.seconds);
+}

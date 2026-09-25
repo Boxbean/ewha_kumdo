@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/adminAuth';
+import { normalizeChapters } from '@/lib/utils';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -29,6 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
   if ('competition_id' in body) update.competition_id = body.competition_id ?? null;
   if ('bracket_match_id' in body) update.bracket_match_id = body.bracket_match_id ?? null;
+  if ('chapters' in body) update.chapters = normalizeChapters(body.chapters);
 
   const { data, error } = await supabase
     .from('videos')
