@@ -105,17 +105,7 @@ function Slide({ shorts, isActive }: { shorts: Shorts; isActive: boolean }) {
           style={{ height: 'calc(100dvh - 160px)', border: 0 }}
         />
       ) : isActive && igEmbed ? (
-        // 인스타그램 공식 embed iframe — 사이트 안에서 재생 (자체 ▶ 버튼을 한 번 눌러야 재생됨).
-        // 비공개/삭제 게시물은 iframe 안에 안내 문구가 뜨고, 하단 "원본 보기"로 이동 가능
-        <iframe
-          src={igEmbed}
-          title={shorts.title}
-          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-          allowFullScreen
-          scrolling="no"
-          className="w-full max-w-[420px]"
-          style={{ height: 'calc(100dvh - 150px)', maxHeight: 780, border: 0, backgroundColor: '#fff' }}
-        />
+        <InstagramFullBleed src={igEmbed} title={shorts.title} />
       ) : shorts.thumbnail_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -154,5 +144,86 @@ function Slide({ shorts, isActive }: { shorts: Shorts; isActive: boolean }) {
         </a>
       </div>
     </section>
+  );
+}
+
+// 인스타 embed iframe은 cross-origin이라 안쪽 UI(게시자 헤더/좋아요·댓글·공유 푸터)를 숨길 수 없음.
+// 대신 iframe을 clip-path로 "영상 영역"만 남기고 확대/배치해서 화면을 채움. 재생은 iframe 그대로(▶ 한 번 탭).
+// 폭 400px 기준 embed 실측: 헤더 54px + 영상 영역 M + 푸터 154px = 전체 높이 T.
+// 영상 영역 높이 M은 영상 비율마다 다르지만(세로 릴스 500, 가로 225 등) iframe이 부모로 보내는
+// MEASURE 메시지의 T로 M = T - 208 을 구할 수 있음. 인스타가 레이아웃을 바꾸면 아래 상수만 조정.
+const IG_W = 400;
+const IG_HEADER = 54;
+const IG_CHROME = 208; // 헤더 + 푸터
+const IG_DEFAULT_M = 500;
+
+function InstagramFullBleed({ src, title }: { src: string; title: string }) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  const [media, setMedia] = useState<number | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const measure = () => setSize({ w: el.clientWidth, h: el.clientHeight });
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (e.source !== frameRef.current?.contentWindow) return;
+      try {
+        const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        const total = data?.type === 'MEASURE' ? Number(data.details?.height) : NaN;
+        if (total > IG_CHROME + 100 && total < IG_CHROME + 800) setMedia(total - IG_CHROME);
+      } catch {
+        // 인스타가 보내는 다른 형식의 메시지는 무시
+      }
+    }
+    window.addEventListener('message', onMessage);
+    const t = setTimeout(() => setTimedOut(true), 2500);
+    return () => {
+      window.removeEventListener('message', onMessage);
+      clearTimeout(t);
+    };
+  }, []);
+
+  const m = media ?? IG_DEFAULT_M;
+  const tall = m / IG_W >= 1.2; // 세로형(릴스)은 화면 높이에 맞춰 꽉 채우고, 가로/정사각형은 폭에 맞추고 세로 중앙 정렬
+  const scale = tall ? size.h / m : size.w / IG_W;
+  const x = (size.w - IG_W * scale) / 2;
+  const y = tall ? -IG_HEADER * scale : (size.h - m * scale) / 2 - IG_HEADER * scale;
+  const frameH = IG_HEADER + m + 160;
+  const visible = media !== null || timedOut;
+
+  return (
+    <div ref={boxRef} className="absolute inset-0 overflow-hidden" style={{ backgroundColor: '#000' }}>
+      {size.h > 0 && (
+        <iframe
+          ref={frameRef}
+          src={src}
+          title={title}
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          allowFullScreen
+          scrolling="no"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: IG_W,
+            height: frameH,
+            border: 0,
+            opacity: visible ? 1 : 0,
+            transformOrigin: '0 0',
+            transform: `translate(${x}px, ${y}px) scale(${scale})`,
+            clipPath: `inset(${IG_HEADER}px 0px ${frameH - IG_HEADER - m}px 0px)`,
+          }}
+        />
+      )}
+    </div>
   );
 }
