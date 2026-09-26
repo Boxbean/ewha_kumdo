@@ -116,3 +116,29 @@ export function normalizeChapters(input: unknown): { label: string; seconds: num
     .map((c) => ({ label: c.label.trim(), seconds: Math.floor(c.seconds) }))
     .sort((a, b) => a.seconds - b.seconds);
 }
+
+/**
+ * 초 단위 정수 → 유튜브식 영상 길이 표기 ("3:16", "1:01:38")
+ */
+export function formatDuration(totalSeconds: number): string {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const ss = String(s).padStart(2, '0');
+  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`;
+}
+
+/**
+ * 운동 날짜(YYYY-MM-DD) → 유튜브식 상대 시간 ("오늘", "3일 전", "2주 전", "5개월 전")
+ */
+export function formatRelativeDate(dateStr: string): string {
+  // 서버(UTC)와 휴대폰에서 "오늘"이 달라지지 않도록 한국 시간 기준 날짜로 계산
+  const todayKst = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date());
+  const days = Math.round((Date.parse(todayKst) - Date.parse(dateStr)) / 86400000);
+  if (days <= 0) return '오늘';
+  if (days === 1) return '어제';
+  if (days < 7) return `${days}일 전`;
+  if (days < 30) return `${Math.floor(days / 7)}주 전`;
+  if (days < 365) return `${Math.floor(days / 30)}개월 전`;
+  return `${Math.floor(days / 365)}년 전`;
+}

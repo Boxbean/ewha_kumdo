@@ -20,7 +20,7 @@ interface YTNamespace {
       width?: string;
       height?: string;
       playerVars?: Record<string, number | string>;
-      events?: { onReady?: () => void };
+      events?: { onReady?: () => void; onStateChange?: (e: { data: number }) => void };
     }
   ) => YTPlayer;
 }
@@ -61,12 +61,16 @@ interface Props {
   startSeconds?: number;
   // 브라우저 정책상 소리 켠 자동재생은 막히므로 음소거로 시작하고 "소리 켜기" 버튼을 띄움
   autoplayMuted?: boolean;
+  // 재생이 실제로 시작되면 호출 (썸네일 덮개를 걷어내는 용도)
+  onPlaying?: () => void;
 }
 
 const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function YouTubePlayer(
-  { videoId, startSeconds = 0, autoplayMuted = false },
+  { videoId, startSeconds = 0, autoplayMuted = false, onPlaying },
   ref
 ) {
+  const onPlayingRef = useRef(onPlaying);
+  onPlayingRef.current = onPlaying;
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const [showUnmute, setShowUnmute] = useState(false);
@@ -108,6 +112,9 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function YouTubePla
         events: {
           onReady: () => {
             if (!cancelled && autoplayMuted) setShowUnmute(true);
+          },
+          onStateChange: (e) => {
+            if (e.data === 1) onPlayingRef.current?.(); // 1 = PLAYING
           },
         },
       });

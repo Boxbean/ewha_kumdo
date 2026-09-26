@@ -90,6 +90,18 @@ export async function GET(req: NextRequest) {
   const limit = Number(searchParams.get('limit') || '10');
   const offset = Number(searchParams.get('offset') || '0');
 
+  // 목록 탭: 최근 업로드 우선 노출 없이 운동 날짜 최신순 그대로
+  if (searchParams.get('order') === 'date') {
+    const { data, count, error } = await applyFilters(supabase.from('videos').select(VIDEO_SELECT, { count: 'exact' }), filters)
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ data: (data as Video[]) || [], count: count ?? 0 }, {
+      headers: { 'Cache-Control': 'private, max-age=30' },
+    });
+  }
+
   const cutoffIso = new Date(Date.now() - RECENT_UPLOAD_WINDOW_MS).toISOString();
 
   // 최근 업로드 버킷과 나머지 버킷 개수는 서로 독립적인 쿼리라 병렬로 조회 — 순차 대기 시간 절약

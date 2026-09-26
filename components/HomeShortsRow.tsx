@@ -3,17 +3,32 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Shorts } from '@/lib/types';
+import SectionTitle from './SectionTitle';
 
-const ROW_SIZE = 10;
+// 앞의 몇 개는 최신 등록순으로 고정하고, 나머지는 방문할 때마다 섞어서 다양한 쇼츠가 노출되게 함
+const FETCH_LIMIT = 50;
+const NEWEST_FIXED = 2;
+
+function shuffle<T>(items: T[]): T[] {
+  const a = [...items];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 // 홈 중간의 쇼츠 가로 스크롤 한 줄 — 개수가 적어도 빈약해 보이지 않도록 그리드 대신 가로 배치
 export default function HomeShortsRow() {
   const [shorts, setShorts] = useState<Shorts[]>([]);
 
   useEffect(() => {
-    fetch(`/api/shorts?limit=${ROW_SIZE}`)
+    fetch(`/api/shorts?limit=${FETCH_LIMIT}`)
       .then((r) => r.json())
-      .then((json) => setShorts(json.data || []))
+      .then((json) => {
+        const list: Shorts[] = json.data || [];
+        setShorts([...list.slice(0, NEWEST_FIXED), ...shuffle(list.slice(NEWEST_FIXED))]);
+      })
       .catch(() => {});
   }, []);
 
@@ -22,14 +37,12 @@ export default function HomeShortsRow() {
   return (
     <section className="mb-6">
       <div className="flex items-baseline justify-between mb-2">
-        <h2 className="text-base font-bold" style={{ color: '#00462A' }}>
-          검도쇼츠
-        </h2>
+        <SectionTitle>검도쇼츠</SectionTitle>
         <Link href="/shorts" className="text-xs" style={{ color: '#6B7280' }}>
           전체보기 ›
         </Link>
       </div>
-      <div className="flex gap-2.5 overflow-x-auto pb-1 -mx-4 px-4 md:-mx-6 md:px-6 snap-x">
+      <div className="flex gap-2.5 overflow-x-auto pb-1 -mx-4 px-4 md:-mx-6 md:px-6 snap-x scroll-px-4 md:scroll-px-6">
         {shorts.map((s) => (
           <Link
             key={s.id}

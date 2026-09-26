@@ -7,6 +7,7 @@ import VideoGrid from '@/components/VideoGrid';
 import Pagination from '@/components/Pagination';
 import HomeHero from '@/components/HomeHero';
 import HomeShortsRow from '@/components/HomeShortsRow';
+import SectionTitle from '@/components/SectionTitle';
 import { formatDate } from '@/lib/utils';
 
 const PAGE_SIZE = 10;
@@ -95,15 +96,8 @@ export default function HomeContent() {
       <div className="space-y-6">
         {groups.map((g, i) => (
           <section key={g.date}>
-            <div className="flex items-baseline gap-2 mb-2">
-              <h2 className="text-sm font-bold" style={{ color: '#111' }}>
-                {formatDate(g.date)}
-              </h2>
-              {g.label && (
-                <span className="text-xs truncate" style={{ color: '#6B7280' }}>
-                  {g.label}
-                </span>
-              )}
+            <div className="mb-2">
+              <SectionTitle sub={g.label || undefined}>{formatDate(g.date)}</SectionTitle>
             </div>
             <VideoGrid videos={g.videos} autoplay priorityCount={i === 0 ? 2 : 0} />
           </section>
