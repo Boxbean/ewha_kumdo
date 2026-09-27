@@ -1,5 +1,43 @@
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
+const PARTICIPANT_SEP = /[\s,\-\/|·]+/;
+
+/**
+ * 영상 제목 괄호 안의 이름 목록을 파싱 (예: "250101 저녁운동(홍길동,이화인)" → ["홍길동","이화인"])
+ */
+export function parseParticipantsFromTitle(title: string): string[] {
+  const parenIdx = title.indexOf('(');
+  if (parenIdx === -1) return [];
+  const str = title.slice(parenIdx + 1);
+  return str
+    .split(PARTICIPANT_SEP)
+    .map((s) => s.replace(/[)\s,\-\/|·]+$/, '').trim())
+    .filter(Boolean);
+}
+
+/**
+ * 정규운동 영상 제목은 보통 "YYMMDD ..." 형식으로 시작 — 앞 6자리가 유효한 날짜면 그 날짜를 반환, 아니면 null
+ */
+export function deriveDateFromTitle(title: string): string | null {
+  const prefix = title.slice(0, 6);
+  if (!/^\d{6}$/.test(prefix)) return null;
+  const yy = Number(prefix.slice(0, 2));
+  const mm = Number(prefix.slice(2, 4));
+  const dd = Number(prefix.slice(4, 6));
+  const year = 2000 + yy;
+  const parsed = new Date(year, mm - 1, dd);
+  if (parsed.getFullYear() !== year || parsed.getMonth() !== mm - 1 || parsed.getDate() !== dd) return null;
+  return `${year}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+}
+
+export function getYesterdayDateString(): string {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
+  const dd = String(yesterday.getDate()).padStart(2, '0');
+  return `${yesterday.getFullYear()}-${mm}-${dd}`;
+}
+
 /**
  * "2025-03-20" → "2025. 03. 20 (목)"
  */

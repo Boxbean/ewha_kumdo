@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { BracketMatch, BracketSide, Video, WinnerSlot } from '@/lib/types';
 import { groupByDivision } from '@/lib/bracket';
 import { adminFetch } from '@/lib/adminClient';
+import BracketVideoLinker from './BracketVideoLinker';
 
 interface Props {
   competitionId: string;
@@ -22,6 +23,7 @@ export default function BracketAdminPanel({ competitionId, initialMatches, onMes
   const [videos, setVideos] = useState<Video[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<BracketMatch | null>(null);
+  const [showLinker, setShowLinker] = useState(false);
 
   const divisionOptions = Array.from(new Set(matches.map((m) => m.division)));
 
@@ -69,14 +71,35 @@ export default function BracketAdminPanel({ competitionId, initialMatches, onMes
     <div>
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-semibold" style={{ color: '#374151' }}>🏆 대진표 매치</p>
-        <button
-          onClick={() => { setEditing(null); setShowForm(true); }}
-          className="text-xs px-2.5 py-1 rounded border"
-          style={{ borderColor: '#00462A', color: '#00462A' }}
-        >
-          + 매치 추가
-        </button>
+        <div className="flex gap-1.5">
+          <button
+            onClick={() => setShowLinker((v) => !v)}
+            className="text-xs px-2.5 py-1 rounded border"
+            style={showLinker
+              ? { backgroundColor: '#00462A', borderColor: '#00462A', color: '#fff' }
+              : { borderColor: '#00462A', color: '#00462A' }}
+          >
+            🎬 영상 일괄 연결
+          </button>
+          <button
+            onClick={() => { setEditing(null); setShowForm(true); }}
+            className="text-xs px-2.5 py-1 rounded border"
+            style={{ borderColor: '#00462A', color: '#00462A' }}
+          >
+            + 매치 추가
+          </button>
+        </div>
       </div>
+
+      {showLinker && (
+        <div className="p-3 rounded-lg border mb-3" style={{ borderColor: '#00462A', backgroundColor: '#F8FBF9' }}>
+          <BracketVideoLinker
+            competitionId={competitionId}
+            matches={matches}
+            onDone={() => { void refresh(); void loadVideos(); onMessage('영상 연결이 반영되었습니다.'); }}
+          />
+        </div>
+      )}
 
       {showForm && (
         <BracketMatchForm
