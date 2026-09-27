@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import AppLayout from '@/components/AppLayout';
 import ShortsPlayer from '@/components/ShortsPlayer';
 import FeedbackCommentsSection from '@/components/FeedbackCommentsSection';
+import FeedbackPostBody from '@/components/FeedbackPostBody';
 import { getSupabase } from '@/lib/supabase';
 import { FeedbackPost } from '@/lib/types';
 import { extractYouTubeId, formatTimestamp } from '@/lib/utils';
@@ -75,25 +76,8 @@ export default async function FeedbackDetailPage({ params }: Props) {
           {videoTitle}
         </p>
 
-        <div
-          className="rounded-lg p-4 mb-4"
-          style={{ backgroundColor: '#ffffff', border: '1px solid #e0e0e0' }}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <span
-              className="text-xs font-semibold px-1.5 py-0.5 rounded"
-              style={{ backgroundColor: 'rgba(0,70,42,0.1)', color: '#00462A' }}
-            >
-              {formatTimestamp(post.timestamp_seconds)}
-            </span>
-          </div>
-          <p className="text-sm leading-relaxed mb-2" style={{ color: '#111111' }}>
-            {post.body}
-          </p>
-          <p className="text-xs" style={{ color: '#B9B9B9' }}>
-            {post.author_name || '익명'}
-          </p>
-        </div>
+        {/* 본문 — 관리자 비밀번호로 수정/삭제 가능 */}
+        <FeedbackPostBody post={post} />
 
         <FeedbackCommentsSection postId={post.id} initialComments={post.comments || []} />
       </div>
