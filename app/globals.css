@@ -28,3 +28,27 @@ input[type="date"] {
   min-width: 0;
   width: 100%;
 }
+
+/* 공용 로딩 표시(components/PageLoading) — 0.8초 주기: 원이 그려졌다가(0~50%) 끝부터 지워짐(50~100%), 로고는 같은 주기로 은은하게 깜빡임 */
+.page-loading-ring {
+  animation: page-loading-ring 1.2s ease-in-out infinite;
+}
+.page-loading-logo {
+  animation: page-loading-logo 1.2s ease-in-out infinite;
+}
+@keyframes page-loading-ring {
+  0% { stroke-dashoffset: 100; }
+  50% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -100; }
+}
+@keyframes page-loading-logo {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-loading-ring,
+  .page-loading-logo {
+    animation: none;
+  }
+  .page-loading-ring { stroke-dashoffset: 0; }
+}

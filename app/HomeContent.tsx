@@ -9,6 +9,7 @@ import HomeHero from '@/components/HomeHero';
 import HomeShortsRow from '@/components/HomeShortsRow';
 import SectionTitle from '@/components/SectionTitle';
 import { formatDate } from '@/lib/utils';
+import PageLoading from '@/components/PageLoading';
 
 const PAGE_SIZE = 10;
 
@@ -62,9 +63,7 @@ export default function HomeContent() {
 
   if (loading && videos.length === 0) {
     return (
-      <p className="py-12 text-center text-sm tracking-widest select-none" style={{ color: '#00462A', fontFamily: 'var(--font-pretendard), sans-serif' }}>
-        Loading... : ▮▮▮▮▮▮▯▯▯
-      </p>
+      <PageLoading />
     );
   }
 

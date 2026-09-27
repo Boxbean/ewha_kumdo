@@ -7,6 +7,7 @@ import ShortsForm from '@/components/ShortsForm';
 import FloatingAddButton from '@/components/FloatingAddButton';
 import ShortsViewer from '@/components/ShortsViewer';
 import { Shorts } from '@/lib/types';
+import PageLoading from '@/components/PageLoading';
 
 const PAGE_SIZE = 18;
 
@@ -75,9 +76,7 @@ export default function ShortsPage() {
     <AppLayout>
       <div>
         {loading && shorts.length === 0 ? (
-          <p className="py-12 text-center text-sm tracking-widest select-none" style={{ color: '#00462A', fontFamily: 'var(--font-pretendard), sans-serif' }}>
-            Loading... : ▮▮▮▮▮▮▯▯▯
-          </p>
+          <PageLoading />
         ) : (
           <ShortsGrid shorts={shorts} onSelect={setViewerIndex} />
         )}
