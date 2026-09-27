@@ -71,7 +71,7 @@ export default function HomeHero({ videos }: Props) {
             {meta}
           </p>
         </div>
-        <VideoMoreMenu videoPath={`/video/${video.id}`} youtubeUrl={video.youtube_url} title={video.title} />
+        <VideoMoreMenu videoId={video.id} youtubeUrl={video.youtube_url} title={video.title} />
       </div>
 
       {(videos.length > 1 || chapters.length > 0) && (

@@ -58,7 +58,7 @@ export default function VideoListRow({ video }: { video: Video }) {
         </div>
       </Link>
 
-      <VideoMoreMenu videoPath={`/video/${video.id}`} youtubeUrl={video.youtube_url} title={video.title} />
+      <VideoMoreMenu videoId={video.id} youtubeUrl={video.youtube_url} title={video.title} />
     </div>
   );
 }

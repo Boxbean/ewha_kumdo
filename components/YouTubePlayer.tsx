@@ -74,15 +74,18 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function YouTubePla
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const [showUnmute, setShowUnmute] = useState(false);
+  // YT.Player 객체는 onReady 전까지 seekTo/getCurrentTime 같은 메서드가 붙어 있지 않음
+  const readyRef = useRef(false);
 
   useImperativeHandle(ref, () => ({
     seekTo(seconds) {
       const player = playerRef.current;
-      if (!player) return;
+      if (!player || !readyRef.current) return;
       player.seekTo(seconds, true);
       player.playVideo();
     },
     getCurrentTime() {
+      if (!readyRef.current) return null;
       const t = playerRef.current?.getCurrentTime();
       return typeof t === 'number' ? Math.floor(t) : null;
     },
@@ -111,6 +114,7 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function YouTubePla
         },
         events: {
           onReady: () => {
+            readyRef.current = true;
             if (!cancelled && autoplayMuted) setShowUnmute(true);
           },
           onStateChange: (e) => {
@@ -122,6 +126,7 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function YouTubePla
 
     return () => {
       cancelled = true;
+      readyRef.current = false;
       playerRef.current?.destroy();
       playerRef.current = null;
       container.innerHTML = '';

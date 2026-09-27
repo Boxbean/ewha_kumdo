@@ -3,11 +3,12 @@ import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/adminAuth';
 import { FeedbackPost } from '@/lib/types';
+import { FEEDBACK_TITLE_MAX, splitTimestamps } from '@/lib/utils';
 
 const FEEDBACK_DETAIL_SELECT = `
   *,
-  video:videos(id,title,youtube_url,date),
-  shorts:shorts(id,title,video_url,platform),
+  video:videos(id,title,youtube_url,date,chapters),
+  shorts:shorts(id,title,video_url,platform,thumbnail_url),
   comments:feedback_comments(*)
 `;
 
@@ -42,13 +43,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: '피드백 내용을 입력해주세요.' }, { status: 400 });
     }
     update.body = body.body.trim();
+    // 대표 타임스탬프는 본문 첫 번째 시간 표기를 따라감
+    const firstTime = splitTimestamps(body.body).find((p) => p.type === 'time');
+    update.timestamp_seconds = firstTime && firstTime.type === 'time' ? firstTime.seconds : 0;
   }
-  if ('timestamp_seconds' in body) {
-    const seconds = Number(body.timestamp_seconds);
-    if (!Number.isInteger(seconds) || seconds < 0) {
-      return NextResponse.json({ error: '시간 형식이 올바르지 않습니다.' }, { status: 400 });
+  if ('title' in body) {
+    if (typeof body.title !== 'string' || !body.title.trim()) {
+      return NextResponse.json({ error: '제목을 입력해주세요.' }, { status: 400 });
     }
-    update.timestamp_seconds = seconds;
+    update.title = body.title.trim().slice(0, FEEDBACK_TITLE_MAX);
   }
   if ('author_name' in body) update.author_name = body.author_name || null;
 
@@ -56,7 +59,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .from('feedback_posts')
     .update(update)
     .eq('id', id)
-    .select('id, body, timestamp_seconds, author_name')
+    .select('id, title, body, timestamp_seconds, author_name')
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

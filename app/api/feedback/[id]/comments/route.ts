@@ -1,22 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 
 // 댓글 작성은 로그인 없이 개방 — 목록은 부모 게시글 GET(/api/feedback/[id])에 포함되어 내려감
+// parent_id가 있으면 대댓글 (대댓글에 다시 답글은 불가 — 1단계까지만)
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await req.json();
-  const { body: commentBody, author_name } = body;
+  const { body: commentBody, author_name, parent_id } = body;
 
-  if (!commentBody) {
+  if (typeof commentBody !== 'string' || !commentBody.trim()) {
     return NextResponse.json({ error: '필수 항목 누락' }, { status: 400 });
+  }
+
+  if (parent_id) {
+    const { data: parent } = await supabase
+      .from('feedback_comments')
+      .select('id, feedback_post_id, parent_id')
+      .eq('id', parent_id)
+      .single();
+    if (!parent || parent.feedback_post_id !== id) {
+      return NextResponse.json({ error: '답글을 달 댓글을 찾을 수 없습니다.' }, { status: 400 });
+    }
+    if (parent.parent_id) {
+      return NextResponse.json({ error: '답글에는 다시 답글을 달 수 없습니다.' }, { status: 400 });
+    }
   }
 
   const { data, error } = await supabase
     .from('feedback_comments')
-    .insert({ feedback_post_id: id, body: commentBody, author_name: author_name || null })
+    .insert({
+      feedback_post_id: id,
+      parent_id: parent_id || null,
+      body: commentBody.trim(),
+      author_name: author_name || null,
+    })
     .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  revalidatePath(`/feedback/${id}`);
   return NextResponse.json({ data }, { status: 201 });
 }

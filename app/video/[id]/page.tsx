@@ -1,6 +1,7 @@
 export const revalidate = 30;
 
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import AppLayout from '@/components/AppLayout';
 import AngleBadge from '@/components/AngleBadge';
@@ -88,6 +89,15 @@ export default async function VideoDetailPage({ params }: Props) {
               주제: <span className="font-medium">{video.topic}</span>
             </p>
           )}
+          {/* 대진표·대회·목록 어디서 들어와도 영상은 이 화면에서 보므로, 여기서 바로 피드백 요청 (영상 자동 선택) */}
+          <Link
+            href={`/feedback/new?video=${video.id}`}
+            className="mt-3 flex items-center justify-center gap-1.5 h-10 text-sm font-semibold rounded-lg border"
+            style={{ borderColor: '#00462A', color: '#00462A' }}
+          >
+            🙋 이 영상 피드백 요청하기
+          </Link>
+
           {video.uploader && (
             <p className="text-sm mt-1" style={{ color: '#B9B9B9' }}>
               등록: {video.uploader}

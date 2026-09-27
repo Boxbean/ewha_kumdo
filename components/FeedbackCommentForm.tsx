@@ -2,22 +2,28 @@
 
 import { useState } from 'react';
 
+const MAIN_PLACEHOLDER = '다양한 피드백을 남겨주세요. 모두의 자신감과 발전을 위해 둥근 피드백 부탁드립니다 🙏';
+
 interface FeedbackCommentFormProps {
   postId: string;
   onSuccess: () => void;
+  // 대댓글 작성 시 부모 댓글 id — 있으면 작고 간결한 답글 입력창으로 표시
+  parentId?: string;
+  onCancel?: () => void;
 }
 
-export default function FeedbackCommentForm({ postId, onSuccess }: FeedbackCommentFormProps) {
+export default function FeedbackCommentForm({ postId, onSuccess, parentId, onCancel }: FeedbackCommentFormProps) {
   const [body, setBody] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const isReply = !!parentId;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     if (!body.trim()) {
-      setError('댓글 내용을 입력해주세요.');
+      setError(isReply ? '답글 내용을 입력해주세요.' : '댓글 내용을 입력해주세요.');
       return;
     }
     setLoading(true);
@@ -25,7 +31,7 @@ export default function FeedbackCommentForm({ postId, onSuccess }: FeedbackComme
       const res = await fetch(`/api/feedback/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body, author_name: authorName || undefined }),
+        body: JSON.stringify({ body, author_name: authorName || undefined, parent_id: parentId }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || '오류 발생');
@@ -44,9 +50,10 @@ export default function FeedbackCommentForm({ postId, onSuccess }: FeedbackComme
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        rows={2}
-        placeholder="피드백 댓글을 남겨주세요..."
-        className="w-full px-3 py-2 text-sm rounded border focus:outline-none resize-none"
+        rows={isReply ? 2 : 3}
+        autoFocus={isReply}
+        placeholder={isReply ? '답글을 남겨주세요 (00:10처럼 시간을 적으면 영상 이동 링크가 돼요)' : MAIN_PLACEHOLDER}
+        className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none resize-none"
         style={{ borderColor: '#e0e0e0' }}
       />
       <div className="flex gap-2">
@@ -55,16 +62,26 @@ export default function FeedbackCommentForm({ postId, onSuccess }: FeedbackComme
           value={authorName}
           onChange={(e) => setAuthorName(e.target.value)}
           placeholder="이름 (선택)"
-          className="flex-1 h-9 px-3 text-sm rounded border focus:outline-none"
+          className="flex-1 min-w-0 h-9 px-3 text-sm rounded-lg border focus:outline-none"
           style={{ borderColor: '#e0e0e0' }}
         />
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="h-9 px-3 text-sm rounded-lg border shrink-0"
+            style={{ borderColor: '#e0e0e0', color: '#6B7280' }}
+          >
+            취소
+          </button>
+        )}
         <button
           type="submit"
           disabled={loading}
-          className="h-9 px-4 text-sm font-semibold rounded text-white shrink-0"
+          className="h-9 px-4 text-sm font-semibold rounded-lg text-white shrink-0"
           style={{ backgroundColor: '#00462A', opacity: loading ? 0.7 : 1 }}
         >
-          {loading ? '작성 중...' : '댓글 작성'}
+          {loading ? '작성 중...' : isReply ? '답글 작성' : '댓글 작성'}
         </button>
       </div>
       {error && <p className="text-sm text-red-500">{error}</p>}

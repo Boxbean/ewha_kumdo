@@ -3,8 +3,15 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
-// 영상 카드/행의 ⋮ 더보기 메뉴 — 영상 정보 보기 / YouTube에서 보기 / 공유하기
-export default function VideoMoreMenu({ videoPath, youtubeUrl, title }: { videoPath: string; youtubeUrl: string; title: string }) {
+// 영상 카드/행의 ⋮ 더보기 메뉴 — 영상 정보 보기 / 피드백 요청하기 / YouTube에서 보기 / 공유하기
+export default function VideoMoreMenu({
+  videoId, youtubeUrl, title,
+}: {
+  videoId: string;
+  youtubeUrl: string;
+  title: string;
+}) {
+  const videoPath = `/video/${videoId}`;
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -55,6 +62,9 @@ export default function VideoMoreMenu({ videoPath, youtubeUrl, title }: { videoP
         >
           <Link href={videoPath} className={itemClass}>
             영상 정보 보기
+          </Link>
+          <Link href={`/feedback/new?video=${videoId}`} className={itemClass}>
+            피드백 요청하기
           </Link>
           <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className={itemClass} onClick={() => setOpen(false)}>
             YouTube에서 보기

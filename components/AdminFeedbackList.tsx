@@ -82,7 +82,12 @@ export default function AdminFeedbackList() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm line-clamp-2 mb-1" style={{ color: '#111111' }}>
+                  {post.title && (
+                    <p className="text-sm font-semibold line-clamp-1" style={{ color: '#111111' }}>
+                      {post.title}
+                    </p>
+                  )}
+                  <p className="text-sm line-clamp-2 mb-1" style={{ color: post.title ? '#6B7280' : '#111111' }}>
                     {post.body}
                   </p>
                   <p className="text-xs" style={{ color: '#B9B9B9' }}>

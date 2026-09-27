@@ -47,8 +47,10 @@ export type FeedbackVideoType = 'video' | 'shorts';
 export interface FeedbackComment {
   id: string;
   feedback_post_id: string;
+  parent_id?: string | null; // 대댓글이면 부모 댓글 id (1단계까지만)
   body: string;
   author_name?: string;
+  like_count?: number;
   created_at: string;
 }
 
@@ -57,13 +59,14 @@ export interface FeedbackPost {
   video_id?: string | null;
   shorts_id?: string | null;
   video_type: FeedbackVideoType; // API가 video_id/shorts_id로부터 파생해서 내려줌 (DB 컬럼 아님)
-  timestamp_seconds: number;
+  title?: string | null;     // 요청 요약 (카드의 메인 문구) — 개편 전 글은 없음
+  timestamp_seconds: number; // 본문 첫 번째 타임스탬프 (개편 후에는 본문 안의 시간 표기가 기준)
   body: string;
   author_name?: string;
   created_at: string;
   // 조인 데이터
-  video?: Pick<Video, 'id' | 'title' | 'youtube_url' | 'date'> | null;
-  shorts?: Pick<Shorts, 'id' | 'title' | 'video_url' | 'platform'> | null;
+  video?: Pick<Video, 'id' | 'title' | 'youtube_url' | 'date' | 'chapters'> | null;
+  shorts?: Pick<Shorts, 'id' | 'title' | 'video_url' | 'platform' | 'thumbnail_url'> | null;
   comment_count?: number;
   comments?: FeedbackComment[];
 }

@@ -4,25 +4,32 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FeedbackPost } from '@/lib/types';
 import { adminFetch } from '@/lib/adminClient';
-import { formatTimestamp, parseTimestamp } from '@/lib/utils';
+import { FEEDBACK_TITLE_MAX } from '@/lib/utils';
 import AdminAuthModal from './AdminAuthModal';
+import TimestampText from './TimestampText';
+import RelativeTime from './RelativeTime';
 
 type PendingAction = 'edit' | 'delete' | null;
 
-// 피드백 상세의 본문 카드 — 관리자 비밀번호 확인 후 수정/삭제 가능
-export default function FeedbackPostBody({ post: initialPost }: { post: FeedbackPost }) {
+// 피드백 상세의 본문 카드 — 제목(요약)이 메인, 본문의 시간 표기는 영상 이동 링크. 관리자 비밀번호 확인 후 수정/삭제 가능
+export default function FeedbackPostBody({
+  post: initialPost, onSeek,
+}: {
+  post: FeedbackPost;
+  onSeek?: (seconds: number) => void;
+}) {
   const router = useRouter();
   const [post, setPost] = useState(initialPost);
   const [editing, setEditing] = useState(false);
   const [authFor, setAuthFor] = useState<PendingAction>(null);
-  const [timeText, setTimeText] = useState('');
+  const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
   function startEdit() {
-    setTimeText(formatTimestamp(post.timestamp_seconds));
+    setTitle(post.title || '');
     setBody(post.body);
     setAuthorName(post.author_name || '');
     setError('');
@@ -57,8 +64,7 @@ export default function FeedbackPostBody({ post: initialPost }: { post: Feedback
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    const seconds = parseTimestamp(timeText);
-    if (seconds == null) { setError('시간은 mm:ss 형식으로 입력해주세요. (예: 03:12)'); return; }
+    if (!title.trim()) { setError('제목(요약)을 입력해주세요.'); return; }
     if (!body.trim()) { setError('피드백 내용을 입력해주세요.'); return; }
     setBusy(true);
     setError('');
@@ -66,7 +72,7 @@ export default function FeedbackPostBody({ post: initialPost }: { post: Feedback
       const res = await adminFetch(`/api/feedback/${post.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timestamp_seconds: seconds, body: body.trim(), author_name: authorName.trim() || null }),
+        body: JSON.stringify({ title: title.trim(), body: body.trim(), author_name: authorName.trim() || null }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || '저장 실패');
@@ -87,12 +93,12 @@ export default function FeedbackPostBody({ post: initialPost }: { post: Feedback
       {editing ? (
         <form onSubmit={save} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: '#374151' }}>시간 (mm:ss)</label>
+            <label className="block text-xs font-medium mb-1" style={{ color: '#374151' }}>제목 (요약)</label>
             <input
               type="text"
-              value={timeText}
-              onChange={(e) => setTimeText(e.target.value)}
-              className="w-24 h-9 px-3 text-sm rounded border focus:outline-none"
+              value={title}
+              onChange={(e) => setTitle(e.target.value.slice(0, FEEDBACK_TITLE_MAX))}
+              className="w-full h-9 px-3 text-sm rounded border focus:outline-none"
               style={{ borderColor: '#e0e0e0' }}
             />
           </div>
@@ -138,14 +144,11 @@ export default function FeedbackPostBody({ post: initialPost }: { post: Feedback
         </form>
       ) : (
         <>
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span
-              className="text-xs font-semibold px-1.5 py-0.5 rounded"
-              style={{ backgroundColor: 'rgba(0,70,42,0.1)', color: '#00462A' }}
-            >
-              {formatTimestamp(post.timestamp_seconds)}
-            </span>
-            <div className="flex gap-1.5">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <h1 className="text-base font-bold leading-snug" style={{ color: '#111' }}>
+              {post.title || '피드백 요청'}
+            </h1>
+            <div className="flex flex-shrink-0 gap-1.5">
               <button
                 type="button"
                 onClick={() => requestAction('edit')}
@@ -166,11 +169,11 @@ export default function FeedbackPostBody({ post: initialPost }: { post: Feedback
               </button>
             </div>
           </div>
-          <p className="text-sm leading-relaxed mb-2 whitespace-pre-wrap" style={{ color: '#111111' }}>
-            {post.body}
-          </p>
+          <div className="text-sm leading-relaxed mb-2" style={{ color: '#374151' }}>
+            <TimestampText text={post.body} onSeek={onSeek} />
+          </div>
           <p className="text-xs" style={{ color: '#B9B9B9' }}>
-            {post.author_name || '익명'}
+            {post.author_name || '익명'} · <RelativeTime iso={post.created_at} />
           </p>
         </>
       )}

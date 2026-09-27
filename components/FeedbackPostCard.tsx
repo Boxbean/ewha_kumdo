@@ -1,42 +1,56 @@
 import Link from 'next/link';
 import { FeedbackPost } from '@/lib/types';
-import { formatTimestamp } from '@/lib/utils';
+import { extractYouTubeId, formatRelativeTime, getYouTubeThumbnail } from '@/lib/utils';
 
 interface FeedbackPostCardProps {
   post: FeedbackPost;
 }
 
+function thumbnailOf(post: FeedbackPost): string | null {
+  if (post.video) {
+    const id = extractYouTubeId(post.video.youtube_url);
+    return id ? getYouTubeThumbnail(id) : null;
+  }
+  return post.shorts?.thumbnail_url || null;
+}
+
+// 목록 탭과 같은 형태: 왼쪽 영상 썸네일 · 오른쪽 제목(메인) / 본문 일부 / 작성자·시간·댓글 수
 export default function FeedbackPostCard({ post }: FeedbackPostCardProps) {
-  const videoTitle = post.video_type === 'video' ? post.video?.title : post.shorts?.title;
+  const thumbnail = thumbnailOf(post);
+  // 개편 전 글은 제목이 없어 본문 첫 줄을 제목 자리에 대신 보여줌
+  const title = post.title || post.body.split('\n')[0];
+  const excerpt = post.title ? post.body : '';
 
   return (
-    <Link href={`/feedback/${post.id}`} className="block">
+    <Link href={`/feedback/${post.id}`} className="flex items-start gap-3 py-2">
       <div
-        className="rounded-lg p-4"
-        style={{ backgroundColor: '#ffffff', border: '1px solid #e0e0e0' }}
+        className="relative flex-shrink-0 w-[44%] max-w-[240px] rounded-lg overflow-hidden"
+        style={{ aspectRatio: '16/9', backgroundColor: '#e0e0e0' }}
       >
-        <div className="flex items-center gap-2 mb-2">
-          <span
-            className="text-xs font-semibold px-1.5 py-0.5 rounded"
-            style={{ backgroundColor: 'rgba(0,70,42,0.1)', color: '#00462A' }}
-          >
-            {formatTimestamp(post.timestamp_seconds)}
-          </span>
-          {videoTitle && (
-            <span className="text-xs line-clamp-1" style={{ color: '#B9B9B9' }}>
-              {videoTitle}
-            </span>
-          )}
-        </div>
+        {thumbnail && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={thumbnail}
+            alt=""
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+      </div>
 
-        <p className="text-sm leading-snug line-clamp-3 mb-3" style={{ color: '#111111' }}>
-          {post.body}
+      <div className="flex-1 min-w-0 pt-0.5">
+        <p className="text-[15px] font-semibold leading-snug line-clamp-2" style={{ color: '#111' }}>
+          {title}
         </p>
-
-        <div className="flex items-center justify-between text-xs" style={{ color: '#B9B9B9' }}>
-          <span>{post.author_name || '익명'}</span>
-          <span>댓글 {post.comment_count ?? 0}개</span>
-        </div>
+        {excerpt && (
+          <p className="text-xs mt-1 leading-snug line-clamp-2" style={{ color: '#6B7280' }}>
+            {excerpt}
+          </p>
+        )}
+        <p className="text-xs mt-1.5 truncate" style={{ color: '#B9B9B9' }}>
+          {post.author_name || '익명'} · {formatRelativeTime(post.created_at)} · 댓글 {post.comment_count ?? 0}
+        </p>
       </div>
     </Link>
   );

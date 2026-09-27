@@ -180,3 +180,42 @@ export function formatRelativeDate(dateStr: string): string {
   if (days < 365) return `${Math.floor(days / 30)}개월 전`;
   return `${Math.floor(days / 365)}년 전`;
 }
+
+/**
+ * 본문 속 "mm:ss" / "h:mm:ss" 시간 표기를 찾는 정규식 — 앞뒤가 숫자·콜론이면 제외 (예: 2026:01:01, 12:345)
+ * 구형 iOS Safari는 lookbehind를 지원하지 않아, 앞 글자를 그룹 1로 잡고 시간 표기는 그룹 2로 받음
+ */
+export const TIMESTAMP_PATTERN = /(^|[^\d:])((?:\d{1,2}:)?\d{1,2}:[0-5]\d)(?![\d:])/g;
+
+/**
+ * 본문을 일반 텍스트와 타임스탬프 조각으로 나눔 — 타임스탬프는 누르면 영상 해당 시점으로 이동하는 버튼으로 렌더링
+ */
+export function splitTimestamps(text: string): ({ type: 'text'; value: string } | { type: 'time'; value: string; seconds: number })[] {
+  const parts: ({ type: 'text'; value: string } | { type: 'time'; value: string; seconds: number })[] = [];
+  let last = 0;
+  for (const match of text.matchAll(TIMESTAMP_PATTERN)) {
+    const index = (match.index ?? 0) + match[1].length;
+    const seconds = parseTimestamp(match[2]);
+    if (seconds == null) continue;
+    if (index > last) parts.push({ type: 'text', value: text.slice(last, index) });
+    parts.push({ type: 'time', value: match[2], seconds });
+    last = index + match[2].length;
+  }
+  if (last < text.length) parts.push({ type: 'text', value: text.slice(last) });
+  return parts;
+}
+
+/**
+ * 등록 시각(ISO) → 상대 시간 ("방금 전", "5분 전", "3시간 전", 이후는 formatRelativeDate)
+ */
+export function formatRelativeTime(iso: string): string {
+  const diffMin = Math.floor((Date.now() - Date.parse(iso)) / 60000);
+  if (diffMin < 1) return '방금 전';
+  if (diffMin < 60) return `${diffMin}분 전`;
+  if (diffMin < 60 * 24) return `${Math.floor(diffMin / 60)}시간 전`;
+  const kstDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date(iso));
+  return formatRelativeDate(kstDate);
+}
+
+// 피드백 제목(요약)은 20자 내외 권장 — 입력창과 서버 모두 이 길이에서 자름
+export const FEEDBACK_TITLE_MAX = 30;
