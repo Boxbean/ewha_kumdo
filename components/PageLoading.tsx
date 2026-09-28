@@ -1,15 +1,17 @@
-// 페이지/목록 로딩 공용 표시 — 스플래시와 같은 모티프(로고 + 바깥 원 그리기)를 작게 줄여 0.8초 주기로 반복
-// 키프레임은 app/globals.css의 page-loading-* 참고 (prefers-reduced-motion 시 정지)
+// 페이지/목록 로딩 공용 표시 — 스플래시와 같은 모티프(로고 + 바깥 원 그리기)를 작게 줄여 반복 (주기는 globals.css)
+// 키프레임은 app/globals.css의 page-loading-* 참고 (prefers-reduced-motion 시 원은 멈추고 로고 깜빡임만 유지)
 const SIZE = 64;
 const LOGO_SIZE = 58;
 const RING_RADIUS = 23;
 const CENTER = SIZE / 2;
+// pathLength 대신 실제 둘레(px)를 씀 — iOS Safari는 circle의 pathLength를 dash 애니메이션에 제대로 적용하지 않음
+const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 export default function PageLoading() {
   return (
     <div role="status" aria-label="로딩 중" className="py-12 flex justify-center select-none">
       <div style={{ position: 'relative', width: SIZE, height: SIZE }}>
-        {/* 원이 그려졌다가 끝부터 지워지는 연출 (pathLength=100 기준 stroke-dashoffset: 100 → 0 → -100) */}
+        {/* 원이 그려졌다가 끝부터 지워지는 연출 (stroke-dashoffset: 둘레 → 0 → -둘레) */}
         <svg
           width={SIZE}
           height={SIZE}
@@ -26,9 +28,9 @@ export default function PageLoading() {
             strokeOpacity={0.8}
             strokeWidth={1.5}
             strokeLinecap="round"
-            pathLength={100}
-            strokeDasharray={100}
-            strokeDashoffset={100}
+            strokeDasharray={CIRCUMFERENCE}
+            strokeDashoffset={CIRCUMFERENCE}
+            style={{ ['--ring-c' as string]: `${CIRCUMFERENCE}px` }}
           />
         </svg>
 

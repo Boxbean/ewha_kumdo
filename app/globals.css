@@ -37,18 +37,18 @@ input[type="date"] {
   animation: page-loading-logo 1.2s ease-in-out infinite;
 }
 @keyframes page-loading-ring {
-  0% { stroke-dashoffset: 100; }
+  0% { stroke-dashoffset: var(--ring-c); }
   50% { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: -100; }
+  100% { stroke-dashoffset: calc(-1 * var(--ring-c)); }
 }
 @keyframes page-loading-logo {
   0%, 100% { opacity: 0.45; }
   50% { opacity: 1; }
 }
+/* 동작 줄이기 설정 시 원 회전(움직임)은 멈추되, 로딩 중임을 알 수 있게 로고 깜빡임(투명도만 변화)은 유지 */
 @media (prefers-reduced-motion: reduce) {
-  .page-loading-ring,
-  .page-loading-logo {
+  .page-loading-ring {
     animation: none;
+    stroke-dashoffset: 0;
   }
-  .page-loading-ring { stroke-dashoffset: 0; }
 }
