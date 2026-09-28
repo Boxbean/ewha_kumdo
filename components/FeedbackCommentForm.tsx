@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getAuthorToken } from '@/lib/feedbackAuthorClient';
+import FeedbackPasswordModal from './FeedbackPasswordModal';
 
 const MAIN_PLACEHOLDER = '다양한 피드백을 남겨주세요. 모두의 자신감과 발전을 위해 둥근 피드백 부탁드립니다 🙏';
 
@@ -18,6 +20,11 @@ export default function FeedbackCommentForm({ postId, onSuccess, parentId, onCan
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const isReply = !!parentId;
+  // 이 기기가 글쓴이 토큰을 갖고 있으면 댓글이 글쓴이로 표시됨
+  const [isAuthor, setIsAuthor] = useState(false);
+  const [showVerify, setShowVerify] = useState(false);
+
+  useEffect(() => setIsAuthor(!!getAuthorToken(postId)), [postId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,7 +38,12 @@ export default function FeedbackCommentForm({ postId, onSuccess, parentId, onCan
       const res = await fetch(`/api/feedback/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body, author_name: authorName || undefined, parent_id: parentId }),
+        body: JSON.stringify({
+          body,
+          author_name: authorName || undefined,
+          parent_id: parentId,
+          author_token: getAuthorToken(postId) || undefined,
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || '오류 발생');
@@ -85,6 +97,22 @@ export default function FeedbackCommentForm({ postId, onSuccess, parentId, onCan
         </button>
       </div>
       {error && <p className="text-sm text-red-500">{error}</p>}
+      {isAuthor ? (
+        <p className="text-xs" style={{ color: '#00462A' }}>✍️ 글쓴이로 작성돼요</p>
+      ) : !isReply && (
+        <button type="button" onClick={() => setShowVerify(true)} className="text-xs underline" style={{ color: '#9CA3AF' }}>
+          이 글의 글쓴이신가요?
+        </button>
+      )}
+      {showVerify && (
+        <FeedbackPasswordModal
+          postId={postId}
+          title="글쓴이 확인"
+          description="글을 등록할 때 정한 비밀번호(숫자 4자리)를 입력하면, 이 기기에서 쓰는 댓글이 글쓴이로 표시돼요."
+          onClose={() => setShowVerify(false)}
+          onSuccess={() => { setShowVerify(false); setIsAuthor(true); }}
+        />
+      )}
     </form>
   );
 }

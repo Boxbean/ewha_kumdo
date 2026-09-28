@@ -5,6 +5,7 @@ import { FeedbackPost } from '@/lib/types';
 import { formatTimestamp } from '@/lib/utils';
 import { adminFetch } from '@/lib/adminClient';
 import Pagination from './Pagination';
+import AdminPasswordRequests from './AdminPasswordRequests';
 
 const PAGE_SIZE = 50;
 
@@ -44,17 +45,28 @@ export default function AdminFeedbackList() {
   }
 
   if (loading) {
-    return <p className="text-sm py-4" style={{ color: '#B9B9B9' }}>로딩 중...</p>;
+    return (
+      <div>
+        <AdminPasswordRequests />
+        <p className="text-sm py-4" style={{ color: '#B9B9B9' }}>로딩 중...</p>
+      </div>
+    );
   }
 
   if (posts.length === 0) {
-    return <p className="text-sm py-4" style={{ color: '#B9B9B9' }}>등록된 피드백이 없습니다.</p>;
+    return (
+      <div>
+        <AdminPasswordRequests />
+        <p className="text-sm py-4" style={{ color: '#B9B9B9' }}>등록된 피드백이 없습니다.</p>
+      </div>
+    );
   }
 
   const hasMore = posts.length < total;
 
   return (
     <div>
+      <AdminPasswordRequests />
       <p className="text-xs mb-3" style={{ color: '#B9B9B9' }}>
         총 {total}개 중 {posts.length}개 표시
       </p>

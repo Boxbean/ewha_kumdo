@@ -51,6 +51,7 @@ export interface FeedbackComment {
   body: string;
   author_name?: string;
   like_count?: number;
+  is_author?: boolean; // 게시글 글쓴이가 남긴 댓글/답글 (말풍선 꼬리가 왼쪽)
   created_at: string;
 }
 

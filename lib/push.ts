@@ -19,9 +19,20 @@ interface PushPayload {
 
 // 관리자 쓰기 라우트의 응답 이후(next/server의 after())에서 호출 — 발송 성패가 API 응답에 영향을 주지 않음
 export async function sendPushToAllSubscribers(payload: PushPayload): Promise<void> {
+  await sendPush(payload, false);
+}
+
+// 관리자(개발자) 알림 기기로 등록된 곳에만 발송 — 비밀번호 분실 문의 등
+export async function sendPushToAdmins(payload: PushPayload): Promise<void> {
+  await sendPush(payload, true);
+}
+
+async function sendPush(payload: PushPayload, adminsOnly: boolean): Promise<void> {
   if (!vapidConfigured) return;
 
-  const { data: subs, error } = await supabase.from('push_subscriptions').select('*');
+  let query = supabase.from('push_subscriptions').select('*');
+  if (adminsOnly) query = query.eq('is_admin', true);
+  const { data: subs, error } = await query;
   if (error || !subs) return;
 
   await Promise.allSettled(

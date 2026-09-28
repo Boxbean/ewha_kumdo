@@ -16,7 +16,7 @@ interface FeedbackCommentsSectionProps {
 const BUBBLE_COLORS = ['#E8F3EC', '#EEF2F7', '#FBF3E4', '#F3EEF8', '#E6F4F3'];
 const LIKED_STORAGE_KEY = 'feedback_liked_comments';
 
-// 댓글 id로 색·꼬리 방향을 정함 — 무작위처럼 보이지만 새로고침해도 같은 댓글은 같은 모양
+// 댓글 id로 색을 정함 — 무작위처럼 보이지만 새로고침해도 같은 댓글은 같은 색
 function hashOf(id: string): number {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
@@ -156,8 +156,8 @@ function Bubble({
 }) {
   const hash = hashOf(comment.id);
   const color = BUBBLE_COLORS[hash % BUBBLE_COLORS.length];
-  // 대댓글은 들여쓴 줄 안에서 읽기 쉽도록 항상 왼쪽 정렬, 일반 댓글만 좌우가 섞임
-  const right = !isReply && (hash >> 3) % 2 === 1;
+  // 댓글·답글은 모두 오른쪽(꼬리 오른쪽), 글쓴이가 남긴 것만 왼쪽 — 대화처럼 글쓴이 쪽이 구분됨
+  const right = !comment.is_author;
 
   return (
     <div
@@ -165,6 +165,11 @@ function Bubble({
       style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
     >
       <span className="text-xs mb-1 px-1" style={{ color: '#6B7280' }}>
+        {comment.is_author && (
+          <span className="mr-1 px-1.5 py-px rounded font-semibold" style={{ backgroundColor: 'rgba(0,70,42,0.1)', color: '#00462A' }}>
+            글쓴이
+          </span>
+        )}
         {comment.author_name || '익명'}
       </span>
       <div

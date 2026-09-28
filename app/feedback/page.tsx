@@ -49,7 +49,7 @@ export default function FeedbackPage() {
       <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-xl font-bold" style={{ color: '#00462A' }}>
-          피드백 부탁드립니다! 🙏
+          📢 피드백 부탁드립니다!!
         </h1>
         <span className="text-sm" style={{ color: '#B9B9B9' }}>
           {total}개

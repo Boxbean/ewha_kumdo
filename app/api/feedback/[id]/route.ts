@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
-import { requireAdmin } from '@/lib/adminAuth';
+import { requireAdminOrPostPassword } from '@/lib/feedbackAuth';
 import { FeedbackPost } from '@/lib/types';
 import { FEEDBACK_TITLE_MAX, splitTimestamps } from '@/lib/utils';
 
@@ -30,12 +30,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ data: post });
 }
 
-// 관리자 수정 — 본문에 포함된 필드만 반영
+// 글쓴이(글 비밀번호) 또는 관리자 수정 — 본문에 포함된 필드만 반영
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const authError = requireAdmin(req);
+  const { id } = await params;
+  const authError = await requireAdminOrPostPassword(req, id);
   if (authError) return authError;
 
-  const { id } = await params;
   const body = await req.json();
   const update: Record<string, unknown> = {};
   if ('body' in body) {
@@ -69,10 +69,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const authError = requireAdmin(req);
+  const { id } = await params;
+  const authError = await requireAdminOrPostPassword(req, id);
   if (authError) return authError;
 
-  const { id } = await params;
   const { error } = await supabase.from('feedback_posts').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   revalidatePath(`/feedback/${id}`);

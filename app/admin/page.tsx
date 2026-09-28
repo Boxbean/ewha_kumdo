@@ -26,6 +26,8 @@ export default function AdminPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    // 비밀번호 분실 문의 푸시 알림에서 들어오면 피드백 탭을 바로 열기
+    if (new URLSearchParams(window.location.search).get('tab') === 'feedback') setTab('feedback');
     if (sessionStorage.getItem('admin_auth') === '1') {
       setIsAuthenticated(true);
       const editId = sessionStorage.getItem('admin_edit_id');

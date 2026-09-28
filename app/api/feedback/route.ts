@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { FeedbackPost } from '@/lib/types';
 import { FEEDBACK_TITLE_MAX, splitTimestamps } from '@/lib/utils';
+import { authorToken, FEEDBACK_PASSWORD_PATTERN } from '@/lib/feedbackAuth';
 
 const FEEDBACK_SELECT = `
   *,
@@ -38,17 +39,20 @@ export async function GET(req: NextRequest) {
   });
 }
 
-// 등록은 로그인 없이 개방 — 수정/삭제만 관리자 비밀번호로 보호 (기존 사이트 신뢰 모델과 동일)
+// 등록은 로그인 없이 개방 — 수정/삭제는 글 비밀번호(숫자 4자리) 또는 관리자 비밀번호로 보호
 // 개편 후 새 글은 정규 영상(videos)만 대상으로 하고, 시간 표기는 본문 안에 여러 개 적는 방식
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { video_id, title, body: postBody, author_name } = body;
+  const { video_id, title, body: postBody, author_name, password } = body;
 
   if (!video_id || typeof postBody !== 'string' || !postBody.trim()) {
     return NextResponse.json({ error: '필수 항목 누락' }, { status: 400 });
   }
   if (typeof title !== 'string' || !title.trim()) {
     return NextResponse.json({ error: '제목을 입력해주세요.' }, { status: 400 });
+  }
+  if (typeof password !== 'string' || !FEEDBACK_PASSWORD_PATTERN.test(password)) {
+    return NextResponse.json({ error: '비밀번호는 숫자 4자리로 입력해주세요.' }, { status: 400 });
   }
 
   // 목록 정렬·기존 화면 호환을 위해 본문 첫 번째 시간 표기를 대표 타임스탬프로 저장
@@ -67,5 +71,13 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data: withVideoType(data) }, { status: 201 });
+
+  // 비밀번호를 못 걸면 아무도 수정/삭제할 수 없는 글이 되므로 등록 자체를 되돌림
+  const { data: saved, error: pwError } = await supabase.rpc('set_feedback_password', { p_post_id: data.id, p_password: password });
+  if (pwError || saved !== true) {
+    await supabase.from('feedback_posts').delete().eq('id', data.id);
+    return NextResponse.json({ error: '비밀번호 저장에 실패했습니다. 잠시 후 다시 시도해주세요.' }, { status: 500 });
+  }
+
+  return NextResponse.json({ data: withVideoType(data), author_token: authorToken(data.id) }, { status: 201 });
 }

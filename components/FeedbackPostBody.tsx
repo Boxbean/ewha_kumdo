@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import { FeedbackPost } from '@/lib/types';
 import { adminFetch } from '@/lib/adminClient';
 import { FEEDBACK_TITLE_MAX } from '@/lib/utils';
-import AdminAuthModal from './AdminAuthModal';
+import FeedbackPasswordModal from './FeedbackPasswordModal';
 import TimestampText from './TimestampText';
 import RelativeTime from './RelativeTime';
 
 type PendingAction = 'edit' | 'delete' | null;
 
-// 피드백 상세의 본문 카드 — 제목(요약)이 메인, 본문의 시간 표기는 영상 이동 링크. 관리자 비밀번호 확인 후 수정/삭제 가능
+// 피드백 상세의 본문 카드 — 제목(요약)이 메인, 본문의 시간 표기는 영상 이동 링크. 글 비밀번호(또는 관리자 인증) 확인 후 수정/삭제 가능
 export default function FeedbackPostBody({
   post: initialPost, onSeek,
 }: {
@@ -27,6 +27,8 @@ export default function FeedbackPostBody({
   const [authorName, setAuthorName] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  // 이번에 확인한 글 비밀번호 — 수정/삭제 요청 헤더에 실어 보냄
+  const [postPassword, setPostPassword] = useState('');
 
   function startEdit() {
     setTitle(post.title || '');
@@ -36,11 +38,11 @@ export default function FeedbackPostBody({
     setEditing(true);
   }
 
-  async function remove() {
+  async function remove(password: string) {
     if (!confirm('이 피드백을 삭제하시겠습니까? 달린 댓글도 함께 삭제됩니다.')) return;
     setBusy(true);
     try {
-      const res = await adminFetch(`/api/feedback/${post.id}`, { method: 'DELETE' });
+      const res = await adminFetch(`/api/feedback/${post.id}`, { method: 'DELETE', headers: passwordHeader(password) });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.error || '삭제 실패');
       router.push('/feedback');
@@ -51,15 +53,15 @@ export default function FeedbackPostBody({
     }
   }
 
-  // 이번 세션에 이미 인증했다면 비밀번호를 다시 묻지 않음
+  // 관리자로 인증된 세션이거나 이미 글 비밀번호를 확인했다면 다시 묻지 않음
   function requestAction(action: Exclude<PendingAction, null>) {
-    if (sessionStorage.getItem('admin_auth') === '1') run(action);
+    if (sessionStorage.getItem('admin_auth') === '1' || postPassword) run(action, postPassword);
     else setAuthFor(action);
   }
 
-  function run(action: Exclude<PendingAction, null>) {
+  function run(action: Exclude<PendingAction, null>, password: string) {
     if (action === 'edit') startEdit();
-    else void remove();
+    else void remove(password);
   }
 
   async function save(e: React.FormEvent) {
@@ -71,7 +73,7 @@ export default function FeedbackPostBody({
     try {
       const res = await adminFetch(`/api/feedback/${post.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...passwordHeader(postPassword) },
         body: JSON.stringify({ title: title.trim(), body: body.trim(), author_name: authorName.trim() || null }),
       });
       const json = await res.json();
@@ -179,16 +181,24 @@ export default function FeedbackPostBody({
       )}
 
       {authFor && (
-        <AdminAuthModal
-          description={authFor === 'edit' ? '피드백을 수정하려면 관리자 비밀번호가 필요합니다.' : '피드백을 삭제하려면 관리자 비밀번호가 필요합니다.'}
+        <FeedbackPasswordModal
+          postId={post.id}
+          title={authFor === 'edit' ? '피드백 수정' : '피드백 삭제'}
+          description="글을 등록할 때 정한 비밀번호(숫자 4자리)를 입력해주세요."
           onClose={() => setAuthFor(null)}
-          onSuccess={() => {
+          onSuccess={(password) => {
             const action = authFor;
             setAuthFor(null);
-            run(action);
+            setPostPassword(password);
+            run(action, password);
           }}
         />
       )}
     </div>
   );
+}
+
+// 관리자 세션이면 adminFetch가 관리자 비밀번호도 함께 실어 보내므로 둘 중 하나만 맞으면 통과
+function passwordHeader(password: string): Record<string, string> {
+  return password ? { 'x-feedback-password': password } : {};
 }
