@@ -10,48 +10,54 @@ import { Shorts } from '@/lib/types';
 import PageLoading from '@/components/PageLoading';
 
 const PAGE_SIZE = 18;
+// 홈 쇼츠 줄과 같은 규칙 — 최신 2개는 등록순으로 고정하고, 나머지는 방문할 때마다 섞어서 다양한 쇼츠가 노출되게 함.
+// 페이지 단위로 받아오면 페이지 안에서만 섞이므로 목록은 한 번에 받아 섞고, 화면에는 PAGE_SIZE씩 늘려가며 그림
+const NEWEST_FIXED = 2;
+const FETCH_ALL_LIMIT = 1000;
+
+function shuffle<T>(items: T[]): T[] {
+  const a = [...items];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 export default function ShortsPage() {
-  const [shorts, setShorts] = useState<Shorts[]>([]);
-  const [total, setTotal] = useState(0);
+  const [allShorts, setAllShorts] = useState<Shorts[]>([]);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   const requestId = useRef(0);
-  const loadingRef = useRef(false);
-  const lengthRef = useRef(0);
-  lengthRef.current = shorts.length;
 
-  const fetchShorts = useCallback(async (offset: number, append: boolean) => {
+  const fetchShorts = useCallback(async () => {
     const id = ++requestId.current;
-    loadingRef.current = true;
     setLoading(true);
     try {
-      const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
-      const res = await fetch(`/api/shorts?${params.toString()}`);
+      const res = await fetch(`/api/shorts?limit=${FETCH_ALL_LIMIT}`);
       const json = await res.json();
       if (id !== requestId.current) return;
-      setShorts((prev) => (append ? [...prev, ...(json.data || [])] : json.data || []));
-      setTotal(json.count || 0);
+      const list: Shorts[] = json.data || [];
+      setAllShorts([...list.slice(0, NEWEST_FIXED), ...shuffle(list.slice(NEWEST_FIXED))]);
+      setVisibleCount(PAGE_SIZE);
     } finally {
-      if (id === requestId.current) {
-        loadingRef.current = false;
-        setLoading(false);
-      }
+      if (id === requestId.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchShorts(0, false);
+    fetchShorts();
   }, [fetchShorts]);
 
-  const hasMore = shorts.length < total;
+  const shorts = allShorts.slice(0, visibleCount);
+  const hasMore = visibleCount < allShorts.length;
 
   const loadMore = useCallback(() => {
-    if (loadingRef.current) return;
-    fetchShorts(lengthRef.current, true);
-  }, [fetchShorts]);
+    setVisibleCount((n) => n + PAGE_SIZE);
+  }, []);
 
   // 그리드 하단 센티널이 보이면 다음 페이지 자동 로드
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -69,7 +75,7 @@ export default function ShortsPage() {
 
   function handleSubmitted() {
     setFormOpen(false);
-    fetchShorts(0, false);
+    fetchShorts();
   }
 
   return (
