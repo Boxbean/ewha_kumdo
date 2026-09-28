@@ -12,10 +12,19 @@ import { saveAuthorToken } from '@/lib/feedbackAuthorClient';
 const SEARCH_LIMIT = 20;
 const BODY_PLACEHOLDER = '예) 00:10 에 친 머리는 왜 득점이 아닌지 궁금합니다.\n01:23 에서 받아허리를 맞지 않으려면 어떻게 했어야 할까요?';
 
-// 피드백 요청 작성: 정규 영상 검색·선택 → 영상을 보며 현재 시간을 본문에 넣기 → 제목/본문/작성자/비밀번호
+// 영상을 고르는 두 가지 방법 — 사이트 영상 선택 / 유튜브 링크 붙여넣기
+type Source = 'site' | 'youtube';
+const SOURCE_TABS: { key: Source; label: string }[] = [
+  { key: 'site', label: '사이트 영상' },
+  { key: 'youtube', label: '유튜브 링크' },
+];
+
+// 피드백 요청 작성: 영상 고르기(사이트 영상 또는 유튜브 링크) → 영상을 보며 현재 시간을 본문에 넣기 → 제목/본문/작성자/비밀번호
 export default function FeedbackComposer({ initialVideoId }: { initialVideoId: string | null }) {
   const router = useRouter();
+  const [source, setSource] = useState<Source>('site');
   const [video, setVideo] = useState<Video | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState<string | null>(null);
   const [loadingInitial, setLoadingInitial] = useState(!!initialVideoId);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -58,16 +67,19 @@ export default function FeedbackComposer({ initialVideoId }: { initialVideoId: s
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    if (!video) { setError('피드백을 받을 영상을 선택해주세요.'); return; }
+    const videoField = source === 'site'
+      ? (video ? { video_id: video.id } : null)
+      : (youtubeUrl ? { youtube_url: youtubeUrl } : null);
+    if (!videoField) { setError('피드백을 받을 영상을 선택해주세요.'); return; }
     if (!title.trim()) { setError('제목(요약)을 입력해주세요.'); return; }
     if (!body.trim()) { setError('피드백 요청 내용을 입력해주세요.'); return; }
-    if (!/^d{4}$/.test(password)) { setError('비밀번호를 숫자 4자리로 입력해주세요.'); return; }
+    if (!/^\d{4}$/.test(password)) { setError('비밀번호를 숫자 4자리로 입력해주세요.'); return; }
     setSubmitting(true);
     try {
       const res = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ video_id: video.id, title: title.trim(), body: body.trim(), author_name: authorName.trim() || undefined, password }),
+        body: JSON.stringify({ ...videoField, title: title.trim(), body: body.trim(), author_name: authorName.trim() || undefined, password }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || '등록 실패');
@@ -81,6 +93,7 @@ export default function FeedbackComposer({ initialVideoId }: { initialVideoId: s
   }
 
   const videoId = video ? extractYouTubeId(video.youtube_url) : null;
+  const linkedYoutubeId = youtubeUrl ? extractYouTubeId(youtubeUrl) : null;
   const stamps = splitTimestamps(body).filter((p) => p.type === 'time');
 
   return (
@@ -92,7 +105,38 @@ export default function FeedbackComposer({ initialVideoId }: { initialVideoId: s
       {/* 1. 영상 */}
       <section>
         <Label>영상 *</Label>
-        {loadingInitial ? (
+        <div className="grid grid-cols-2 gap-1 p-1 mb-2 rounded-lg" style={{ backgroundColor: '#f3f4f6' }}>
+          {SOURCE_TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => { setSource(t.key); setError(''); }}
+              disabled={submitting}
+              className="h-8 text-xs font-semibold rounded-md"
+              style={source === t.key
+                ? { backgroundColor: '#fff', color: '#00462A', boxShadow: '0 1px 2px rgba(0,0,0,0.08)' }
+                : { color: '#6B7280' }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        {source === 'youtube' ? (
+          youtubeUrl && linkedYoutubeId ? (
+            <div>
+              <div className="relative w-full rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: '#000' }}>
+                <YouTubePlayer ref={playerRef} videoId={linkedYoutubeId} />
+              </div>
+              <LiveTimeBar playerRef={playerRef} onInsert={insertTime} />
+              <div className="flex items-center justify-between gap-2 mt-2">
+                <p className="text-xs" style={{ color: '#6B7280' }}>이 영상은 사이트 영상 목록에도 함께 등록돼요.</p>
+                <ChangeButton onClick={() => setYoutubeUrl(null)} disabled={submitting}>링크 변경</ChangeButton>
+              </div>
+            </div>
+          ) : (
+            <YouTubeLinkInput onConfirm={setYoutubeUrl} />
+          )
+        ) : loadingInitial ? (
           <p className="text-sm py-6 text-center" style={{ color: '#B9B9B9' }}>영상을 불러오는 중...</p>
         ) : video && videoId ? (
           <div>
@@ -102,14 +146,7 @@ export default function FeedbackComposer({ initialVideoId }: { initialVideoId: s
             <LiveTimeBar playerRef={playerRef} onInsert={insertTime} />
             <div className="flex items-center justify-between gap-2 mt-2">
               <p className="text-sm font-medium truncate" style={{ color: '#374151' }}>{video.title}</p>
-              <button
-                type="button"
-                onClick={() => setVideo(null)}
-                className="flex-shrink-0 text-xs px-3 py-1 rounded border"
-                style={{ borderColor: '#e0e0e0', color: '#6B7280' }}
-              >
-                영상 변경
-              </button>
+              <ChangeButton onClick={() => setVideo(null)} disabled={submitting}>영상 변경</ChangeButton>
             </div>
           </div>
         ) : (
@@ -194,7 +231,7 @@ export default function FeedbackComposer({ initialVideoId }: { initialVideoId: s
           autoComplete="new-password"
           maxLength={4}
           value={password}
-          onChange={(e) => setPassword(e.target.value.replace(/D/g, '').slice(0, 4))}
+          onChange={(e) => setPassword(e.target.value.replace(/\D/g, '').slice(0, 4))}
           placeholder="••••"
           className="w-32 h-10 px-3 text-sm rounded border focus:outline-none tracking-widest"
           style={{ borderColor: '#e0e0e0' }}
@@ -227,6 +264,62 @@ export default function FeedbackComposer({ initialVideoId }: { initialVideoId: s
 
 function Label({ children }: { children: React.ReactNode }) {
   return <label className="block text-sm font-medium mb-1.5" style={{ color: '#374151' }}>{children}</label>;
+}
+
+function ChangeButton({ onClick, disabled, children }: { onClick: () => void; disabled?: boolean; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="flex-shrink-0 text-xs px-3 py-1 rounded border"
+      style={{ borderColor: '#e0e0e0', color: '#6B7280' }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// 유튜브 링크 붙여넣기 — 영상 주소 형식인지 확인되면 바로 미리보기로 전환
+function YouTubeLinkInput({ onConfirm }: { onConfirm: (url: string) => void }) {
+  const [value, setValue] = useState('');
+  const [invalid, setInvalid] = useState(false);
+
+  function confirm() {
+    const url = value.trim();
+    if (!extractYouTubeId(url)) { setInvalid(true); return; }
+    onConfirm(url);
+  }
+
+  return (
+    <div className="rounded-lg border p-3" style={{ borderColor: '#e0e0e0' }}>
+      <div className="flex gap-2">
+        <input
+          type="url"
+          inputMode="url"
+          value={value}
+          onChange={(e) => { setValue(e.target.value); setInvalid(false); }}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); confirm(); } }}
+          placeholder="https://youtu.be/..."
+          className="flex-1 min-w-0 h-9 px-3 text-sm rounded border focus:outline-none"
+          style={{ borderColor: invalid ? '#ef4444' : '#e0e0e0' }}
+        />
+        <button
+          type="button"
+          onClick={confirm}
+          className="flex-shrink-0 h-9 px-4 text-sm font-semibold rounded text-white"
+          style={{ backgroundColor: '#00462A' }}
+        >
+          불러오기
+        </button>
+      </div>
+      <p className="text-xs mt-2" style={{ color: invalid ? '#ef4444' : '#6B7280' }}>
+        {invalid
+          ? '유튜브 영상 링크 형식이 아니에요. 링크를 다시 확인해주세요.'
+          : '사이트에 없는 유튜브 영상도 링크로 피드백을 요청할 수 있어요. (공개 또는 일부 공개 영상)'}
+      </p>
+    </div>
+  );
 }
 
 // 영상을 보는 동안 현재 재생 시간을 실시간으로 보여주고, 본문 커서 위치에 넣을 수 있게 함

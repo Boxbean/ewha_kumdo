@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { FeedbackPost } from '@/lib/types';
 import { FEEDBACK_TITLE_MAX, splitTimestamps } from '@/lib/utils';
 import { authorToken, FEEDBACK_PASSWORD_PATTERN } from '@/lib/feedbackAuth';
+import { findOrCreateVideoFromYouTube } from '@/lib/feedbackVideo';
 
 const FEEDBACK_SELECT = `
   *,
@@ -40,12 +41,14 @@ export async function GET(req: NextRequest) {
 }
 
 // 등록은 로그인 없이 개방 — 수정/삭제는 글 비밀번호(숫자 4자리) 또는 관리자 비밀번호로 보호
-// 개편 후 새 글은 정규 영상(videos)만 대상으로 하고, 시간 표기는 본문 안에 여러 개 적는 방식
+// 영상은 사이트 영상 선택(video_id) 또는 유튜브 링크(youtube_url → 정규 영상으로 등록) 중 하나.
+// 시간 표기는 본문 안에 여러 개 적는 방식
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { video_id, title, body: postBody, author_name, password } = body;
+  const { youtube_url, title, body: postBody, author_name, password } = body;
+  let { video_id } = body;
 
-  if (!video_id || typeof postBody !== 'string' || !postBody.trim()) {
+  if ((!video_id && !youtube_url) || typeof postBody !== 'string' || !postBody.trim()) {
     return NextResponse.json({ error: '필수 항목 누락' }, { status: 400 });
   }
   if (typeof title !== 'string' || !title.trim()) {
@@ -53,6 +56,12 @@ export async function POST(req: NextRequest) {
   }
   if (typeof password !== 'string' || !FEEDBACK_PASSWORD_PATTERN.test(password)) {
     return NextResponse.json({ error: '비밀번호는 숫자 4자리로 입력해주세요.' }, { status: 400 });
+  }
+
+  if (!video_id) {
+    const result = await findOrCreateVideoFromYouTube(String(youtube_url), author_name || null);
+    if ('error' in result) return NextResponse.json({ error: result.error }, { status: 400 });
+    video_id = result.id;
   }
 
   // 목록 정렬·기존 화면 호환을 위해 본문 첫 번째 시간 표기를 대표 타임스탬프로 저장
