@@ -6,6 +6,18 @@ import SeriesCard from '@/components/SeriesCard';
 import { getSupabase } from '@/lib/supabase';
 import { Competition, SeriesThumbnail } from '@/lib/types';
 import { buildSeriesUnion } from '@/lib/competitionSeries';
+import { THUMBNAIL_CARD_FILE_TYPE, THUMBNAIL_FILE_TYPE } from '@/lib/utils';
+
+// 카드 썸네일: 시리즈에서 가장 최근에 썸네일을 등록한 대회의 카드용(관리자가 고른 정사각형) 이미지
+// → 없으면 그 대회 원본(카드에서 object-cover로 정중앙 정사각형만 보임)
+function competitionThumbnail(competitions: Competition[]): string | undefined {
+  for (const c of competitions) {
+    const card = c.files?.find((f) => f.file_type === THUMBNAIL_CARD_FILE_TYPE);
+    const original = c.files?.find((f) => f.file_type === THUMBNAIL_FILE_TYPE);
+    if (card || original) return (card || original)!.file_url;
+  }
+  return undefined;
+}
 
 export default async function CompetitionPage() {
   const supabase = getSupabase();
@@ -13,7 +25,7 @@ export default async function CompetitionPage() {
   const [compRes, thumbRes] = await Promise.all([
     supabase
       .from('competitions')
-      .select('*, venue:venues(name)')
+      .select('*, venue:venues(name), files:competition_files(file_type,file_url)')
       .order('year', { ascending: false })
       .order('date_start', { ascending: false }),
     supabase.from('series_thumbnails').select('*'),
@@ -52,7 +64,12 @@ export default async function CompetitionPage() {
             key={series.key}
             series={series}
             latest={latest}
-            thumbnailUrl={thumbByKey.get(series.key) || undefined}
+            // 대회정보에서 등록한 썸네일 우선, 없으면 관리자 페이지의 시리즈 썸네일, 그것도 없으면 로고
+            thumbnailUrl={
+              competitionThumbnail(competitions.filter((c) => series.names.includes(c.name))) ||
+              thumbByKey.get(series.key) ||
+              undefined
+            }
           />
         ))}
       </div>

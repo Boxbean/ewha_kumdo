@@ -135,6 +135,9 @@ export function urlBase64ToUint8Array(base64String: string): Uint8Array {
 // 대회 썸네일은 competition_files에 이 file_type으로 1장만 저장
 export const THUMBNAIL_FILE_TYPE = '썸네일';
 
+// 대회 탭 카드(정사각형)에 쓰는, 관리자가 고른 영역을 잘라 만든 이미지 — 없으면 원본의 정중앙 정사각형을 사용
+export const THUMBNAIL_CARD_FILE_TYPE = '썸네일_카드';
+
 /**
  * "mm:ss" 또는 "h:mm:ss" → 초 단위 정수 (형식이 틀리면 null)
  */

@@ -6,7 +6,7 @@ import { getSupabase } from '@/lib/supabase';
 import { Competition } from '@/lib/types';
 import { getCompetitionColor } from '@/lib/utils';
 import { getSeriesByKey } from '@/lib/competitionSeries';
-import { THUMBNAIL_FILE_TYPE } from '@/lib/utils';
+import { THUMBNAIL_CARD_FILE_TYPE, THUMBNAIL_FILE_TYPE } from '@/lib/utils';
 
 interface Props {
   params: Promise<{ key: string }>;
@@ -100,7 +100,7 @@ export default async function CompetitionSeriesPage({ params }: Props) {
                   const participantCount = Array.isArray(comp.participants) ? comp.participants.length : 0;
                   // 썸네일 이미지는 첨부 파일 개수에서 제외
                   const fileCount = Array.isArray(comp.files)
-                    ? comp.files.filter((f) => f.file_type !== THUMBNAIL_FILE_TYPE).length
+                    ? comp.files.filter((f) => f.file_type !== THUMBNAIL_FILE_TYPE && f.file_type !== THUMBNAIL_CARD_FILE_TYPE).length
                     : 0;
 
                   return (
