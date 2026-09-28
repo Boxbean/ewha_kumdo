@@ -19,7 +19,7 @@ export default function SeriesCard({ series, latest, thumbnailUrl }: Props) {
         >
           {thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={thumbnailUrl} alt={series.label} className="w-full h-full object-cover" />
+            <img src={thumbnailUrl} alt={series.label} loading="lazy" decoding="async" className="w-full h-full object-cover" />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img src="/logo.png" alt="EWHA Kumdo" className="w-3/5 h-3/5 object-contain" />

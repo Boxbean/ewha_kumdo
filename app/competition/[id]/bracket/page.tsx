@@ -45,7 +45,7 @@ export default async function CompetitionBracketPage({ params }: Props) {
       <div className="mb-5">
         <Link
           href={`/competition/${comp.id}`}
-          className="inline-flex items-center gap-1 text-sm mb-4"
+          className="inline-flex items-center gap-1 text-sm py-2 -my-2 mb-2"
           style={{ color: '#B9B9B9' }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

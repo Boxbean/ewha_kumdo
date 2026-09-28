@@ -20,7 +20,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
     const q = search.trim();
     setMobileSearchOpen(false);
     if (q) {
-      router.push(`/?search=${encodeURIComponent(q)}`);
+      router.push(`/search?q=${encodeURIComponent(q)}`);
     } else {
       router.push('/');
     }

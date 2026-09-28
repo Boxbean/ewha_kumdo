@@ -1,84 +1,41 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Video } from '@/lib/types';
+import { useState } from 'react';
+import { Shorts, Video } from '@/lib/types';
 import VideoGrid from '@/components/VideoGrid';
 import Pagination from '@/components/Pagination';
 import HomeHero from '@/components/HomeHero';
 import HomeShortsRow from '@/components/HomeShortsRow';
 import SectionTitle from '@/components/SectionTitle';
 import { formatDate } from '@/lib/utils';
-import PageLoading from '@/components/PageLoading';
 
-const PAGE_SIZE = 10;
+interface Props {
+  // 첫 페이지는 서버(app/page.tsx)에서 받아오고, 이후 "더 불러오기"만 클라이언트에서 /api/videos 호출
+  initialVideos: Video[];
+  total: number;
+  pageSize: number;
+  shorts: Shorts[];
+}
 
-export default function HomeContent() {
-  const searchParams = useSearchParams();
-  const search = searchParams.get('search') || '';
+export default function HomeContent({ initialVideos, total: initialTotal, pageSize, shorts }: Props) {
+  const [videos, setVideos] = useState<Video[]>(initialVideos);
+  const [total, setTotal] = useState(initialTotal);
+  const [loading, setLoading] = useState(false);
 
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [total, setTotal] = useState(0);
-  const [offset, setOffset] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  const fetchVideos = useCallback(
-    async (currentOffset: number, append = false, signal?: AbortSignal) => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({
-          limit: String(PAGE_SIZE),
-          offset: String(currentOffset),
-        });
-        if (search) params.set('search', search);
-
-        const res = await fetch(`/api/videos?${params.toString()}`, { signal });
-        const json = await res.json();
-        setVideos((prev) => (append ? [...prev, ...(json.data || [])] : json.data || []));
-        setTotal(json.count || 0);
-      } catch (err) {
-        if ((err as Error).name !== 'AbortError') throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [search]
-  );
-
-  // 필터 변경 시 초기화 — 이전 요청 취소
-  useEffect(() => {
-    const controller = new AbortController();
-    setOffset(0);
-    fetchVideos(0, false, controller.signal);
-    return () => controller.abort();
-  }, [fetchVideos]);
-
-  function handleLoadMore() {
-    const next = offset + PAGE_SIZE;
-    setOffset(next);
-    fetchVideos(next, true);
+  async function handleLoadMore() {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ limit: String(pageSize), offset: String(videos.length) });
+      const res = await fetch(`/api/videos?${params.toString()}`);
+      const json = await res.json();
+      setVideos((prev) => [...prev, ...(json.data || [])]);
+      setTotal(json.count || 0);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const hasMore = videos.length < total;
-
-  if (loading && videos.length === 0) {
-    return (
-      <PageLoading />
-    );
-  }
-
-  // 검색 결과는 기존처럼 평평한 그리드로
-  if (search) {
-    return (
-      <div>
-        <p className="text-sm mb-3" style={{ color: '#374151' }}>
-          &ldquo;<strong>{search}</strong>&rdquo; 검색 결과 — {total}개
-        </p>
-        <VideoGrid videos={videos} autoplay />
-        <Pagination hasMore={hasMore} onLoadMore={handleLoadMore} loading={loading} />
-      </div>
-    );
-  }
 
   if (videos.length === 0) return <VideoGrid videos={[]} />;
 
@@ -90,7 +47,7 @@ export default function HomeContent() {
   return (
     <div>
       {heroVideos.length > 0 && <HomeHero videos={heroVideos} />}
-      <HomeShortsRow />
+      <HomeShortsRow shorts={shorts} />
 
       <div className="space-y-6">
         {groups.map((g, i) => (

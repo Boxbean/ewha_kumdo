@@ -24,6 +24,8 @@ export default function BracketMatchCircle({ number, videoId, decided }: Props) 
     return (
       <Link
         href={`/video/${videoId}`}
+        // 대진표는 화면 폭에 맞춰 축소되어 휴대폰에선 원이 17px 정도로 작아짐 — 모양은 그대로 두고 터치 영역만 사방으로 넓힘
+        className="relative after:absolute after:-inset-[9px] after:content-['']"
         style={{ ...style, cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.08)' }}
         title={`${number}경기 영상 보기`}
       >

@@ -23,7 +23,24 @@ export default function HomeHero({ videos }: Props) {
   useEffect(() => {
     // 연결 종류를 알려주지 않는 브라우저(아이폰 Safari, 데스크톱 등)는 모바일 데이터일 수도 있으므로 자동재생하지 않음
     const connection = (navigator as Navigator & { connection?: { type?: string } }).connection;
-    setAutoplay(connection?.type === 'wifi' || connection?.type === 'ethernet');
+    const start = () => setAutoplay(connection?.type === 'wifi' || connection?.type === 'ethernet');
+
+    // 유튜브 플레이어(스크립트 약 1MB)는 페이지 로딩이 끝난 뒤에 붙임 — 그 전엔 썸네일이 덮고 있어 화면상 차이는 없고,
+    // 첫 화면 썸네일·폰트와 대역폭을 다투지 않게 함. 로딩이 오래 걸려도 최대 2.5초 뒤엔 붙임
+    if (document.readyState === 'complete') {
+      start();
+      return;
+    }
+    const timer = setTimeout(start, 2500);
+    const onLoad = () => {
+      clearTimeout(timer);
+      start();
+    };
+    window.addEventListener('load', onLoad, { once: true });
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('load', onLoad);
+    };
   }, []);
 
   const video = videos[index] ?? videos[0];

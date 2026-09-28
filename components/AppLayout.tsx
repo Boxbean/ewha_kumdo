@@ -31,7 +31,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       {/* 모바일: margin 없음 / 데스크톱: 사이드바 너비만큼 margin */}
       <main
-        className="pt-[52px] pb-16 md:pb-0 transition-all duration-200"
+        // 하단 탭바는 홈 인디케이터 안전영역(env)만큼 키가 커지므로, 본문 하단 여백도 같은 값만큼 더해야 마지막 줄이 탭바에 가리지 않음
+        className="pt-[52px] pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 transition-all duration-200"
         style={{ '--sidebar-w': sidebarOpen ? '200px' : '56px' } as React.CSSProperties}
       >
         <style>{`

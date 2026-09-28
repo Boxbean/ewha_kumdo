@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/adminAuth';
 
@@ -21,5 +22,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params;
   const { error } = await supabase.from('shorts').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  revalidatePath('/');
   return NextResponse.json({ ok: true });
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse, after } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/adminAuth';
 import { sendPushToAllSubscribers } from '@/lib/push';
@@ -39,6 +40,8 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabase.from('videos').insert(rows).select();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  revalidatePath('/');
 
   // 건별이 아니라 요청당 알림 1건으로 묶어 스팸 방지
   after(() =>

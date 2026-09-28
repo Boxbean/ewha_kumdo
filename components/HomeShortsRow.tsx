@@ -6,7 +6,6 @@ import { Shorts } from '@/lib/types';
 import SectionTitle from './SectionTitle';
 
 // 앞의 몇 개는 최신 등록순으로 고정하고, 나머지는 방문할 때마다 섞어서 다양한 쇼츠가 노출되게 함
-const FETCH_LIMIT = 50;
 const NEWEST_FIXED = 2;
 
 function shuffle<T>(items: T[]): T[] {
@@ -19,18 +18,14 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 // 홈 중간의 쇼츠 가로 스크롤 한 줄 — 개수가 적어도 빈약해 보이지 않도록 그리드 대신 가로 배치
-export default function HomeShortsRow() {
-  const [shorts, setShorts] = useState<Shorts[]>([]);
+// 목록은 서버(app/page.tsx)에서 최신순으로 받아와 첫 화면에 바로 그림 — 예전처럼 로딩 후 줄이 뒤늦게 끼어들며
+// 아래 영상들을 밀어내지 않음. 섞기는 서버 HTML과 첫 렌더가 일치해야 하므로 마운트 후에 수행
+export default function HomeShortsRow({ shorts: initial }: { shorts: Shorts[] }) {
+  const [shorts, setShorts] = useState<Shorts[]>(initial);
 
   useEffect(() => {
-    fetch(`/api/shorts?limit=${FETCH_LIMIT}`)
-      .then((r) => r.json())
-      .then((json) => {
-        const list: Shorts[] = json.data || [];
-        setShorts([...list.slice(0, NEWEST_FIXED), ...shuffle(list.slice(NEWEST_FIXED))]);
-      })
-      .catch(() => {});
-  }, []);
+    setShorts([...initial.slice(0, NEWEST_FIXED), ...shuffle(initial.slice(NEWEST_FIXED))]);
+  }, [initial]);
 
   if (shorts.length === 0) return null;
 
@@ -38,7 +33,7 @@ export default function HomeShortsRow() {
     <section className="mb-6">
       <div className="flex items-baseline justify-between mb-2">
         <SectionTitle>검도쇼츠</SectionTitle>
-        <Link href="/shorts" className="text-xs" style={{ color: '#6B7280' }}>
+        <Link href="/shorts" className="text-xs py-2 -my-2 pl-3" style={{ color: '#6B7280' }}>
           전체보기 ›
         </Link>
       </div>

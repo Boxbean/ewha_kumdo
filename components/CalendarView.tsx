@@ -147,7 +147,8 @@ export default function CalendarView({ videos, initialYear, initialMonth }: Cale
 
       {/* 달력 테이블 — tableLayout fixed + 고정 높이 */}
       <div className="w-full overflow-x-auto">
-        <table className="w-full border-collapse" style={{ minWidth: '320px', tableLayout: 'fixed' }}>
+        {/* 최소 폭을 두면 폭 320px 기기(본문 288px)에서 토요일 열이 화면 밖 가로 스크롤로 밀려나 안 보이므로, 항상 화면 폭에 맞춤 */}
+        <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
           <thead>
             <tr>
               {DAY_LABELS.map((d, i) => (
@@ -208,7 +209,8 @@ export default function CalendarView({ videos, initialYear, initialMonth }: Cale
                                 <Link key={v.id} href={`/video/${v.id}`} className="block">
                                   <AngleBadge
                                     angle={v.angle}
-                                    className="block w-full text-center cursor-pointer hover:opacity-80"
+                                    // 좁은 화면의 칸(약 41px)에도 두 글자가 들어가도록 배지 좌우 여백을 줄임
+                                    className="block w-full text-center cursor-pointer hover:opacity-80 !px-0.5"
                                   />
                                 </Link>
                               ))}

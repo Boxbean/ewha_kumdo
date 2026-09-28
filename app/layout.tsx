@@ -3,7 +3,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import RegisterServiceWorker from "@/components/RegisterServiceWorker";
 import SplashScreen from "@/components/SplashScreen";
-import { pretendard } from "@/lib/fonts";
+import { SPLASH_SKIP_SCRIPT } from "@/lib/splash";
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -39,7 +40,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={pretendard.variable}>
+    // 스플래시 생략 표시(data-splash-skip)는 아래 스크립트가 하이드레이션 전에 붙이므로 속성 불일치 경고를 끔
+    <html lang="ko" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_SKIP_SCRIPT }} />
+      </head>
       <body>
         <SplashScreen>{children}</SplashScreen>
         <RegisterServiceWorker />

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { SPLASH_SESSION_KEY } from '@/lib/splash';
 
 // 로고 크기와 바깥 원 반지름을 독립적으로 조절 — 원은 로고 꽃잎 끝단 기준 약 10px 간격을 두고 감쌈
 const SIZE = 220;
@@ -22,8 +23,21 @@ export default function SplashScreen({ children }: SplashScreenProps) {
   const [phase, setPhase] = useState<'show' | 'exiting' | 'done'>('show');
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase('exiting'), HOLD_MS);
-    const t2 = setTimeout(() => setPhase('done'), HOLD_MS + EXIT_MS);
+    // 이번 앱 세션에서 이미 봤으면 즉시 생략 (lib/splash.ts의 헤드 스크립트가 CSS로 먼저 숨겨둔 상태)
+    if (document.documentElement.hasAttribute('data-splash-skip')) {
+      setPhase('done');
+      return;
+    }
+    try {
+      sessionStorage.setItem(SPLASH_SESSION_KEY, '1');
+    } catch {}
+
+    // 애니메이션(CSS)은 HTML이 처음 그려질 때 이미 시작되므로, 유지 시간도 하이드레이션 시점이 아니라 첫 화면 표시 시점 기준으로 계산 —
+    // 느린 기기에서 JS 로딩 시간 위에 1.3초가 통째로 더해지던 것을 방지
+    const fcp = performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? 0;
+    const hold = Math.max(0, fcp + HOLD_MS - performance.now());
+    const t1 = setTimeout(() => setPhase('exiting'), hold);
+    const t2 = setTimeout(() => setPhase('done'), hold + EXIT_MS);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -42,6 +56,7 @@ export default function SplashScreen({ children }: SplashScreenProps) {
     <>
       {/* 홈 화면 콘텐츠 — 전환 중에는 뷰포트 크기로 고정해 fixed 헤더/하단바가 실제 화면 기준으로 붙어있게 함 */}
       <div
+        className="splash-content"
         style={
           phase === 'done'
             ? undefined
@@ -58,7 +73,7 @@ export default function SplashScreen({ children }: SplashScreenProps) {
 
       {phase !== 'done' && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          className="splash-overlay fixed inset-0 z-[9999] flex items-center justify-center"
           style={{
             backgroundColor: '#FFFDF1',
             transform: phase === 'exiting' ? 'translateX(-100%)' : 'translateX(0)',

@@ -10,7 +10,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-pretendard), -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 * {
@@ -27,6 +27,16 @@ body {
 input[type="date"] {
   min-width: 0;
   width: 100%;
+}
+
+/* 스플래시 생략(이번 세션에서 이미 봄, lib/splash.ts) — 하이드레이션 전에도 스플래시를 숨기고 본문을 제자리에 표시 */
+html[data-splash-skip] .splash-overlay {
+  display: none;
+}
+html[data-splash-skip] .splash-content {
+  transform: none !important;
+  height: auto !important;
+  overflow: visible !important;
 }
 
 /* 공용 로딩 표시(components/PageLoading) — 0.8초 주기: 원이 그려졌다가(0~50%) 끝부터 지워짐(50~100%), 로고는 같은 주기로 은은하게 깜빡임 */

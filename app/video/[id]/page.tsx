@@ -65,7 +65,7 @@ export default async function VideoDetailPage({ params }: Props) {
 
           <div className="flex items-center gap-2 mb-2">
             <AngleBadge angle={video.angle} />
-            <p className="text-sm" style={{ color: '#B9B9B9' }}>
+            <p className="text-sm" style={{ color: '#6B7280' }}>
               {formatDate(video.date)}
             </p>
           </div>
@@ -89,6 +89,12 @@ export default async function VideoDetailPage({ params }: Props) {
               주제: <span className="font-medium">{video.topic}</span>
             </p>
           )}
+          {/* 등록자는 영상 정보의 일부라 피드백 버튼 위에 둠 (버튼 아래에 있으면 떨어져 보임) */}
+          {video.uploader && (
+            <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+              등록: {video.uploader}
+            </p>
+          )}
           {/* 대진표·대회·목록 어디서 들어와도 영상은 이 화면에서 보므로, 여기서 바로 피드백 요청 (영상 자동 선택) */}
           <Link
             href={`/feedback/new?video=${video.id}`}
@@ -97,12 +103,6 @@ export default async function VideoDetailPage({ params }: Props) {
           >
             🙋 이 영상 피드백 요청하기
           </Link>
-
-          {video.uploader && (
-            <p className="text-sm mt-1" style={{ color: '#B9B9B9' }}>
-              등록: {video.uploader}
-            </p>
-          )}
         </div>
 
         {/* 페어 영상 — 메인 영상/메타는 먼저 보내고 이 쿼리는 뒤따라 스트리밍 */}
