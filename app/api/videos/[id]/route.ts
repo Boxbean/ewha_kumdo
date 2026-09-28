@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatesSite } from '@/lib/revalidate';
 import { supabase } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/adminAuth';
 import { normalizeChapters } from '@/lib/utils';
@@ -16,7 +16,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ data });
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const PATCH = revalidatesSite(async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authError = requireAdmin(req);
   if (authError) return authError;
 
@@ -41,19 +41,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  revalidatePath('/');
-  revalidatePath(`/video/${id}`);
   return NextResponse.json({ data });
-}
+});
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const DELETE = revalidatesSite(async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authError = requireAdmin(req);
   if (authError) return authError;
 
   const { id } = await params;
   const { error } = await supabase.from('videos').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  revalidatePath('/');
-  revalidatePath(`/video/${id}`);
   return NextResponse.json({ ok: true });
-}
+});

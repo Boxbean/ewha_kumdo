@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatesSite } from '@/lib/revalidate';
 import { supabase } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/adminAuth';
 import Papa from 'papaparse';
@@ -16,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ data });
 }
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const POST = revalidatesSite(async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authError = requireAdmin(req);
   if (authError) return authError;
 
@@ -62,9 +63,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { data, error } = await supabase.from('competition_participants').insert(rows).select();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ data, count: rows.length }, { status: 201 });
-}
+});
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const PUT = revalidatesSite(async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authError = requireAdmin(req);
   if (authError) return authError;
 
@@ -85,4 +86,4 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { data, error } = await supabase.from('competition_participants').insert(rows).select();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ data, count: rows.length });
-}
+});

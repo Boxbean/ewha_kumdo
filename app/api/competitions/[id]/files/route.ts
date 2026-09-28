@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatesSite } from '@/lib/revalidate';
 import { supabase } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/adminAuth';
 
@@ -15,7 +15,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ data });
 }
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const POST = revalidatesSite(async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authError = requireAdmin(req);
   if (authError) return authError;
 
@@ -33,12 +33,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   // 썸네일 등이 대회 탭 카드·대회 상세(ISR 캐시)에 바로 보이도록 무효화
-  revalidatePath('/competition');
-  revalidatePath(`/competition/${id}`);
   return NextResponse.json({ data }, { status: 201 });
-}
+});
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const DELETE = revalidatesSite(async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authError = requireAdmin(req);
   if (authError) return authError;
 
@@ -52,7 +50,5 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   const { error } = await supabase.from('competition_files').delete().eq('id', file_id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  revalidatePath('/competition');
-  revalidatePath(`/competition/${id}`);
   return NextResponse.json({ ok: true });
-}
+});

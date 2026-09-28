@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse, after } from 'next/server';
+import { revalidatesSite } from '@/lib/revalidate';
 import { supabase } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/adminAuth';
 import { sendPushToAllSubscribers } from '@/lib/push';
@@ -22,7 +23,7 @@ interface BulkLinkRow {
 
 // 대진표 화면에 표시되는 경기 번호(원 안의 숫자)로 영상을 대량 연결 — 번호는 BracketView와 완전히 동일한
 // 알고리즘(assignMatchNumbers)으로 서버에서 다시 계산하므로, 화면에서 본 번호와 항상 일치한다.
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const POST = revalidatesSite(async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authError = requireAdmin(req);
   if (authError) return authError;
 
@@ -120,4 +121,4 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   );
 
   return NextResponse.json({ inserted: data?.length ?? insertRows.length, errors }, { status: 201 });
-}
+});

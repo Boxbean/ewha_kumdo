@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatesSite } from '@/lib/revalidate';
 import { supabase } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/adminAuth';
 
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
   });
 }
 
-export async function POST(req: NextRequest) {
+export const POST = revalidatesSite(async function POST(req: NextRequest) {
   const authError = requireAdmin(req);
   if (authError) return authError;
 
@@ -81,6 +81,5 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   // 대회 탭(/competition 이하, revalidate=30 ISR)에 새 대회가 즉시 반영되도록 캐시 무효화
-  revalidatePath('/competition', 'layout');
   return NextResponse.json({ data }, { status: 201 });
-}
+});

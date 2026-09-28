@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse, after } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatesSite } from '@/lib/revalidate';
 import { supabase } from '@/lib/supabase';
 import { Video } from '@/lib/types';
 import { requireAdmin } from '@/lib/adminAuth';
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+export const POST = revalidatesSite(async function POST(req: NextRequest) {
   const authError = requireAdmin(req);
   if (authError) return authError;
 
@@ -79,8 +79,7 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  revalidatePath('/');
   after(() => notifyNewVideo(data as Video));
 
   return NextResponse.json({ data }, { status: 201 });
-}
+});

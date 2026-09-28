@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Papa from 'papaparse';
+import { adminFetch, getAdminPassword } from '@/lib/adminClient';
 
 interface CsvRow {
   youtube_url: string;
@@ -82,15 +83,11 @@ export default function CsvUpload({ onSuccess }: CsvUploadProps) {
     setResult('');
     try {
       const csv = Papa.unparse(rows);
-      const password = sessionStorage.getItem('admin_pwd');
-      if (!password) throw new Error('세션이 만료되었습니다. 페이지를 새로고침 후 다시 로그인해주세요.');
+      if (!getAdminPassword()) throw new Error('세션이 만료되었습니다. 페이지를 새로고침 후 다시 로그인해주세요.');
 
-      const res = await fetch('/api/videos/bulk', {
+      const res = await adminFetch('/api/videos/bulk', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-password': password,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ csv }),
       });
       const json = await res.json();

@@ -60,7 +60,7 @@ export default function SeriesCard({ series, latest, thumbnailUrl }: Props) {
             className="flex-1 text-center text-xs font-semibold py-1.5 rounded-md hover:opacity-80"
             style={{ backgroundColor: 'rgba(0,70,42,0.08)', color: '#00462A' }}
           >
-            대회정보
+            대회요강
           </Link>
           <Link
             href={`/competition/${latest.id}/bracket`}
@@ -74,7 +74,7 @@ export default function SeriesCard({ series, latest, thumbnailUrl }: Props) {
             className="flex-1 text-center text-xs font-semibold py-1.5 rounded-md hover:opacity-80"
             style={{ backgroundColor: 'rgba(0,70,42,0.08)', color: '#00462A' }}
           >
-            영상
+            영상목록
           </Link>
         </div>
       )}

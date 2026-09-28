@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import RegisterServiceWorker from "@/components/RegisterServiceWorker";
+import AdminDataRefresher from "@/components/AdminDataRefresher";
 import SplashScreen from "@/components/SplashScreen";
 import { SPLASH_SKIP_SCRIPT } from "@/lib/splash";
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
@@ -48,6 +49,7 @@ export default function RootLayout({
       <body>
         <SplashScreen>{children}</SplashScreen>
         <RegisterServiceWorker />
+        <AdminDataRefresher />
         <Analytics />
         <SpeedInsights />
       </body>
