@@ -11,10 +11,11 @@ export default function CompetitionSubTabs({ active }: Props) {
   ];
 
   return (
-    <div className="flex gap-1 mb-6 border-b" style={{ borderColor: '#e0e0e0' }}>
+    <div data-tour="competition-subtabs" className="flex gap-1 mb-6 border-b" style={{ borderColor: '#e0e0e0' }}>
       {tabs.map((t) => (
         <Link
           key={t.key}
+          data-tour={`subtab-${t.key}`}
           href={t.href}
           className="h-9 px-3 text-sm font-medium border-b-2 -mb-[1px] transition-colors"
           style={{

@@ -51,7 +51,7 @@ export default function HomeContent({ initialVideos, total: initialTotal, pageSi
 
       <div className="space-y-6">
         {groups.map((g, i) => (
-          <section key={g.date}>
+          <section key={g.date} data-tour="home-videos">
             <div className="mb-2">
               <SectionTitle sub={g.label || undefined}>{formatDate(g.date)}</SectionTitle>
             </div>

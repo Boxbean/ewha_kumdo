@@ -57,7 +57,7 @@ export default function HomeHero({ videos }: Props) {
 
   return (
     // 모바일에서는 본문 좌우 여백(p-4)을 상쇄해 화면 폭에 꽉 차게, 데스크톱은 상세 페이지와 같은 폭으로 제한
-    <section className="mb-6 -mx-4 md:mx-0 md:max-w-3xl">
+    <section data-tour="home-hero" className="mb-6 -mx-4 md:mx-0 md:max-w-3xl">
       <div className="px-4 md:px-0 mb-2">
         <SectionTitle>최근 운동</SectionTitle>
       </div>
@@ -92,7 +92,7 @@ export default function HomeHero({ videos }: Props) {
       </div>
 
       {(videos.length > 1 || chapters.length > 0) && (
-        <div className="flex gap-1.5 overflow-x-auto px-4 md:px-0 mt-3 pb-1 scroll-px-4 md:scroll-px-0">
+        <div data-tour="home-hero-buttons" className="flex gap-1.5 overflow-x-auto px-4 md:px-0 mt-3 pb-1 scroll-px-4 md:scroll-px-0">
           {videos.length > 1 &&
             videos.map((v, i) => (
               <button
@@ -140,7 +140,7 @@ function HeroPlayer({
   const duration = useYouTubeDuration(videoId);
 
   return (
-    <div className="relative w-full md:rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: '#000' }}>
+    <div data-tour="home-hero-player" className="relative w-full md:rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: '#000' }}>
       {autoplay !== null && (
         <YouTubePlayer
           ref={playerRef}

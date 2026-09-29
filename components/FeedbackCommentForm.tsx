@@ -58,7 +58,7 @@ export default function FeedbackCommentForm({ postId, onSuccess, parentId, onCan
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
+    <form data-tour="feedback-comment-form" onSubmit={handleSubmit} className="space-y-2">
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}

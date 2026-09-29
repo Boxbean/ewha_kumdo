@@ -53,12 +53,13 @@ function IconFeedback() {
   );
 }
 
+// tour: 튜토리얼(TutorialTour)이 각 탭을 가리킬 때 쓰는 id
 const menus = [
-  { href: '/', label: '홈', Icon: IconHome },
-  { href: '/list', label: '목록', Icon: IconList },
-  { href: '/shorts', label: '쇼츠', Icon: IconShorts },
-  { href: '/feedback', label: '피드백', Icon: IconFeedback },
-  { href: '/competition', label: '대회', Icon: IconTrophy },
+  { href: '/', label: '홈', Icon: IconHome, tour: 'home' },
+  { href: '/list', label: '목록', Icon: IconList, tour: 'list' },
+  { href: '/shorts', label: '쇼츠', Icon: IconShorts, tour: 'shorts' },
+  { href: '/feedback', label: '피드백', Icon: IconFeedback, tour: 'feedback' },
+  { href: '/competition', label: '대회', Icon: IconTrophy, tour: 'competition' },
 ];
 
 export default function BottomNav() {
@@ -79,6 +80,7 @@ export default function BottomNav() {
         return (
           <Link
             key={menu.href}
+            id={`tour-tab-${menu.tour}`}
             href={menu.href}
             className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs"
             style={{ color: isActive ? '#00462A' : '#B9B9B9', fontWeight: isActive ? 600 : 400 }}

@@ -91,7 +91,7 @@ export default function FeedbackPostBody({
   const buttonClass = 'text-xs px-2.5 py-1 rounded border transition-colors hover:bg-gray-50';
 
   return (
-    <div className="rounded-lg p-4 mb-4" style={{ backgroundColor: '#ffffff', border: '1px solid #e0e0e0' }}>
+    <div data-tour="feedback-post" className="rounded-lg p-4 mb-4" style={{ backgroundColor: '#ffffff', border: '1px solid #e0e0e0' }}>
       {editing ? (
         <form onSubmit={save} className="space-y-3">
           <div>

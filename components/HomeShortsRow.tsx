@@ -30,7 +30,7 @@ export default function HomeShortsRow({ shorts: initial }: { shorts: Shorts[] })
   if (shorts.length === 0) return null;
 
   return (
-    <section className="mb-6">
+    <section data-tour="home-shorts" className="mb-6">
       <div className="flex items-baseline justify-between mb-2">
         <SectionTitle>검도쇼츠</SectionTitle>
         <Link href="/shorts" className="text-xs py-2 -my-2 pl-3" style={{ color: '#6B7280' }}>

@@ -93,7 +93,7 @@ export default function PushNotificationButton() {
 
   if (state === 'ios-not-installed') {
     return (
-      <div className="relative flex-shrink-0">
+      <div data-tour="push" className="relative flex-shrink-0">
         <button
           onClick={() => setShowIosHint((v) => !v)}
           className="w-8 h-8 flex items-center justify-center rounded-full border hover:bg-white/20"
@@ -118,6 +118,7 @@ export default function PushNotificationButton() {
   if (state === 'denied') {
     return (
       <button
+        data-tour="push"
         disabled
         className="w-8 h-8 flex items-center justify-center rounded-full border opacity-40 cursor-not-allowed flex-shrink-0"
         style={{ borderColor: 'rgba(255,255,255,0.5)', color: '#ffffff' }}
@@ -133,6 +134,7 @@ export default function PushNotificationButton() {
 
   return (
     <button
+      data-tour="push"
       onClick={subscribed ? unsubscribe : subscribe}
       className="w-8 h-8 flex items-center justify-center rounded-full border hover:bg-white/20 flex-shrink-0"
       style={{ borderColor: 'rgba(255,255,255,0.5)', color: '#ffffff' }}

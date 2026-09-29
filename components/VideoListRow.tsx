@@ -16,7 +16,7 @@ export default function VideoListRow({ video }: { video: Video }) {
   const extraTags = video.participants.length - MAX_TAGS;
 
   return (
-    <div className="flex items-start gap-3 py-2">
+    <div data-tour="list-row" className="flex items-start gap-3 py-2">
       {/* 행 전체를 누르면 상세 페이지로 가서 바로 재생 */}
       <Link href={`/video/${video.id}?autoplay=1`} className="flex flex-1 min-w-0 items-start gap-3">
         <div

@@ -54,7 +54,7 @@ export default function SeriesCard({ series, latest, thumbnailUrl }: Props) {
 
       {/* 버튼 */}
       {latest && (
-        <div className="flex gap-2 mt-3">
+        <div data-tour="series-buttons" className="flex gap-2 mt-3">
           <Link
             href={`/competition/${latest.id}`}
             className="flex-1 text-center text-xs font-semibold py-1.5 rounded-md hover:opacity-80"

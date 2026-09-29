@@ -88,14 +88,15 @@ function IconFeedback() {
   );
 }
 
+// tour: 튜토리얼(TutorialTour)이 데스크톱에서 각 탭을 가리킬 때 쓰는 id (휴대폰은 하단 탭바를 가리킴)
 const menus = [
-  { href: '/', label: '홈', Icon: IconHome },
-  { href: '/list', label: '목록', Icon: IconList },
-  { href: '/shorts', label: '쇼츠', Icon: IconShorts },
-  { href: '/feedback', label: '피드백', Icon: IconFeedback },
-  { href: '/calendar', label: '캘린더 보기', Icon: IconCalendar },
-  { href: '/topic', label: '주제별 보기', Icon: IconBulb },
-  { href: '/competition', label: '대회 기록', Icon: IconTrophy },
+  { href: '/', label: '홈', Icon: IconHome, tour: 'home' },
+  { href: '/list', label: '목록', Icon: IconList, tour: 'list' },
+  { href: '/shorts', label: '쇼츠', Icon: IconShorts, tour: 'shorts' },
+  { href: '/feedback', label: '피드백', Icon: IconFeedback, tour: 'feedback' },
+  { href: '/calendar', label: '캘린더 보기', Icon: IconCalendar, tour: 'calendar' },
+  { href: '/topic', label: '주제별 보기', Icon: IconBulb, tour: 'topic' },
+  { href: '/competition', label: '대회 기록', Icon: IconTrophy, tour: 'competition' },
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
@@ -118,6 +119,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             return (
               <Link
                 key={menu.href}
+                id={`tour-tab-${menu.tour}-desktop`}
                 href={menu.href}
                 className="flex items-center h-10 px-4 gap-3 text-sm transition-colors"
                 style={{

@@ -97,7 +97,7 @@ export default function FeedbackCommentsSection({ postId, initialComments, onSee
       </h2>
 
       {topLevel.length > 0 && (
-        <div className="space-y-4 mb-5">
+        <div data-tour="feedback-comments" className="space-y-4 mb-5">
           {topLevel.map((c, i) => (
             <div key={c.id}>
               <Bubble

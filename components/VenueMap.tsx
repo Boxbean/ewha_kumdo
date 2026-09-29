@@ -159,7 +159,7 @@ export default function VenueMap({ points }: Props) {
   if (!appKey || failed) return null;
 
   return (
-    <div className="relative mb-4 rounded-xl overflow-hidden border" style={{ borderColor: '#e0e0e0' }}>
+    <div data-tour="venue-map" className="relative mb-4 rounded-xl overflow-hidden border" style={{ borderColor: '#e0e0e0' }}>
       <div ref={containerRef} className="w-full h-[280px] md:h-[360px]" style={{ backgroundColor: '#f3f4f6' }} />
       <button
         type="button"
