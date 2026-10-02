@@ -184,12 +184,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             );
           })}
         </nav>
-        <div className="px-3 pb-4" style={{ borderTop: '1px solid #e0e0e0', paddingTop: '12px' }}>
+        <div className="flex justify-center px-3 pb-4" style={{ borderTop: '1px solid #e0e0e0', paddingTop: '12px' }}>
           <Link
             id="tour-admin-mobile"
             href="/admin"
             onClick={onClose}
-            className="flex items-center h-10 px-3 gap-3 text-sm font-semibold rounded"
+            className="inline-flex items-center h-10 px-3 gap-3 text-sm font-semibold rounded whitespace-nowrap"
             style={{ backgroundColor: '#00462A', color: '#ffffff' }}
           >
             <span className="flex-shrink-0"><IconPlus /></span>
