@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Shorts } from '@/lib/types';
 import { extractYouTubeId, getInstagramEmbedUrl } from '@/lib/utils';
+import YouTubePlayer from './YouTubePlayer';
 
 interface ShortsViewerProps {
   shorts: Shorts[];
@@ -67,6 +68,7 @@ export default function ShortsViewer({ shorts, startIndex, hasMore, onNeedMore, 
     <div
       ref={containerRef}
       onScroll={handleScroll}
+      data-no-pull-refresh
       className="fixed inset-0 z-[70] overflow-y-scroll snap-y snap-mandatory"
       style={{ backgroundColor: '#000', overscrollBehavior: 'contain' }}
     >
@@ -108,14 +110,10 @@ function Slide({ shorts, isActive, onShare }: { shorts: Shorts; isActive: boolea
       style={{ height: '100dvh' }}
     >
       {isActive && youtubeId ? (
-        <iframe
-          src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&playsinline=1&rel=0`}
-          title={shorts.title}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="w-full max-w-[520px]"
-          style={{ height: 'calc(100dvh - 160px)', border: 0 }}
-        />
+        // 화면에 들어오는 순간 바로 재생 — 소리 켠 재생이 막히는 기기에서는 음소거로 재생하고 "소리 켜기" 버튼을 띄움
+        <div className="w-full max-w-[520px]" style={{ height: 'calc(100dvh - 160px)' }}>
+          <YouTubePlayer videoId={youtubeId} autoplay />
+        </div>
       ) : isActive && igEmbed ? (
         <InstagramFullBleed src={igEmbed} title={shorts.title} />
       ) : shorts.thumbnail_url ? (

@@ -8,7 +8,9 @@ interface YTPlayer {
   playVideo(): void;
   getCurrentTime(): number;
   isMuted(): boolean;
+  mute(): void;
   unMute(): void;
+  getPlayerState(): number;
   destroy(): void;
 }
 
@@ -61,12 +63,17 @@ interface Props {
   startSeconds?: number;
   // 브라우저 정책상 소리 켠 자동재생은 막히므로 음소거로 시작하고 "소리 켜기" 버튼을 띄움
   autoplayMuted?: boolean;
+  // 소리 켠 채로 바로 재생을 시도하고, 브라우저가 막으면(iOS 등) 음소거로 재생 + "소리 켜기" 버튼
+  autoplay?: boolean;
   // 재생이 실제로 시작되면 호출 (썸네일 덮개를 걷어내는 용도)
   onPlaying?: () => void;
 }
 
+// 소리 켠 자동재생을 시도한 뒤 이 시간 안에 재생이 시작되지 않으면 막힌 것으로 보고 음소거로 재시도
+const AUTOPLAY_FALLBACK_MS = 1200;
+
 const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function YouTubePlayer(
-  { videoId, startSeconds = 0, autoplayMuted = false, onPlaying },
+  { videoId, startSeconds = 0, autoplayMuted = false, autoplay = false, onPlaying },
   ref
 ) {
   const onPlayingRef = useRef(onPlaying);
@@ -93,6 +100,7 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function YouTubePla
 
   useEffect(() => {
     let cancelled = false;
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
     const container = containerRef.current;
     if (!container) return;
 
@@ -110,12 +118,25 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function YouTubePla
           start: startSeconds,
           playsinline: 1,
           rel: 0,
-          ...(autoplayMuted ? { autoplay: 1, mute: 1 } : {}),
+          ...(autoplayMuted ? { autoplay: 1, mute: 1 } : autoplay ? { autoplay: 1 } : {}),
         },
         events: {
           onReady: () => {
             readyRef.current = true;
-            if (!cancelled && autoplayMuted) setShowUnmute(true);
+            if (cancelled) return;
+            if (autoplayMuted) setShowUnmute(true);
+            if (autoplay) {
+              const player = playerRef.current;
+              player?.playVideo();
+              fallbackTimer = setTimeout(() => {
+                if (cancelled || !player) return;
+                const state = player.getPlayerState();
+                if (state === 1 || state === 3) return; // 1 = PLAYING, 3 = BUFFERING
+                player.mute();
+                player.playVideo();
+                setShowUnmute(true);
+              }, AUTOPLAY_FALLBACK_MS);
+            }
           },
           onStateChange: (e) => {
             if (e.data === 1) onPlayingRef.current?.(); // 1 = PLAYING
@@ -126,13 +147,14 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function YouTubePla
 
     return () => {
       cancelled = true;
+      clearTimeout(fallbackTimer);
       readyRef.current = false;
       playerRef.current?.destroy();
       playerRef.current = null;
       container.innerHTML = '';
       setShowUnmute(false);
     };
-  }, [videoId, startSeconds, autoplayMuted]);
+  }, [videoId, startSeconds, autoplayMuted, autoplay]);
 
   function unmute() {
     playerRef.current?.unMute();
