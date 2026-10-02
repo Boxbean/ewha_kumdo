@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Shorts } from '@/lib/types';
 import SectionTitle from './SectionTitle';
+import ShortsViewer from './ShortsViewer';
 
 // 앞의 몇 개는 최신 등록순으로 고정하고, 나머지는 방문할 때마다 섞어서 다양한 쇼츠가 노출되게 함
 const NEWEST_FIXED = 2;
@@ -22,6 +23,10 @@ function shuffle<T>(items: T[]): T[] {
 // 아래 영상들을 밀어내지 않음. 섞기는 서버 HTML과 첫 렌더가 일치해야 하므로 마운트 후에 수행
 export default function HomeShortsRow({ shorts: initial }: { shorts: Shorts[] }) {
   const [shorts, setShorts] = useState<Shorts[]>(initial);
+  // 누르면 게시글 화면 대신 쇼츠 탭과 같은 전체화면 재생 화면을 바로 띄움 (위아래로 넘기면 이 줄의 다른 쇼츠)
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const closeViewer = useCallback(() => setViewerIndex(null), []);
+  const noMore = useCallback(() => {}, []);
 
   useEffect(() => {
     setShorts([...initial.slice(0, NEWEST_FIXED), ...shuffle(initial.slice(NEWEST_FIXED))]);
@@ -38,11 +43,12 @@ export default function HomeShortsRow({ shorts: initial }: { shorts: Shorts[] })
         </Link>
       </div>
       <div className="flex gap-2.5 overflow-x-auto pb-1 -mx-4 px-4 md:-mx-6 md:px-6 snap-x scroll-px-4 md:scroll-px-6">
-        {shorts.map((s) => (
-          <Link
+        {shorts.map((s, i) => (
+          <button
+            type="button"
             key={s.id}
-            href={`/shorts/${s.id}`}
-            className="relative flex-shrink-0 w-32 rounded-xl overflow-hidden snap-start"
+            onClick={() => setViewerIndex(i)}
+            className="relative flex-shrink-0 w-32 rounded-xl overflow-hidden snap-start text-left"
             style={{ aspectRatio: '2/3', backgroundColor: '#e0e0e0' }}
           >
             <div className="absolute inset-0 flex items-center justify-center text-2xl" style={{ color: '#B9B9B9' }}>
@@ -66,9 +72,13 @@ export default function HomeShortsRow({ shorts: initial }: { shorts: Shorts[] })
             <p className="absolute left-2 right-2 bottom-2 text-xs font-bold leading-snug line-clamp-2" style={{ color: '#fff' }}>
               {s.title}
             </p>
-          </Link>
+          </button>
         ))}
       </div>
+
+      {viewerIndex !== null && (
+        <ShortsViewer shorts={shorts} startIndex={viewerIndex} hasMore={false} onNeedMore={noMore} onClose={closeViewer} />
+      )}
     </section>
   );
 }

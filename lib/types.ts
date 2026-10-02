@@ -66,8 +66,8 @@ export interface FeedbackPost {
   author_name?: string;
   created_at: string;
   // 조인 데이터
-  video?: Pick<Video, 'id' | 'title' | 'youtube_url' | 'date' | 'chapters'> | null;
-  shorts?: Pick<Shorts, 'id' | 'title' | 'video_url' | 'platform' | 'thumbnail_url'> | null;
+  video?: (Pick<Video, 'id' | 'title' | 'youtube_url' | 'date' | 'chapters'> & Partial<Pick<Video, 'participants' | 'uploader'>>) | null;
+  shorts?: (Pick<Shorts, 'id' | 'title' | 'video_url' | 'platform' | 'thumbnail_url'> & Partial<Pick<Shorts, 'submitter_name'>>) | null;
   comment_count?: number;
   comments?: FeedbackComment[];
 }

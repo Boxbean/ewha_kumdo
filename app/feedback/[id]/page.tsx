@@ -12,8 +12,8 @@ interface Props {
 
 const FEEDBACK_DETAIL_SELECT = `
   *,
-  video:videos(id,title,youtube_url,date,chapters),
-  shorts:shorts(id,title,video_url,platform,thumbnail_url),
+  video:videos(id,title,youtube_url,date,chapters,participants,uploader),
+  shorts:shorts(id,title,video_url,platform,thumbnail_url,submitter_name),
   comments:feedback_comments(*)
 `;
 

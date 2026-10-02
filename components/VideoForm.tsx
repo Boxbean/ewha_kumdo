@@ -39,6 +39,8 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [copyingRecent, setCopyingRecent] = useState(false);
+  const [copyRecentMsg, setCopyRecentMsg] = useState('');
 
   function resetForm() {
     setYoutubeUrl('');
@@ -47,6 +49,7 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
     setAngle('전면');
     setParticipantInput('');
     setParticipants([]);
+    setCopyRecentMsg('');
     setTopic('');
     setUploader('');
     setCompetitionId('');
@@ -108,6 +111,32 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
       return next;
     });
     setParticipantInput('');
+  }
+
+  // 정규운동처럼 매번 비슷한 인원이 나오는 영상용 — 가장 최근 영상(최근 등록 우선, 그다음 운동 날짜순)의 참가자를 그대로 가져와 합침
+  async function copyRecentParticipants() {
+    setCopyingRecent(true);
+    setCopyRecentMsg('');
+    try {
+      const res = await fetch('/api/videos?limit=10&offset=0', { cache: 'no-store' });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || '불러오기 실패');
+      const recent = ((json.data || []) as Video[]).find((v) => v.id !== initial?.id && (v.participants?.length ?? 0) > 0);
+      if (!recent) {
+        setCopyRecentMsg('참가자가 등록된 최근 영상이 없어요');
+        return;
+      }
+      setParticipants((prev) => {
+        const next = [...prev];
+        recent.participants.forEach((p) => { if (!next.includes(p)) next.push(p); });
+        return next;
+      });
+      setCopyRecentMsg(`"${recent.title}"의 참가자 ${recent.participants.length}명을 가져왔어요`);
+    } catch (e) {
+      setCopyRecentMsg(e instanceof Error ? e.message : '불러오기 실패');
+    } finally {
+      setCopyingRecent(false);
+    }
   }
 
   function removeParticipant(p: string) {
@@ -398,9 +427,21 @@ export default function VideoForm({ initial, onSuccess, onCancel, onDelete }: Vi
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-          참가자 (선택)
-        </label>
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <label className="block text-sm font-medium" style={{ color: '#374151' }}>
+            참가자 (선택)
+          </label>
+          <button
+            type="button"
+            onClick={() => void copyRecentParticipants()}
+            disabled={copyingRecent}
+            className="text-xs px-2 py-1 rounded border whitespace-nowrap"
+            style={{ borderColor: '#e0e0e0', color: '#00462A', opacity: copyingRecent ? 0.6 : 1 }}
+          >
+            {copyingRecent ? '불러오는 중...' : '📋 최근 영상 참가자 복사'}
+          </button>
+        </div>
+        {copyRecentMsg && <p className="text-xs mb-1.5 truncate" style={{ color: '#6B7280' }}>{copyRecentMsg}</p>}
         <div className="flex gap-2 mb-2">
           <input
             type="text"

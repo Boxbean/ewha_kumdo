@@ -8,6 +8,7 @@ import FloatingAddButton from '@/components/FloatingAddButton';
 import ShortsViewer from '@/components/ShortsViewer';
 import { Shorts } from '@/lib/types';
 import PageLoading from '@/components/PageLoading';
+import PullToRefresh from '@/components/PullToRefresh';
 
 const PAGE_SIZE = 18;
 // 홈 쇼츠 줄과 같은 규칙 — 최신 2개는 등록순으로 고정하고, 나머지는 방문할 때마다 섞어서 다양한 쇼츠가 노출되게 함.
@@ -37,7 +38,7 @@ export default function ShortsPage() {
     const id = ++requestId.current;
     setLoading(true);
     try {
-      const res = await fetch(`/api/shorts?limit=${FETCH_ALL_LIMIT}`);
+      const res = await fetch(`/api/shorts?limit=${FETCH_ALL_LIMIT}`, { cache: 'no-store' });
       const json = await res.json();
       if (id !== requestId.current) return;
       const list: Shorts[] = json.data || [];
@@ -80,6 +81,7 @@ export default function ShortsPage() {
 
   return (
     <AppLayout>
+      <PullToRefresh onRefresh={fetchShorts} disabled={formOpen || viewerIndex !== null} />
       <div>
         {loading && shorts.length === 0 ? (
           <PageLoading />

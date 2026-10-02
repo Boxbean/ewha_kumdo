@@ -109,9 +109,9 @@ export default function FeedbackCommentsSection({ postId, initialComments, onSee
                 onSeek={onSeek}
               />
 
-              {/* 대댓글: 한 단계만 들여써서 표시, 답글에는 다시 답글 버튼 없음 */}
+              {/* 대댓글: 댓글 바로 아래에 좁은 간격으로 붙인 말풍선, 답글에는 다시 답글 버튼 없음 */}
               {(repliesOf(c.id).length > 0 || replyTo === c.id) && (
-                <div className="ml-6 mt-2 pl-3 space-y-2 border-l-2" style={{ borderColor: '#EEF0F2' }}>
+                <div className="mt-1.5 space-y-1.5">
                   {repliesOf(c.id).map((r, j) => (
                     <Bubble
                       key={r.id}
@@ -182,6 +182,33 @@ function Bubble({
         }}
       >
         <TimestampText text={comment.body} onSeek={onSeek} />
+        {/* 등록 시점·좋아요·답글은 말풍선 안 아래쪽에 작게 */}
+        <div className={`flex items-center gap-3 mt-1.5 text-[11px] ${right ? 'justify-end' : ''}`} style={{ color: '#6B7280' }}>
+          <RelativeTime iso={comment.created_at} />
+          <button
+            type="button"
+            onClick={onLike}
+            aria-pressed={liked}
+            aria-label="좋아요"
+            className="flex items-center gap-1"
+            style={{ color: liked ? '#00462A' : '#6B7280' }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M7 10v12" />
+              <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+            </svg>
+            {(comment.like_count ?? 0) > 0 && <span className="tabular-nums">{comment.like_count}</span>}
+          </button>
+          {onReply && (
+            <button type="button" onClick={onReply} className="flex items-center gap-1" aria-label="답글 달기">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="9 17 4 12 9 7" />
+                <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+              </svg>
+              답글
+            </button>
+          )}
+        </div>
         <span
           aria-hidden="true"
           className="absolute bottom-0 w-3 h-3"
@@ -191,32 +218,6 @@ function Bubble({
             clipPath: right ? 'polygon(0 0, 0 100%, 100% 100%)' : 'polygon(100% 0, 100% 100%, 0 100%)',
           }}
         />
-      </div>
-      <div className={`flex items-center gap-3 mt-1 px-1 text-xs ${right ? 'flex-row-reverse' : ''}`} style={{ color: '#9CA3AF' }}>
-        <RelativeTime iso={comment.created_at} />
-        <button
-          type="button"
-          onClick={onLike}
-          aria-pressed={liked}
-          aria-label="좋아요"
-          className="flex items-center gap-1"
-          style={{ color: liked ? '#00462A' : '#9CA3AF' }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M7 10v12" />
-            <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
-          </svg>
-          {(comment.like_count ?? 0) > 0 && <span className="tabular-nums">{comment.like_count}</span>}
-        </button>
-        {onReply && (
-          <button type="button" onClick={onReply} className="flex items-center gap-1" aria-label="답글 달기">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <polyline points="9 17 4 12 9 7" />
-              <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
-            </svg>
-            답글
-          </button>
-        )}
       </div>
     </div>
   );
