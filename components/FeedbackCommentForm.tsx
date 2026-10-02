@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react';
 import { getAuthorToken } from '@/lib/feedbackAuthorClient';
 import FeedbackPasswordModal from './FeedbackPasswordModal';
 
-const MAIN_PLACEHOLDER = '다양한 피드백을 남겨주세요. 모두의 자신감과 발전을 위해 둥근 피드백 부탁드립니다 🙏';
+const MAIN_PLACEHOLDER = '다양한 피드백을 남겨주세요. 즐거운 검도생활을 위하여 댓글은 둥글게 부탁드립니다 ☺️';
+// 댓글 입력 영역 배경 — 대진표 카드·스플래시와 같은 크림색
+const CREAM_BG = '#FFFDF1';
+const CREAM_BORDER = '#EDE7CF';
 
 interface FeedbackCommentFormProps {
   postId: string;
@@ -59,42 +62,45 @@ export default function FeedbackCommentForm({ postId, onSuccess, parentId, onCan
 
   return (
     <form data-tour="feedback-comment-form" onSubmit={handleSubmit} className="space-y-2">
-      <textarea
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        rows={isReply ? 2 : 3}
-        autoFocus={isReply}
-        placeholder={isReply ? '답글을 남겨주세요 (00:10처럼 시간을 적으면 영상 이동 링크가 돼요)' : MAIN_PLACEHOLDER}
-        className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none resize-none"
-        style={{ borderColor: '#e0e0e0' }}
-      />
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={authorName}
-          onChange={(e) => setAuthorName(e.target.value)}
-          placeholder="이름 (선택)"
-          className="flex-1 min-w-0 h-9 px-3 text-sm rounded-lg border focus:outline-none"
-          style={{ borderColor: '#e0e0e0' }}
+      {/* 내용·이름·등록 버튼을 크림색 한 박스로 묶음 */}
+      <div className="rounded-xl border p-2.5 space-y-2" style={{ backgroundColor: CREAM_BG, borderColor: CREAM_BORDER }}>
+        <textarea
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          rows={isReply ? 2 : 3}
+          autoFocus={isReply}
+          placeholder={isReply ? '답글을 남겨주세요 (00:10처럼 시간을 적으면 영상 이동 링크가 돼요)' : MAIN_PLACEHOLDER}
+          className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none resize-none"
+          style={{ borderColor: CREAM_BORDER, backgroundColor: '#ffffff' }}
         />
-        {onCancel && (
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={authorName}
+            onChange={(e) => setAuthorName(e.target.value)}
+            placeholder="이름 (선택)"
+            className="flex-1 min-w-0 h-9 px-3 text-sm rounded-lg border focus:outline-none"
+            style={{ borderColor: CREAM_BORDER, backgroundColor: '#ffffff' }}
+          />
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="h-9 px-3 text-sm rounded-lg border shrink-0"
+              style={{ borderColor: CREAM_BORDER, color: '#6B7280', backgroundColor: '#ffffff' }}
+            >
+              취소
+            </button>
+          )}
           <button
-            type="button"
-            onClick={onCancel}
-            className="h-9 px-3 text-sm rounded-lg border shrink-0"
-            style={{ borderColor: '#e0e0e0', color: '#6B7280' }}
+            type="submit"
+            disabled={loading}
+            className="h-9 px-4 text-sm font-semibold rounded-lg text-white shrink-0"
+            style={{ backgroundColor: '#00462A', opacity: loading ? 0.7 : 1 }}
           >
-            취소
+            {loading ? '작성 중...' : isReply ? '답글 작성' : '댓글 작성'}
           </button>
-        )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="h-9 px-4 text-sm font-semibold rounded-lg text-white shrink-0"
-          style={{ backgroundColor: '#00462A', opacity: loading ? 0.7 : 1 }}
-        >
-          {loading ? '작성 중...' : isReply ? '답글 작성' : '댓글 작성'}
-        </button>
+        </div>
       </div>
       {error && <p className="text-sm text-red-500">{error}</p>}
       {isAuthor ? (
