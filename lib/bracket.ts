@@ -12,6 +12,11 @@ export function getSlot(match: BracketMatch, slot: WinnerSlot): PlayerSlotRef {
     : { name: match.player2_name, club: match.player2_club, isOurs: match.player2_is_ours };
 }
 
+/** 이화검우회(졸업생 모임) 소속은 is_ours 체크와 상관없이 대진표에서 우리 쪽(초록색)으로 표시 */
+export function isEwhaClub(club?: string | null): boolean {
+  return !!club && club.replace(/\s/g, '').includes('이화검우회');
+}
+
 function otherSlot(slot: WinnerSlot): WinnerSlot {
   return slot === 'player1' ? 'player2' : 'player1';
 }

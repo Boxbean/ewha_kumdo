@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { BracketMatch, CompetitionFile } from '@/lib/types';
-import { groupByDivision, groupBySide, buildSideStructure, assignMatchNumbers } from '@/lib/bracket';
+import { groupByDivision, groupBySide, buildSideStructure, assignMatchNumbers, isEwhaClub } from '@/lib/bracket';
 import { computeSideLayout, matchCenterY, LineState } from '@/lib/bracketLayout';
 import { PRETENDARD_FAMILY } from '@/lib/fonts';
 import BracketPlayerCard, { CARD_HEIGHT } from './BracketPlayerCard';
@@ -290,7 +290,7 @@ function BracketTree({
             const p = toOuterA(leaf.x, leaf.y);
             const name = leaf.slot === 'player1' ? leaf.match.player1_name : leaf.match.player2_name;
             const club = leaf.slot === 'player1' ? leaf.match.player1_club : leaf.match.player2_club;
-            const isOurs = leaf.slot === 'player1' ? leaf.match.player1_is_ours : leaf.match.player2_is_ours;
+            const isOurs = (leaf.slot === 'player1' ? leaf.match.player1_is_ours : leaf.match.player2_is_ours) || isEwhaClub(club);
             return (
               <div key={`la-${i}`} className="absolute" style={{ left: p.x - marginX, top: p.y - CARD_HEIGHT / 2, width: cardWidth }}>
                 <BracketPlayerCard name={name} club={club} isOurs={isOurs} mirrored={false} width={cardWidth} />
@@ -301,7 +301,7 @@ function BracketTree({
             const p = toOuterB(leaf.x, leaf.y);
             const name = leaf.slot === 'player1' ? leaf.match.player1_name : leaf.match.player2_name;
             const club = leaf.slot === 'player1' ? leaf.match.player1_club : leaf.match.player2_club;
-            const isOurs = leaf.slot === 'player1' ? leaf.match.player1_is_ours : leaf.match.player2_is_ours;
+            const isOurs = (leaf.slot === 'player1' ? leaf.match.player1_is_ours : leaf.match.player2_is_ours) || isEwhaClub(club);
             return (
               <div key={`lb-${i}`} className="absolute" style={{ left: p.x, top: p.y - CARD_HEIGHT / 2, width: cardWidth }}>
                 <BracketPlayerCard name={name} club={club} isOurs={isOurs} mirrored width={cardWidth} />
