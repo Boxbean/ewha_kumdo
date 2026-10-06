@@ -6,7 +6,7 @@ import { groupByDivision, groupBySide, buildSideStructure, assignMatchNumbers, i
 import { computeSideLayout, resolvedCenterY, LineState } from '@/lib/bracketLayout';
 import { PRETENDARD_FAMILY } from '@/lib/fonts';
 import BracketPlayerCard, { CARD_HEIGHT } from './BracketPlayerCard';
-import BracketMatchCircle from './BracketMatchCircle';
+import BracketMatchCircle, { BracketCircleLegend } from './BracketMatchCircle';
 import BracketPodium from './BracketPodium';
 
 interface Props {
@@ -233,7 +233,9 @@ function BracketTree({
 
   return (
     <div>
-      <div className="flex items-center justify-end gap-1 mb-2">
+      <div className="flex items-center gap-1 mb-2">
+        <BracketCircleLegend />
+        <div className="flex-1" />
         <button
           onClick={() => { setManual(true); setZoom((z) => Math.max(MIN_ZOOM, +(z - 0.1).toFixed(2))); }}
           className="w-7 h-7 rounded-full border text-sm"
