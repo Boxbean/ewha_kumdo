@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BracketMatch, CompetitionFile } from '@/lib/types';
 import { groupByDivision, groupBySide, buildSideStructure, assignMatchNumbers, isEwhaClub } from '@/lib/bracket';
-import { computeSideLayout, matchCenterY, LineState } from '@/lib/bracketLayout';
+import { computeSideLayout, resolvedCenterY, LineState } from '@/lib/bracketLayout';
 import { PRETENDARD_FAMILY } from '@/lib/fonts';
 import BracketPlayerCard, { CARD_HEIGHT } from './BracketPlayerCard';
 import BracketMatchCircle from './BracketMatchCircle';
@@ -20,6 +20,9 @@ const STEP = 36;     // 라운드 사이 가로 간격
 const CARD_GAP = 8;  // 리프 경계와 선수 카드 사이 여백
 const CARD_MIN_WIDTH = 56;
 const CARD_PADDING = 20; // 카드 좌우 padding + border
+const GROUP_LABEL_H = 40; // 대진표 위 A조/B조 라벨 줄 높이
+const MIN_ZOOM = 0.3;
+const MAX_ZOOM = 2; // 태블릿/PC처럼 넓은 화면에서 작은 대진이 과하게 커지지 않도록 제한
 // canvas의 font 속성은 CSS 변수를 해석하지 못하므로 실제 폰트 패밀리명을 직접 넣어줘야 함
 const NAME_FONT = `700 12px ${PRETENDARD_FAMILY}, -apple-system, BlinkMacSystemFont, sans-serif`;
 const CLUB_FONT = `400 10px ${PRETENDARD_FAMILY}, -apple-system, BlinkMacSystemFont, sans-serif`;
@@ -184,7 +187,7 @@ function BracketTree({
   const marginX = cardWidth + CARD_GAP;
   const totalWidth = canvasWidth + marginX * 2;
 
-  // 화면(가로/세로)에 전체 대진이 한 번에 들어오는 배율을 기기 크기에 맞춰 자동 계산.
+  // 대진표 가로 폭이 기기 화면 너비에 꽉 차는 배율을 자동 계산 (작은 대진은 확대, 큰 대진은 축소 / 세로는 스크롤).
   // 사용자가 +/- 버튼으로 직접 조정하면 그 값을 유지하고, 부문 전환 등으로 대진 크기가 바뀌면 다시 자동 계산한다.
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
@@ -194,28 +197,33 @@ function BracketTree({
     setManual(false);
   }, [totalWidth, canvasHeight]);
 
-  useEffect(() => {
+  // useLayoutEffect: 첫 화면이 100%로 그려졌다가 바뀌는 깜빡임 없이 처음부터 맞춘 배율로 표시
+  useLayoutEffect(() => {
     if (manual) return;
+    const el = wrapperRef.current;
+    if (!el) return;
     function fit() {
-      if (!wrapperRef.current) return;
-      const availW = wrapperRef.current.clientWidth || totalWidth;
-      const availH = Math.max(320, window.innerHeight * 0.55);
-      const fitZoom = Math.min(availW / totalWidth, availH / canvasHeight, 1);
-      setZoom(Math.max(0.3, +fitZoom.toFixed(2)));
+      const availW = el!.clientWidth;
+      if (!availW) return;
+      // 소수점 반올림 시 화면보다 미세하게 넓어져 가로 스크롤이 생기므로 내림 처리
+      const fitZoom = Math.floor((availW / totalWidth) * 1000) / 1000;
+      setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, fitZoom)));
     }
     fit();
-    window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
+    // 창 크기뿐 아니라 화면 회전·스크롤바 등으로 영역 너비가 바뀌어도 다시 맞춤
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [totalWidth, canvasHeight, manual]);
 
   const toOuterA = (x: number, y: number) => ({ x: marginX + x, y: y + offsetA });
   const toOuterB = (x: number, y: number) => ({ x: marginX + canvasWidth - x, y: y + offsetB });
 
   const champA = structureA
-    ? toOuterA(structureA.maxRound * STEP, matchCenterY(structureA.maxRound, 1, ROW_H))
+    ? toOuterA(structureA.maxRound * STEP, resolvedCenterY(structureA.roundsMatches, structureA.maxRound, 1, ROW_H))
     : null;
   const champB = structureB
-    ? toOuterB(structureB.maxRound * STEP, matchCenterY(structureB.maxRound, 1, ROW_H))
+    ? toOuterB(structureB.maxRound * STEP, resolvedCenterY(structureB.roundsMatches, structureB.maxRound, 1, ROW_H))
     : null;
   const finalY = champA && champB ? (champA.y + champB.y) / 2 : (champA ?? champB)?.y ?? canvasHeight / 2;
   const finalPoint = { x: marginX + finalX, y: finalY };
@@ -227,7 +235,7 @@ function BracketTree({
     <div>
       <div className="flex items-center justify-end gap-1 mb-2">
         <button
-          onClick={() => { setManual(true); setZoom((z) => Math.max(0.3, +(z - 0.1).toFixed(2))); }}
+          onClick={() => { setManual(true); setZoom((z) => Math.max(MIN_ZOOM, +(z - 0.1).toFixed(2))); }}
           className="w-7 h-7 rounded-full border text-sm"
           style={{ borderColor: '#e0e0e0', color: '#374151' }}
         >
@@ -235,7 +243,7 @@ function BracketTree({
         </button>
         <span className="text-xs w-10 text-center" style={{ color: '#B9B9B9' }}>{Math.round(zoom * 100)}%</span>
         <button
-          onClick={() => { setManual(true); setZoom((z) => Math.min(1.3, +(z + 0.1).toFixed(2))); }}
+          onClick={() => { setManual(true); setZoom((z) => Math.min(MAX_ZOOM, +(z + 0.1).toFixed(2))); }}
           className="w-7 h-7 rounded-full border text-sm"
           style={{ borderColor: '#e0e0e0', color: '#374151' }}
         >
@@ -243,17 +251,15 @@ function BracketTree({
         </button>
       </div>
 
+      {/* transform은 레이아웃 크기를 바꾸지 않으므로, 배율이 적용된 실제 크기의 박스로 감싸 스크롤 영역을 맞춘다 */}
       <div ref={wrapperRef} className="overflow-x-auto pb-2">
-        <div
-          className="relative"
-          style={{
-            width: totalWidth, height: canvasHeight,
-            transform: `scale(${zoom})`, transformOrigin: 'top left',
-            marginBottom: zoom < 1 ? -(canvasHeight * (1 - zoom)) : 0,
-          }}
-        >
-          <div className="absolute -top-6 text-[11px] font-bold" style={{ left: 4, color: '#374151' }}>A조</div>
-          <div className="absolute -top-6 text-[11px] font-bold" style={{ right: 4, color: '#374151' }}>B조</div>
+        <div style={{ width: totalWidth * zoom, height: (GROUP_LABEL_H + canvasHeight) * zoom }}>
+        <div style={{ width: totalWidth, transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
+          <div className="flex items-start justify-between" style={{ height: GROUP_LABEL_H }}>
+            <GroupLabel text={structureA ? 'A조' : ''} />
+            <GroupLabel text={structureB ? 'B조' : ''} />
+          </div>
+        <div className="relative" style={{ width: totalWidth, height: canvasHeight }}>
 
           <svg className="absolute inset-0 pointer-events-none" width={totalWidth} height={canvasHeight}>
             {layoutA.lines.map((l, i) => {
@@ -335,8 +341,19 @@ function BracketTree({
             </div>
           )}
         </div>
+        </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+function GroupLabel({ text }: { text: string }) {
+  if (!text) return <span />;
+  return (
+    <span className="text-sm font-bold px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(0,70,42,0.08)', color: GREEN }}>
+      {text}
+    </span>
   );
 }
 

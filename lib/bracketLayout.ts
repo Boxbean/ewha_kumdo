@@ -34,6 +34,30 @@ export function matchCenterY(round: number, matchNo: number, rowH: number): numb
 }
 
 /**
+ * 실제 그려지는 y좌표. 자식이 둘 다 있으면 두 자식 y의 중간, 하나만 있으면(부전승 패딩) 그 자식 y를 그대로 따라가
+ * 직선으로 이어지게 한다. 자식이 없으면(TBD) 기하 위치를 쓴다.
+ */
+export function resolvedCenterY(roundsMatches: (BracketMatch | null)[][], round: number, matchNo: number, rowH: number): number {
+  if (round === 1) return matchCenterY(1, matchNo, rowH);
+  const hasNode = (r: number, m: number) => !!roundsMatches[r - 1]?.[m - 1];
+  const c1 = 2 * matchNo - 1;
+  const c2 = 2 * matchNo;
+  const e1 = hasNode(round - 1, c1);
+  const e2 = hasNode(round - 1, c2);
+  if (e1 && e2) {
+    // 부전승 쪽 선은 직선으로 다음 라운드까지 이어가고, 꺾임은 실제 경기 쪽에서 일어나도록 부모 y를 부전승 y에 맞춘다
+    const pad1 = !!roundsMatches[round - 2]?.[c1 - 1]?.is_bye;
+    const pad2 = !!roundsMatches[round - 2]?.[c2 - 1]?.is_bye;
+    if (pad1 && !pad2) return resolvedCenterY(roundsMatches, round - 1, c1, rowH);
+    if (pad2 && !pad1) return resolvedCenterY(roundsMatches, round - 1, c2, rowH);
+    return (resolvedCenterY(roundsMatches, round - 1, c1, rowH) + resolvedCenterY(roundsMatches, round - 1, c2, rowH)) / 2;
+  }
+  if (e1) return resolvedCenterY(roundsMatches, round - 1, c1, rowH);
+  if (e2) return resolvedCenterY(roundsMatches, round - 1, c2, rowH);
+  return matchCenterY(round, matchNo, rowH);
+}
+
+/**
  * 참고: sportsprism.net 대진표의 좌표 방식 — 라운드 사이를 고정폭(step)으로 두고,
  * 각 선수/매치는 자기 y좌표에서 다음 라운드 경계까지 수평선을 그은 뒤, 그 경계(x)에서
  * 수직으로 부모 매치의 y로 꺾여 만난다. 원(경기 번호)은 항상 "경계 x, 부모 y" 위치에 찍힌다.
@@ -53,7 +77,7 @@ export function computeSideLayout(structure: SideStructure | null, rowH: number,
       const matchNo = idx + 1;
       const xNear = (r - 1) * step;
       const xFar = r * step;
-      const centerY = matchCenterY(r, matchNo, rowH);
+      const centerY = resolvedCenterY(roundsMatches, r, matchNo, rowH);
 
       if (r === 1) {
         if (!match) return; // 데이터 없음 — 아무것도 그리지 않음
@@ -79,20 +103,25 @@ export function computeSideLayout(structure: SideStructure | null, rowH: number,
         return;
       }
 
-      // 2라운드 이상: 자식 두 매치(이전 라운드의 matchNo*2-1, matchNo*2)의 y좌표는
-      // 데이터 존재 여부와 무관하게 같은 공식으로 계산되므로 항상 일치한다.
-      const childTopY = matchCenterY(r - 1, 2 * matchNo - 1, rowH);
-      const childBottomY = matchCenterY(r - 1, 2 * matchNo, rowH);
+      // 2라운드 이상: 자식이 없는 쪽(부전승 패딩의 빈 슬롯)은 선을 그리지 않는다.
       if (!match) return;
 
       const topState: LineState = match.winner_slot === 'player1' ? 'won' : match.winner_slot ? 'lost' : 'pending';
       const bottomState: LineState = match.winner_slot === 'player2' ? 'won' : match.winner_slot ? 'lost' : 'pending';
+      const childTop = roundsMatches[r - 2]?.[2 * matchNo - 2];
+      const childBottom = roundsMatches[r - 2]?.[2 * matchNo - 1];
 
-      lines.push({ x1: xNear, y1: childTopY, x2: xFar, y2: childTopY, state: topState });
-      lines.push({ x1: xNear, y1: childBottomY, x2: xFar, y2: childBottomY, state: bottomState });
-      lines.push({ x1: xFar, y1: childTopY, x2: xFar, y2: centerY, state: topState });
-      lines.push({ x1: xFar, y1: childBottomY, x2: xFar, y2: centerY, state: bottomState });
-      circles.push({ x: xFar, y: centerY, match });
+      if (childTop) {
+        const y = resolvedCenterY(roundsMatches, r - 1, 2 * matchNo - 1, rowH);
+        lines.push({ x1: xNear, y1: y, x2: xFar, y2: y, state: topState });
+        if (y !== centerY) lines.push({ x1: xFar, y1: y, x2: xFar, y2: centerY, state: topState });
+      }
+      if (childBottom) {
+        const y = resolvedCenterY(roundsMatches, r - 1, 2 * matchNo, rowH);
+        lines.push({ x1: xNear, y1: y, x2: xFar, y2: y, state: bottomState });
+        if (y !== centerY) lines.push({ x1: xFar, y1: y, x2: xFar, y2: centerY, state: bottomState });
+      }
+      if (!match.is_bye) circles.push({ x: xFar, y: centerY, match });
     });
   }
 
