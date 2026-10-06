@@ -1,13 +1,25 @@
 export const revalidate = 30;
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
 import BracketView from '@/components/BracketView';
+import ShareButton from '@/components/ShareButton';
 import { getSupabase } from '@/lib/supabase';
 import { BracketMatch, Competition, CompetitionFile, Video } from '@/lib/types';
 
 interface Props {
   params: Promise<{ id: string }>;
+}
+
+// 카톡 등 링크 미리보기에 대회명이 보이도록
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const { data } = await getSupabase().from('competitions').select('name, year').eq('id', id).single();
+  if (!data) return {};
+  const title = `${data.year} ${data.name} 대진표 | EWHA Kumdo`;
+  const description = `${data.name} 대진표와 경기 영상`;
+  return { title, description, openGraph: { title, description } };
 }
 
 export default async function CompetitionBracketPage({ params }: Props) {
@@ -59,6 +71,9 @@ export default async function CompetitionBracketPage({ params }: Props) {
             {comp.name}
           </span>
           <span className="text-sm font-semibold" style={{ color: '#374151' }}>{comp.year}년</span>
+          <div className="ml-auto">
+            <ShareButton path={`/competition/${comp.id}/bracket`} title={`${comp.year} ${comp.name} 대진표`} />
+          </div>
         </div>
       </div>
 

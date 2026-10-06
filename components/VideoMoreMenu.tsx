@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { sharePath } from '@/lib/share';
 
 // 영상 카드/행의 ⋮ 더보기 메뉴 — 영상 정보 보기 / 피드백 요청하기 / YouTube에서 보기 / 공유하기
 export default function VideoMoreMenu({
@@ -26,16 +27,7 @@ export default function VideoMoreMenu({
 
   async function share() {
     setOpen(false);
-    const url = `${window.location.origin}${videoPath}`;
-    try {
-      if (navigator.share) await navigator.share({ title, url });
-      else {
-        await navigator.clipboard.writeText(url);
-        alert('링크가 복사되었습니다.');
-      }
-    } catch {
-      // 공유 시트를 닫은 경우 등은 무시
-    }
+    await sharePath(videoPath, title);
   }
 
   const itemClass = 'block w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50';
