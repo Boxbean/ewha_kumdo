@@ -269,6 +269,9 @@ function nextOnPage(from: number, path: string): number | null {
   return null;
 }
 
+// 임시 비활성화: 갤럭시 폰 홈에서 튜토리얼이 다음 단계로 넘어가지 않는 오류 — 원인 수정 전까지 모든 기기에서 끔 (true로 바꾸면 복구)
+export const TUTORIAL_ENABLED = false;
+
 export default function TutorialTour() {
   const pathname = usePathname();
   const [step, setStep] = useState<number | null>(null);

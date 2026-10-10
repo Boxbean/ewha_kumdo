@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 import PushNotificationButton from './PushNotificationButton';
+import { TUTORIAL_ENABLED } from './TutorialTour';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -75,6 +76,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
         <PushNotificationButton />
 
         {/* 튜토리얼 버튼 */}
+        {TUTORIAL_ENABLED && (
         <button
           onClick={() => {
             if (pathname === '/') {
@@ -92,6 +94,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
         >
           ?
         </button>
+        )}
 
         {/* 햄버거 메뉴 (오른쪽 끝) */}
         <button
