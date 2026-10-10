@@ -1,4 +1,8 @@
 export const revalidate = 30;
+// 빈 배열을 내보내야 동적 경로([id])도 첫 방문 때 그려 30초 캐시(ISR)함 — 없으면 revalidate가 무시되고 매 요청마다 DB를 조회함
+export async function generateStaticParams() {
+  return [];
+}
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -6,6 +10,7 @@ import AppLayout from '@/components/AppLayout';
 import BracketView from '@/components/BracketView';
 import ShareButton from '@/components/ShareButton';
 import { getSupabase } from '@/lib/supabase';
+import { videosForMatch } from '@/lib/bracket';
 import { BracketMatch, Competition, CompetitionFile, Video } from '@/lib/types';
 
 interface Props {
@@ -49,7 +54,7 @@ export default async function CompetitionBracketPage({ params }: Props) {
   const bracketMatches = (bracketRes.data as BracketMatch[]) || [];
   const matches = bracketMatches.map((m) => ({
     ...m,
-    videos: videos.filter((v) => v.bracket_match_id === m.id),
+    videos: videosForMatch(videos, m.id),
   }));
 
   return (

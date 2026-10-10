@@ -1,4 +1,8 @@
 export const revalidate = 30;
+// 빈 배열을 내보내야 동적 경로([id])도 첫 방문 때 그려 30초 캐시(ISR)함 — 없으면 revalidate가 무시되고 매 요청마다 DB를 조회함
+export async function generateStaticParams() {
+  return [];
+}
 
 import { notFound } from 'next/navigation';
 import AppLayout from '@/components/AppLayout';

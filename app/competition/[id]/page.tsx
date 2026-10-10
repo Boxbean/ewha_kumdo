@@ -1,7 +1,12 @@
 export const revalidate = 30;
+// 빈 배열을 내보내야 동적 경로([id])도 첫 방문 때 그려 30초 캐시(ISR)함 — 없으면 revalidate가 무시되고 매 요청마다 DB를 조회함
+export async function generateStaticParams() {
+  return [];
+}
 
 import AppLayout from '@/components/AppLayout';
 import { getSupabase } from '@/lib/supabase';
+import { videosForMatch } from '@/lib/bracket';
 import { BracketMatch, Competition, Video } from '@/lib/types';
 import CompetitionDetailView from '@/components/CompetitionDetailView';
 
@@ -47,7 +52,7 @@ export default async function CompetitionDetailPage({ params }: Props) {
   // 대진표에서 해당 경기 클릭 시 바로 영상을 볼 수 있도록, 매치에 연결된 영상들을 붙여줌
   comp.bracket_matches = bracketMatches.map((m) => ({
     ...m,
-    videos: videos.filter((v) => v.bracket_match_id === m.id),
+    videos: videosForMatch(videos, m.id),
   }));
 
   return (

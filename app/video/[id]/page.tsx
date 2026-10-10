@@ -35,13 +35,14 @@ export default async function VideoDetailPage({ params }: Props) {
 
   const video = data as Video;
   const videoId = extractYouTubeId(video.youtube_url);
+  const angleTabs = video.bracket_match_id ? await getMatchAngleTabs(video.bracket_match_id, video.id) : [];
 
   return (
     <AppLayout>
       <div className="max-w-3xl mx-auto">
         {/* YouTube 플레이어 + 구간 버튼 */}
         {videoId ? (
-          <VideoPlayerSection videoId={videoId} chapters={video.chapters || []} />
+          <VideoPlayerSection videoId={videoId} chapters={video.chapters || []} angleTabs={angleTabs} />
         ) : (
           <div
             className="w-full rounded-lg flex items-center justify-center text-sm mb-4"
@@ -112,6 +113,22 @@ export default async function VideoDetailPage({ params }: Props) {
       </div>
     </AppLayout>
   );
+}
+
+// 같은 대진표 경기에 연결된 영상들(먼저 등록된 순) → 앵글 탭. 같은 앵글이 여러 개면 번호를 붙여 탭 이름이 겹치지 않게 함
+async function getMatchAngleTabs(matchId: string, currentId: string) {
+  const { data } = await getSupabase()
+    .from('videos')
+    .select('id, angle, created_at')
+    .eq('bracket_match_id', matchId)
+    .order('created_at', { ascending: true });
+
+  const siblings = (data as Pick<Video, 'id' | 'angle' | 'created_at'>[]) || [];
+  return siblings.map((v) => {
+    const same = siblings.filter((x) => x.angle === v.angle);
+    const label = same.length > 1 ? `${v.angle} ${same.indexOf(v) + 1}` : v.angle;
+    return { id: v.id, label, active: v.id === currentId };
+  });
 }
 
 // 같은 날짜의 다른 영상 (페어 영상) — 카드에 대회명/상대 정보를 보여주기 위한 조인 포함

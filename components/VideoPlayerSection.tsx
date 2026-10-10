@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { VideoChapter } from '@/lib/types';
 import { formatTimestamp } from '@/lib/utils';
@@ -8,11 +9,13 @@ import YouTubePlayer, { YouTubePlayerHandle } from './YouTubePlayer';
 interface Props {
   videoId: string;
   chapters: VideoChapter[];
+  // 같은 경기를 다른 각도로 찍은 영상들 — 홈의 [전면]·[후면] 탭처럼 눌러서 전환 (현재 영상 포함)
+  angleTabs?: { id: string; label: string; active: boolean }[];
 }
 
 // 영상 상세의 플레이어 + 구간 버튼
 // 가장 이른 구간을 운동 시작점으로 보고 그 지점부터 재생, 푸시 알림(?autoplay=1)으로 들어오면 음소거 자동재생
-export default function VideoPlayerSection({ videoId, chapters }: Props) {
+export default function VideoPlayerSection({ videoId, chapters, angleTabs = [] }: Props) {
   const playerRef = useRef<YouTubePlayerHandle>(null);
   // 상세 페이지는 정적 생성(ISR)이라 쿼리 파라미터는 클라이언트에서 마운트 후 읽음
   const [autoplay, setAutoplay] = useState<boolean | null>(null);
@@ -40,8 +43,26 @@ export default function VideoPlayerSection({ videoId, chapters }: Props) {
         )}
       </div>
 
-      {chapters.length > 0 && (
+      {(angleTabs.length > 1 || chapters.length > 0) && (
         <div className="flex gap-2 overflow-x-auto mt-2 pb-1 -mx-1 px-1">
+          {angleTabs.length > 1 &&
+            angleTabs.map((t) => (
+              <Link
+                key={t.id}
+                href={`/video/${t.id}`}
+                replace
+                scroll={false}
+                aria-current={t.active ? 'page' : undefined}
+                className="flex-shrink-0 flex items-center text-xs font-semibold px-3 py-1.5 rounded-full border"
+                style={
+                  t.active
+                    ? { backgroundColor: '#00462A', borderColor: '#00462A', color: '#fff' }
+                    : { borderColor: '#e0e0e0', color: '#374151', backgroundColor: '#fff' }
+                }
+              >
+                {t.label}
+              </Link>
+            ))}
           {chapters.map((c) => (
             <button
               key={`${c.seconds}-${c.label}`}

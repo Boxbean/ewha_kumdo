@@ -159,6 +159,8 @@ function HeroPlayer({
           <img
             src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
             alt={title}
+            // 홈 첫 화면에서 가장 큰 이미지(LCP)라 다른 썸네일보다 먼저 받아오게 함
+            fetchPriority="high"
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 flex items-center justify-center">

@@ -141,3 +141,10 @@ export function groupByDivision(matches: BracketMatch[]): DivisionGroup[] {
   }
   return Array.from(map.values());
 }
+
+// 매치에 연결된 영상들 — 먼저 등록된 영상이 앞에 오도록 정렬 (대진표 번호 원은 첫 번째 영상으로 이동)
+export function videosForMatch<V extends { bracket_match_id?: string | null; created_at: string }>(videos: V[], matchId: string): V[] {
+  return videos
+    .filter((v) => v.bracket_match_id === matchId)
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
+}

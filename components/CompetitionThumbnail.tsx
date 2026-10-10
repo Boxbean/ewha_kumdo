@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { CompetitionFile } from '@/lib/types';
-import { supabase } from '@/lib/supabase';
 import { adminFetch } from '@/lib/adminClient';
 import { THUMBNAIL_CARD_FILE_TYPE, THUMBNAIL_FILE_TYPE } from '@/lib/utils';
 import ImageCropModal, { SquareCrop } from './ImageCropModal';
@@ -76,6 +75,8 @@ export default function CompetitionThumbnail({ competitionId, files, editMode, o
   }
 
   async function uploadFile(body: Blob, path: string, fileName: string, fileType: string): Promise<CompetitionFile> {
+    // 업로드는 관리자만 쓰므로 Supabase 라이브러리(약 200KB)를 이때 불러옴 — 대회 상세를 보는 부원에게는 내려보내지 않음
+    const { supabase } = await import('@/lib/supabase');
     const { error: storageError } = await supabase.storage
       .from('competition-files')
       .upload(path, body, { upsert: true, contentType: body.type || undefined });
