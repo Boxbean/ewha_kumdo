@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { SPLASH_SESSION_KEY } from '@/lib/splash';
+import { SPLASH_DONE_ATTR, SPLASH_DONE_EVENT, SPLASH_SESSION_KEY } from '@/lib/splash';
 
 // 로고 크기와 바깥 원 반지름을 독립적으로 조절 — 원은 로고 꽃잎 끝단 기준 약 10px 간격을 두고 감쌈
 const SIZE = 220;
@@ -47,6 +47,11 @@ export default function SplashScreen({ children }: SplashScreenProps) {
   // 전환이 끝나기 전까지 바디 스크롤을 잠가서 실제 콘텐츠가 화면 밖(오른쪽)에 대기하는 동안 끌려나오지 않게 함
   useEffect(() => {
     document.body.style.overflow = phase === 'done' ? '' : 'hidden';
+    // 튜토리얼처럼 화면 전체를 덮는 안내는 스플래시가 끝난 뒤에 시작해야 함 (components/TutorialTour.tsx)
+    if (phase === 'done') {
+      document.documentElement.setAttribute(SPLASH_DONE_ATTR, '');
+      window.dispatchEvent(new Event(SPLASH_DONE_EVENT));
+    }
     return () => {
       document.body.style.overflow = '';
     };
@@ -54,14 +59,17 @@ export default function SplashScreen({ children }: SplashScreenProps) {
 
   return (
     <>
-      {/* 홈 화면 콘텐츠 — 전환 중에는 뷰포트 크기로 고정해 fixed 헤더/하단바가 실제 화면 기준으로 붙어있게 함 */}
+      {/* 홈 화면 콘텐츠 — 전환 중에는 화면에 고정(fixed)된 뷰포트 크기 상자로 두어 fixed 헤더/하단바가 실제 화면 기준으로 붙어있게 함.
+          예전처럼 일반 상자(height: 100vh)를 오른쪽으로 밀어두면 문서 폭이 화면의 2배가 되어, 확대 제한(user-scalable=no)을
+          무시하는 삼성 인터넷(갤럭시 홈 화면 앱)이 페이지 전체를 절반 크기로 축소해 보여줌 — fixed 상자는 문서 폭에 포함되지 않음 */}
       <div
         className="splash-content"
         style={
           phase === 'done'
             ? undefined
             : {
-                height: '100vh',
+                position: 'fixed',
+                inset: 0,
                 overflow: 'hidden',
                 transform: phase === 'show' ? 'translateX(100%)' : 'translateX(0)',
                 transition: phase === 'exiting' ? `transform ${EXIT_MS}ms ease-out` : 'none',

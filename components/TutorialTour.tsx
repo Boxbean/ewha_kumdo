@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
+import { SPLASH_DONE_ATTR, SPLASH_DONE_EVENT } from '@/lib/splash';
 
 // 전체 탭 튜토리얼 — 화면 구성 요소를 하나씩 짚어 설명하고, 탭의 설명이 끝나면
 // 사용자가 다음 탭을 "직접 눌러" 이동하도록 유도하는 방식 (페이지를 넘나들며 이어짐)
@@ -264,13 +266,23 @@ function findTarget(step: TourStep): HTMLElement | null {
 
 // 이 단계를 보여줄 수 없을 때(대상 없음) 현재 화면에서 이어갈 다음 단계 —
 // "눌러서 이동" 단계를 건너뛰면 그 다음 화면용 단계들도 함께 건너뜀
+// 스플래시(components/SplashScreen.tsx)가 끝난 뒤에 실행 — 스플래시 중엔 본문이 화면 밖에 있어 대상 위치를 잴 수 없음
+function afterSplash(fn: () => void): () => void {
+  if (document.documentElement.hasAttribute(SPLASH_DONE_ATTR)) {
+    fn();
+    return () => {};
+  }
+  window.addEventListener(SPLASH_DONE_EVENT, fn, { once: true });
+  return () => window.removeEventListener(SPLASH_DONE_EVENT, fn);
+}
+
 function nextOnPage(from: number, path: string): number | null {
   for (let i = from + 1; i < STEPS.length; i++) if (STEPS[i].page(path)) return i;
   return null;
 }
 
-// 임시 비활성화: 갤럭시 폰 홈에서 튜토리얼이 다음 단계로 넘어가지 않는 오류 — 원인 수정 전까지 모든 기기에서 끔 (true로 바꾸면 복구)
-export const TUTORIAL_ENABLED = false;
+// 튜토리얼 전체 켜기/끄기 — 문제가 생기면 false로 바꿔 모든 기기에서 숨김 (헤더 [?] 버튼 포함)
+export const TUTORIAL_ENABLED = true;
 
 export default function TutorialTour() {
   const pathname = usePathname();
@@ -323,8 +335,14 @@ export default function TutorialTour() {
       done = !!localStorage.getItem(STORAGE_KEY);
     } catch {}
     if (!pending && done) return;
-    const t = setTimeout(() => go(0), pending ? 100 : 600);
-    return () => clearTimeout(t);
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const stopWaiting = afterSplash(() => {
+      t = setTimeout(() => go(0), pending ? 100 : 600);
+    });
+    return () => {
+      stopWaiting();
+      clearTimeout(t);
+    };
   }, [pathname]);
 
   // 홈에서 [?] 버튼으로 재시작
@@ -433,7 +451,8 @@ export default function TutorialTour() {
       ]
     : [{ top: 0, left: 0, right: 0, bottom: 0 }];
 
-  return (
+  // body 바로 아래에 그려, 부모 요소의 transform(스플래시 전환 등)과 상관없이 fixed 위치가 항상 실제 화면 기준이 되게 함
+  return createPortal(
     <>
       {/* 어둡게 + 대상 자리만 밝게 뚫린 스포트라이트 */}
       {hole ? (
@@ -505,6 +524,7 @@ export default function TutorialTour() {
           </div>
         </div>
       )}
-    </>
+    </>,
+    document.body
   );
 }

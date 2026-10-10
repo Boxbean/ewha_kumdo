@@ -17,6 +17,13 @@ body {
   box-sizing: border-box;
 }
 
+/* 화면 밖으로 삐져나온 요소 때문에 문서 폭이 화면보다 넓어지면, 확대 제한을 무시하는 삼성 인터넷(갤럭시)이
+   페이지 전체를 축소해 보여주므로 가로 넘침은 잘라냄 (clip은 스크롤 상자를 만들지 않아 sticky 등에 영향 없음) */
+html,
+body {
+  overflow-x: clip;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -34,6 +41,7 @@ html[data-splash-skip] .splash-overlay {
   display: none;
 }
 html[data-splash-skip] .splash-content {
+  position: static !important;
   transform: none !important;
   height: auto !important;
   overflow: visible !important;
